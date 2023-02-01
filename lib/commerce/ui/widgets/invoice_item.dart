@@ -30,11 +30,11 @@ class InvoiceItem extends StatelessWidget {
                 children: [
                   Text(
                     'Receipt Id ${invoice.id}',
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   Text(
                     '${invoice.payment!.price.currency.name}${invoice.payment!.finalAmount}',
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],
               ),
@@ -42,11 +42,11 @@ class InvoiceItem extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(AppUtilities.dateFormat(invoice.createdTime),
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                   Text(
                     'Duration: ${invoice.orderId}',
-                    style: Theme.of(context).textTheme.headline6,
+                    style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],
               ),
@@ -59,13 +59,13 @@ class InvoiceItem extends StatelessWidget {
                       children: [
                         TextSpan(
                           text: 'Services type: ',
-                          style: Theme.of(context).textTheme.headline6,
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                         TextSpan(
                           text: invoice.payment!.type.name,
                           style: Theme.of(context)
                               .textTheme
-                              .headline6!
+                              .titleLarge!
                               .copyWith(color: Theme.of(context).primaryColor),
                         )
                       ],
@@ -81,7 +81,7 @@ class InvoiceItem extends StatelessWidget {
                       invoice.payment!.status.name,
                       style: Theme.of(context)
                           .textTheme
-                          .headline6!
+                          .titleLarge!
                           .copyWith(color: Colors.white),
                     ),
                   ),
@@ -94,7 +94,7 @@ class InvoiceItem extends StatelessWidget {
                 ),
                 title: Text(
                   invoice.toUser.name,
-                  style: Theme.of(context).textTheme.headline6,
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
                 subtitle: Text(invoice.description),
               ),

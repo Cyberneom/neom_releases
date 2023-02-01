@@ -13,7 +13,6 @@ import 'package:neom_commons/core/domain/model/address.dart';
 import 'package:neom_commons/core/domain/model/app_profile.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/core/utils/constants/app_payment_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 import 'package:neom_commons/core/utils/constants/message_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
@@ -28,6 +27,7 @@ import '../../domain/models/invoice.dart';
 import '../../domain/models/payment.dart';
 import '../../domain/models/purchase_order.dart';
 import '../../domain/use_cases/payment_gateway_service.dart';
+import '../../utils/constants/commerce_constants.dart';
 import '../../utils/enums/payment_status.dart';
 import '../../utils/enums/payment_type.dart';
 import '../wallet_controller.dart';
@@ -76,7 +76,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
   String apiBase = 'https://api.stripe.com/v1';
   Map<String, String> headers = {
-    'Authorization': 'Bearer ${AppPaymentConstants.stripeSecretLiveKey}',
+    'Authorization': 'Bearer ${CommerceConstants.stripeSecretLiveKey}',
     'Content-Type': 'application/x-www-form-urlencoded'
   };
 

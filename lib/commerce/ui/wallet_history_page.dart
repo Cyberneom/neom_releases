@@ -1,9 +1,11 @@
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/utils/app_color.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
+import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/core_utilities.dart';
@@ -16,7 +18,6 @@ import 'widgets/wallet_widgets.dart';
 
 class WalletHistoryPage extends StatelessWidget {
   const WalletHistoryPage({Key? key}) : super(key: key);
-
 
   @override
   Widget build(BuildContext context) {
@@ -48,15 +49,15 @@ class WalletHistoryPage extends StatelessWidget {
                             TextSpan(
                               text: '${AppTranslationConstants.currentAmount.tr} \n',
                               style: Theme.of(context)
-                                  .textTheme.headline6!
+                                  .textTheme.titleLarge!
                                   .copyWith(
                                   color: Colors.grey,
                                   fontSize: 16),
                             ),
                             TextSpan(
-                              text: '${_.wallet.currency.value.capitalizeFirst}: ${_.wallet.amount.truncate().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
+                              text: '${AppFlavour.getAppCoinName()}: ${_.wallet.amount.truncate().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
                               style: Theme.of(context)
-                                  .textTheme.headline6!
+                                  .textTheme.titleLarge!
                                   .copyWith(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 25,
@@ -77,7 +78,8 @@ class WalletHistoryPage extends StatelessWidget {
                           ),
                         ),
                         onPressed: () {
-                          Alert(
+                          true ? AppUtilities.showSnackBar(AppTranslationConstants.underConstruction, AppTranslationConstants.underConstructionMsg)
+                          : Alert(
                               context: context,
                               style: AlertStyle(
                                   backgroundColor: AppColor.main50,
@@ -90,7 +92,7 @@ class WalletHistoryPage extends StatelessWidget {
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text("${AppTranslationConstants.coinsToAcquire.tr}:",
+                                      Text("${AppTranslationConstants.appCoinsToAcquire.tr}:",
                                         style: const TextStyle(fontSize: 15),
                                       ),
                                        Obx(()=> DropdownButton<AppProduct>(
@@ -188,9 +190,6 @@ class WalletHistoryPage extends StatelessWidget {
                                 ),
                               ]
                           ).show();
-                          //GigUtilities.showSnackBar(GigTranslationConstants.underConstruction, GigTranslationConstants.underConstructionMsg);
-                          //GigUtilities.launchURL("https://gigmeout.io/shop/paquete-100-gigcoins/");
-                          //Get.to(AddMoneyWidget(amount: wallet.amount,currency: wallet.currency));
                         },
                       ),
                     ],

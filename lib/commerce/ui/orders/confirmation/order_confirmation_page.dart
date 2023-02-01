@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:neom_commons/core/app_flavour.dart';
 
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/utils/app_color.dart';
@@ -8,7 +9,6 @@ import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_assets.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
-import 'package:neom_commons/core/utils/constants/url_constants.dart';
 import 'package:neom_commons/core/utils/enums/sale_type.dart';
 import 'order_confirmation_controller.dart';
 
@@ -41,7 +41,9 @@ class OrderConfirmationPage extends StatelessWidget {
                           width: 100,
                           child: _.order.saleType == SaleType.product
                               ? Image.asset(AppAssets.appCoins13)
-                              : Image.network(_.displayedImgUrl.isNotEmpty ? _.displayedImgUrl : UrlConstants.noImageUrl),
+                              : Image.network(_.displayedImgUrl.isNotEmpty ? _.displayedImgUrl
+                              : AppFlavour.getNoImageUrl()
+                          ),
                          ),
                          Column(
                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
