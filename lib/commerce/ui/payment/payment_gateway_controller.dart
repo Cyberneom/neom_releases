@@ -175,8 +175,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
     try {
 
       paymentStatus = PaymentStatus.processing;
-
-      errorMsg = Validator().validateEmail(emailController.text);
+      errorMsg = Validator.validateEmail(emailController.text);
 
       if(errorMsg.isEmpty) {
         if (phoneController.text.isEmpty ||
