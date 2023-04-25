@@ -13,9 +13,11 @@ dependencies:
     sdk: flutter
 
   neom_commons:
-    path: ../neom_commons
+    git:
+      url: https://github.com/Cyberneom/neom_commons.git
   neom_events:
-    path: ../neom_events
+    git:
+      url: https://github.com/Cyberneom/neom_events.git
 
   #not working for products
   woosignal: ^3.1.1
