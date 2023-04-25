@@ -1,8 +1,0 @@
-class CommerceConstants {
-
-  static const String stripePublishableKey = "pk_live_51Kn3QhHS68rZKCuq6dwMz5Q6oRDv87jFgkBcHj7KAsqDs0SZzVL69xKEboVheUYNoLh5wbWzRA9btV6xQTHhBaxU00TaqtuVzA";
-  static const String stripeSecretLiveKey = "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";
-  static const String stripePublishableTestKey = "pk_test_51Kn3QhHS68rZKCuqcLxeEhqTgMEWn26Ms98pP2siokZLGuH6qbu4WwLnjF6kaBdskrllpo0LkvQAWahbW8nSUHmt007hvqPU1n";
-  static const String stripeSecretTestKey = "sk_test_51Kn3QhHS68rZKCuq5n1SgCESrdsdtIxeNFtcP9ucMs8rc8CVOVp2D0DxoWt8BWh4yKBdd0ErcSWrr54jOdqOvrAR006ON9zz0Q";
-
-}

@@ -6,6 +6,7 @@ import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl_phone_field/countries.dart';
+import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/data/firestore/profile_firestore.dart';
 import 'package:neom_commons/core/data/firestore/user_firestore.dart';
 import 'package:neom_commons/core/data/implementations/user_controller.dart';
@@ -27,7 +28,6 @@ import '../../domain/models/invoice.dart';
 import '../../domain/models/payment.dart';
 import '../../domain/models/purchase_order.dart';
 import '../../domain/use_cases/payment_gateway_service.dart';
-import '../../utils/constants/commerce_constants.dart';
 import '../../utils/enums/payment_status.dart';
 import '../../utils/enums/payment_type.dart';
 import '../wallet_controller.dart';
@@ -76,7 +76,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
   String apiBase = 'https://api.stripe.com/v1';
   Map<String, String> headers = {
-    'Authorization': 'Bearer ${CommerceConstants.stripeSecretLiveKey}',
+    'Authorization': 'Bearer ${AppFlavour.getStripeSecretLiveKey()}',
     'Content-Type': 'application/x-www-form-urlencoded'
   };
 

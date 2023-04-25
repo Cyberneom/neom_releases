@@ -10,14 +10,12 @@ class InvoiceFirestore implements InvoiceRepository {
   var logger = AppUtilities.logger;
   final invoiceReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.invoices);
 
-
   @override
   Future<Invoice> retrieveInvoice(String invoiceId) async {
     logger.d("Retrieving Invoice for id $invoiceId");
     Invoice invoice = Invoice();
 
     try {
-
       DocumentSnapshot documentSnapshot = await invoiceReference.doc(invoiceId).get();
 
       if (documentSnapshot.exists) {
