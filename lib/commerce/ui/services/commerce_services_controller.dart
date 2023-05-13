@@ -10,7 +10,7 @@ import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_locale.dart';
 
-class AppSettingsController extends GetxController {
+class CommerceServicesController extends GetxController {
 
   var logger = AppUtilities.logger;
   final loginController = Get.find<LoginController>();

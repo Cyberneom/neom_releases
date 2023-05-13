@@ -9,17 +9,17 @@ import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/user_role.dart';
-import 'app_settings_controller.dart';
+import 'commerce_services_controller.dart';
 
-class ServicesPage extends StatelessWidget {
+class CommerceServicesPage extends StatelessWidget {
 
-  const ServicesPage({Key? key}) : super(key: key);
+  const CommerceServicesPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<AppSettingsController>(
+    return GetBuilder<CommerceServicesController>(
       id: AppPageIdConstants.settingsPrivacy,
-      init: AppSettingsController(),
+      init: CommerceServicesController(),
       builder: (_) => Scaffold(
         appBar: AppBarChild(title: AppTranslationConstants.offeredServices.tr),
         body: Container(
@@ -36,7 +36,7 @@ class ServicesPage extends StatelessWidget {
             SettingRowWidget(AppTranslationConstants.onlineClinics.tr, url: AppFlavour.getOnlineClinicUrl()),
             HeaderWidget(AppTranslationConstants.publishingHouse.tr, secondHeader: true,),
             SettingRowWidget(AppTranslationConstants.copyright.tr, url: AppFlavour.getCopyrightUrl()),
-            SettingRowWidget(AppTranslationConstants.coverDesignUrl.tr, url: AppFlavour.getCoverDesignUrl()),
+            SettingRowWidget(AppTranslationConstants.coverDesign.tr, url: AppFlavour.getCoverDesignUrl()),
             SettingRowWidget(AppTranslationConstants.startCampaignUrl.tr, url: AppFlavour.getStartCampaignUrl()),
             //TODO
             _.userController.user!.userRole == UserRole.subscriber

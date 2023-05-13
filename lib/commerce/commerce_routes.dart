@@ -4,7 +4,7 @@ import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 import 'ui/orders/confirmation/order_confirmation_page.dart';
 import 'ui/orders/order_details_page.dart';
 import 'ui/payment/payment_gateway_page.dart';
-import 'ui/services/services_page.dart';
+import 'ui/services/commerce_services_page.dart';
 import 'ui/wallet_history_page.dart';
 
 class CommerceRoutes {
@@ -32,7 +32,7 @@ class CommerceRoutes {
     ),
     GetPage(
       name: AppRouteConstants.services,
-      page: () => const ServicesPage(),
+      page: () => const CommerceServicesPage(),
       transition: Transition.zoom,
     ),
   ];
