@@ -5,15 +5,15 @@ import 'package:neom_commons/core/app_flavour.dart';
 
 import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
-import '../../event_controller.dart';
 
-class CreateEventSummaryBackground extends StatelessWidget {
-  const CreateEventSummaryBackground({Key? key}) : super(key: key);
+import '../release_upload_controller.dart';
 
+class OnlinePositioningSummaryBackground extends StatelessWidget {
+  const OnlinePositioningSummaryBackground({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<EventController>(
+    return GetBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.event,
       builder: (_) => Positioned(
         top: -50,
@@ -26,8 +26,8 @@ class CreateEventSummaryBackground extends StatelessWidget {
           },
           child: Stack(
             children: [
-              CachedNetworkImage(imageUrl: _.event.coverImgUrl.isNotEmpty ? _.event.coverImgUrl
-                  : _.event.imgUrl.isNotEmpty ? _.event.imgUrl : AppFlavour.getNoImageUrl(),
+              CachedNetworkImage(imageUrl: _.appReleaseItem.imgUrl.isNotEmpty ? _.appReleaseItem.imgUrl
+                  : _.appReleaseItem.imgUrl.isNotEmpty ? _.appReleaseItem.imgUrl : AppFlavour.getNoImageUrl(),
                 width: AppTheme.fullWidth(context),
                 height: AppTheme.fullHeight(context),
                 fit: BoxFit.cover,
