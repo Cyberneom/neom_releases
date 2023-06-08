@@ -8,6 +8,7 @@ import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
+import 'package:neom_commons/core/ui/widgets/submit_button.dart';
 import 'package:neom_commons/core/utils/app_color.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
@@ -31,7 +32,7 @@ class PaymentGatewayPage extends StatelessWidget {
         body: SingleChildScrollView(
           controller: ScrollController(initialScrollOffset: 100),
           child: Container(
-            padding: const EdgeInsets.all(30),
+            padding: const EdgeInsets.all(20),
             height: AppTheme.fullHeight(context),
             decoration: AppTheme.appBoxDecoration,
             child: Flex(
@@ -40,8 +41,8 @@ class PaymentGatewayPage extends StatelessWidget {
                 Expanded(
                 child: Obx(()=> _.isLoading ? const Center(child: CircularProgressIndicator())
                 : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text("${AppTranslationConstants.toPay.tr} ${CoreUtilities.getCurrencySymbol(_.payment.price.currency)}"
                         "${_.payment.finalAmount} (${_.payment.price.currency.name.toUpperCase()}) ${AppTranslationConstants.using.tr}",
@@ -65,43 +66,30 @@ class PaymentGatewayPage extends StatelessWidget {
                         _.cardFieldInputDetails = card;
                       },
                       style: CardFormStyle(
-                        backgroundColor: Platform.isIOS ? AppColor.white : AppColor.getMain(),
+                        placeholderColor: AppColor.white,
+                        textColor: AppColor.white,
+                        backgroundColor: Platform.isIOS ? AppColor.white : AppColor.main25,
                       ),
+                      countryCode: Get.locale!.countryCode,
+                      enablePostalCode: false,
                     ),
                     AppTheme.heightSpace10,
                     Column(
                       children: [
-                        Align(
-                          alignment: Alignment.center,
-                          child: SizedBox(
-                            width: AppTheme.fullWidth(context) * 0.5,
-                            child: TextButton(
-                              style: TextButton.styleFrom(
-                                padding: EdgeInsets.zero,
-                                backgroundColor: AppColor.bondiBlue75,
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12.0)),
-                              ),
-                              onPressed: () async => _.isButtonDisabled ? {} : _.handleStripePayment(),
-                              child: Text("${AppTranslationConstants.toPay.tr} ${CoreUtilities.getCurrencySymbol(_.payment.price.currency)}"
-                                  "${_.payment.finalAmount} (${_.payment.price.currency.name.toUpperCase()})",
-                                style: const TextStyle(
-                                    fontSize: 15,
-                                    color: Colors.white
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
+                        SubmitButton(context, isEnabled: !_.isButtonDisabled, isLoading: _.isLoading,
+                        text: "${AppTranslationConstants.toPay.tr} ${CoreUtilities.getCurrencySymbol(_.payment.price.currency)}"
+                            "${_.payment.finalAmount} (${_.payment.price.currency.name.toUpperCase()})",
+                        onPressed: _.handleStripePayment,),
                         _.cardEditController.details.complete ? Container()
                         : Column(
                           children: [
                             AppTheme.heightSpace10,
-                            Text(MessageTranslationConstants.pleaseFillCardInfo.tr,
+                            Center(child: Text(MessageTranslationConstants.pleaseFillCardInfo.tr,
                               style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.red
                               ),
-                            ),
+                            ),),
                           ],
                         ),
                       ],

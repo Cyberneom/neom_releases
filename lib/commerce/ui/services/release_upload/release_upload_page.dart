@@ -24,7 +24,6 @@ class ReleaseUploadPage extends StatelessWidget {
           extendBodyBehindAppBar: true,
           appBar: AppBarChild(color: Colors.transparent),
           body: Container(
-            height: AppTheme.fullHeight(context),
             padding: const EdgeInsets.all(10),
             decoration: AppTheme.appBoxDecoration,
             child: Center(
@@ -32,13 +31,14 @@ class ReleaseUploadPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
+                    AppTheme.heightSpace10,
                     TitleSubtitleRow(AppTranslationConstants.digitalPositioning.tr, subtitle: AppTranslationConstants.releaseUploadIntro.tr,showDivider: false,),
                     AppTheme.heightSpace10,
                     TitleSubtitleRow(AppTranslationConstants.digitalSalesModel.tr, subtitle: AppTranslationConstants.digitalSalesModelMsg.tr,showDivider: false,),
                     AppTheme.heightSpace10,
                     GestureDetector(
                         child: SizedBox(
-                          width: AppTheme.fullWidth(context)*0.75,
+                          width: AppTheme.fullWidth(context)*0.6,
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(10.0),
                             child: Image.asset(AppAssets.releaseUploadIntro,

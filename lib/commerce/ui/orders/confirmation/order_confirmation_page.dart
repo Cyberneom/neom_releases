@@ -25,9 +25,9 @@ class OrderConfirmationPage extends StatelessWidget {
         body:  SingleChildScrollView(
           child: Container(
             decoration: AppTheme.appBoxDecoration,
-            padding: const EdgeInsets.all(30),
+            padding: const EdgeInsets.all(20),
             height: AppTheme.fullHeight(context),
-            child: Column(
+            child: Obx(()=> _.isLoading ? const Center(child: CircularProgressIndicator()) : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                    Container(
@@ -47,7 +47,7 @@ class OrderConfirmationPage extends StatelessWidget {
                          ),
                          Column(
                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                           crossAxisAlignment: CrossAxisAlignment.end,
+                           crossAxisAlignment: CrossAxisAlignment.center,
                            children: <Widget>[
                                Text(_.order.saleType.name.tr,
                                  style: const TextStyle(
@@ -212,7 +212,9 @@ class OrderConfirmationPage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(12.0)
                           ),
                         ),
-                        onPressed: ()=> _.confirmOrder(),
+                        onPressed: () async {
+                          await _.confirmOrder();
+                        },
                         child: Text(AppTranslationConstants.confirmOrder.tr,
                             style: const TextStyle(color: Colors.white),
                             textAlign: TextAlign.center
@@ -221,7 +223,7 @@ class OrderConfirmationPage extends StatelessWidget {
                      ),
                    )
              ]
-            ),
+            ),),
           ),
         ),
       ),

@@ -7,33 +7,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_webservice/places.dart';
-import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/data/firestore/app_release_item_firestore.dart';
 import 'package:neom_commons/core/data/firestore/app_upload_firestore.dart';
-import 'package:neom_commons/core/data/firestore/post_firestore.dart';
-import 'package:neom_commons/core/data/firestore/user_firestore.dart';
-import 'package:neom_commons/core/data/implementations/geolocator_controller.dart';
-import 'package:neom_commons/core/data/implementations/maps_controller.dart';
-import 'package:neom_commons/core/data/implementations/user_controller.dart';
-import 'package:neom_commons/core/domain/model/app_item.dart';
-import 'package:neom_commons/core/domain/model/app_profile.dart';
 import 'package:neom_commons/core/domain/model/app_release_item.dart';
-import 'package:neom_commons/core/domain/model/genre.dart';
-import 'package:neom_commons/core/domain/model/instrument.dart';
-import 'package:neom_commons/core/domain/model/place.dart';
-import 'package:neom_commons/core/domain/model/post.dart';
-import 'package:neom_commons/core/domain/model/price.dart';
-import 'package:neom_commons/core/utils/app_color.dart';
-import 'package:neom_commons/core/utils/app_theme.dart';
-import 'package:neom_commons/core/utils/app_utilities.dart';
-import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
-import 'package:neom_commons/core/utils/core_utilities.dart';
-import 'package:neom_commons/core/utils/enums/app_currency.dart';
-import 'package:neom_commons/core/utils/enums/app_file_from.dart';
-import 'package:neom_commons/core/utils/enums/post_type.dart';
 import 'package:neom_commons/core/utils/enums/release_type.dart';
-import 'package:neom_commons/core/utils/enums/upload_image_type.dart';
 import 'package:neom_commons/neom_commons.dart';
 import 'package:neom_instruments/genres/data/implementations/genres_controller.dart';
 import 'package:neom_instruments/instruments/ui/instrument_controller.dart';
@@ -59,12 +36,12 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   late RubberAnimationController releaseUploadDetailsAnimationController;
 
   TextEditingController nameController = TextEditingController(text:"Quemando mis razones");
-  TextEditingController descController = TextEditingController(text:"Cada paso del libro es un despertar de tu conocimiento interno, una vez que inicias no hay vuelta atrás, tus futuras elecciones serán distintas y estarán alineadas a lo que realmente eres y quieres tener.Hoy con amor, te entrego este método y en cada página te acompaño a soltar tus cadenas.");
+  TextEditingController descController = TextEditingController(text:"La obra consta de un número de poemas en distintos formatos y en algunos casos, con cierta similitud a una crónica relatada de manera poética. Diferentes escenarios y atmósferas se presentan a cada poema, donde tras un análisis es posible detectar distintas etapas en la vida del autor, en sus distintos torrentes de amores, alegrías, pensares y pesares. Poemas como “Ensúciate” evocan una invitación a la autocrítica seguida de experiencias, mientras que en otros escritos como “Cuando sea viejo” o “La foto de mi hermano” se obvia la nostalgia y melancolía asociada al pasar del tiempo y las distancias y sus subsecuentes efectos en las relaciones inter -e intra- personales. Otros tantos escritos como “He de admitir y confesar” y “Oh naturaleza” intentan resolver la incertidumbre muchas veces presente en el ser humano. Otras venturas más instintivas se presentan en “Mostrarlo, sentirlo y hacerlo”, donde los deseos carnales del humano son comparados con la necesidad del amor.");
   TextEditingController placeController = TextEditingController();
   TextEditingController maxDistanceKmController = TextEditingController();
   TextEditingController durationController = TextEditingController();
   TextEditingController paymentAmountController = TextEditingController();
-  TextEditingController digitalPriceController = TextEditingController(text: "80");
+  TextEditingController digitalPriceController = TextEditingController(text: "");
   TextEditingController physicalPriceController = TextEditingController(text: "");
 
   final RxList<String> _requiredInstruments = <String>[].obs;
@@ -92,9 +69,9 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
   AppProfile profile = AppProfile();
 
-  final Rx<DateTime> _publishedDate = DateTime.now().obs;
-  DateTime get publishedDate => _publishedDate.value;
-  set publishedDate(DateTime publishedDate) => _publishedDate.value = publishedDate;
+  final Rx<int> _publishedYear = 0.obs;
+  int get publishedYear => _publishedYear.value;
+  set publishedYear(int publishedYear) => _publishedYear.value = publishedYear;
 
   final Rx<AppReleaseItem> _appReleaseItem = AppReleaseItem().obs;
   AppReleaseItem get appReleaseItem => _appReleaseItem.value;
@@ -112,6 +89,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   FilePickerResult? get releaseFile => _releaseFile.value;
   set releaseFile(FilePickerResult? releaseFile) => _releaseFile.value = releaseFile;
 
+  String releaseFilePath = "";
   @override
   void onInit() async {
 
@@ -138,7 +116,8 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       );
 
 
-      appReleaseItem.digitalPrice = Price(currency: AppCurrency.mxn);
+      digitalPriceController.text = AppFlavour.getInitialPrice();
+      appReleaseItem.digitalPrice = Price(currency: AppCurrency.mxn, amount: double.parse(AppFlavour.getInitialPrice()));
       appReleaseItem.ownerId = profile.id;
       appReleaseItem.ownerName = profile.name;
       appReleaseItem.ownerImgUrl = profile.photoUrl;
@@ -230,7 +209,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     update([AppPageIdConstants.releaseUpload]);
 
     appReleaseItem.watchingProfiles = [];
-    appReleaseItem.boughtProfiles = [];
+    appReleaseItem.boughtUsers = [];
 
     try {
       if(postUploadController.croppedImageFile.path.isNotEmpty) {
@@ -244,7 +223,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       if(appReleaseItem.previewUrl.isNotEmpty) {
         logger.d("Uploading file from: ${appReleaseItem.previewUrl}");
         appReleaseItem.previewUrl = await AppUploadFirestore()
-            .uploadPdf(appReleaseItem.name, AppUtilities.getFileFromPath(appReleaseItem.previewUrl));
+            .uploadPdf(appReleaseItem.name, AppUtilities.getFileFromPath(releaseFilePath));
 
         logger.d("Updating Remote Preview URL as: ${appReleaseItem.previewUrl}");
       }
@@ -276,17 +255,18 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
     try {
       Post post = Post(
-          type: PostType.releaseItem,
-          profileName: profile.name,
-          profileImgUrl: profile.photoUrl,
-          ownerId: profile.id,
-          mediaUrl: appReleaseItem.imgUrl,
-          referenceId: appReleaseItem.id,
-          position: appReleaseItem.place!.position ?? profile.position,
-          location: await GeoLocatorController().getAddressSimple(appReleaseItem.place!.position ?? profile.position!),
-          isCommentEnabled: true,
-          createdTime: DateTime.now().millisecondsSinceEpoch,
-          isDraft: true,
+        type: PostType.releaseItem,
+        profileName: profile.name,
+        profileImgUrl: profile.photoUrl,
+        ownerId: profile.id,
+        mediaUrl: appReleaseItem.imgUrl,
+        referenceId: appReleaseItem.id,
+        position: appReleaseItem.place?.position ?? profile.position,
+        location: await GeoLocatorController().getAddressSimple(appReleaseItem.place?.position ?? profile.position!),
+        isCommentEnabled: true,
+        createdTime: DateTime.now().millisecondsSinceEpoch,
+        caption: '${AppTranslationConstants.releaseUploadPostCaptionMsg1.tr} "${appReleaseItem.name}" ${AppTranslationConstants.releaseUploadPostCaptionMsg2.tr}',
+        isHidden: kDebugMode,
       );
 
       post.id = await PostFirestore().insert(post);
@@ -309,7 +289,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
   @override
   Future<void> getPublisherPlace(context) async {
-    logger.d("");
+    logger.v("");
 
     try {
       Prediction prediction = await mapsController.placeAutocomplate(context, placeController.text);
@@ -321,7 +301,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       logger.d(e.toString());
     }
 
-    logger.d("");
+    logger.d("PublisherPlace: ${publisherPlace.name}");
     update([AppPageIdConstants.releaseUpload]);
   }
 
@@ -330,21 +310,13 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   bool validateInfo(){
     logger.d("");
     return ((isAutoPublished || placeController.text.isNotEmpty)
-      && !publishedDate.isBlank!
         && postUploadController.croppedImageFile.path.isNotEmpty);
   }
 
   @override
-  void setPublishedDate(DateTime date) {
-
-    DateTime? pickedDate = date;
+  void setPublishedYear(int year) {
     logger.d("");
-
-    if (pickedDate != publishedDate && pickedDate != DateTime.now()) {
-      publishedDate = pickedDate;
-
-    }
-
+    publishedYear = year;
     update([AppPageIdConstants.releaseUpload]);
   }
 
@@ -444,7 +416,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       appReleaseItem.imgUrl = AppFlavour.getAppLogoUrl();
     }
 
-    appReleaseItem.publishedDate = DateTime(publishedDate.year, publishedDate.month, publishedDate.day).millisecondsSinceEpoch;
+    appReleaseItem.publishedYear = publishedYear;
     appReleaseItem.isPhysical = isPhysical;
     setPhysicalReleasePrice();
 
@@ -587,12 +559,19 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       if (releaseFile != null && (releaseFile?.files.isNotEmpty ?? false)) {
         appReleaseItem.previewUrl = releaseFile?.files.first.name ?? "";
+        releaseFilePath = releaseFile?.paths.first ?? "";
       }
     } catch (e) {
       logger.e(e.toString());
     }
 
     update([AppPageIdConstants.releaseUpload]);
+  }
+
+  List<int> getYearsList() {
+    int startYear = AppConstants.firstYearDOB;
+    int currentYear = DateTime.now().year;
+    return List.generate(currentYear - startYear + 1, (index) => startYear + index);
   }
 
 }

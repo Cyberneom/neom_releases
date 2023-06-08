@@ -22,7 +22,7 @@ class ReleaseUploadSummaryPage extends StatelessWidget {
         alignment: Alignment.center,
         children: const [
           OnlinePositioningSummaryBackground(),
-          OnlinePositioningSummaryRubberPage(),
+          ReleaseUploadSummaryRubberPage(),
           CustomBackButton(),
         ],
       ),),

@@ -57,7 +57,7 @@ class ReleaseUploadType extends StatelessWidget {
                     ]
                 ),
                   AppTheme.heightSpace20,
-                  TitleSubtitleRow("", subtitle: AppTranslationConstants.salesModelMsg.tr,showDivider: false,),
+                  TitleSubtitleRow("", hPadding: 20,subtitle: AppTranslationConstants.salesModelMsg.tr,showDivider: false,),
               ],
             ),
           ),

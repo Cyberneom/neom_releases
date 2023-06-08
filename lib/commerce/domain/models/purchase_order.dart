@@ -1,4 +1,5 @@
 import 'package:enum_to_string/enum_to_string.dart';
+import 'package:neom_commons/core/domain/model/app_release_item.dart';
 
 import 'package:neom_commons/core/domain/model/booking.dart';
 import 'package:neom_commons/core/domain/model/event.dart';
@@ -17,6 +18,7 @@ class PurchaseOrder {
   AppProduct? product;
   Booking? booking;
   Event? event;
+  AppReleaseItem? releaseItem;
 
   PurchaseOrder({
     this.id = "",
@@ -40,6 +42,7 @@ class PurchaseOrder {
       'invoiceIds': invoiceIds,
       'product': product?.toJSON(),
       'booking': booking?.toJSON(),
+      'releaseItem': releaseItem?.toJSON(),
       'event': event?.toJSON(),
 
     };
@@ -54,6 +57,7 @@ class PurchaseOrder {
     invoiceIds = data["invoiceIds"]?.cast<String>() ?? [],
     product = AppProduct.fromJSON(data["product"] ?? {}),
     booking = Booking.fromJSON(data["booking"] ?? {}),
-    event = Event.fromJSON(data["event"] ?? {});
+    event = Event.fromJSON(data["event"] ?? {}),
+    releaseItem = AppReleaseItem.fromJSON(data["releaseItem"] ?? {});
 
 }

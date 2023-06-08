@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/ui/widgets/header_intro.dart';
+import 'package:neom_commons/core/ui/widgets/number_limit_input_formatter.dart';
 import 'package:neom_commons/core/ui/widgets/title_subtitle_row.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_hero_tag_constants.dart';
@@ -14,7 +15,6 @@ import 'package:neom_commons/core/utils/constants/app_translation_constants.dart
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
 
 import '../release_upload_controller.dart';
-import 'release_upload_widgets.dart';
 
 class ReleaseUploadNameDescPage extends StatelessWidget {
   const ReleaseUploadNameDescPage({Key? key}) : super(key: key);

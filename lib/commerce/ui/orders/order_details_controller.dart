@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:neom_commons/core/data/implementations/user_controller.dart';
 import 'package:neom_commons/core/domain/model/app_profile.dart';
+import 'package:neom_commons/core/domain/model/app_release_item.dart';
 import 'package:neom_commons/core/domain/model/booking.dart';
 import 'package:neom_commons/core/domain/model/event.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
@@ -43,6 +44,7 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
   AppProduct? product;
   Event? event;
   Booking? booking;
+  AppReleaseItem? releaseItem;
 
   PurchaseOrder order = PurchaseOrder();
   Payment payment = Payment();
@@ -69,13 +71,17 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
       }
 
       switch(order.saleType) {
-        case(SaleType.product):
+        case SaleType.product:
           product = order.product!;
           break;
-        case(SaleType.event):
+        case SaleType.event:
           event = order.event!;
           break;
-        case(SaleType.booking):
+        case SaleType.booking:
+          booking = order.booking!;
+          break;
+        case SaleType.releaseItem:
+          releaseItem = order.releaseItem;
           break;
       }
 

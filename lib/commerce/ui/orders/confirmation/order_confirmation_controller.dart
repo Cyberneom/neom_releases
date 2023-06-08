@@ -28,7 +28,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
   bool get isButtonDisabled => _isButtonDisabled.value;
   set isButtonDisabled(bool isButtonDisabled) => _isButtonDisabled.value = isButtonDisabled;
 
-  final RxBool _isLoading = false.obs;
+  final RxBool _isLoading = true.obs;
   bool get isLoading => _isLoading.value;
   set isLoading(bool isLoading) => _isLoading.value = isLoading;
 
@@ -116,6 +116,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
         order.id = "${userController.user!.id
             .substring(0,5).toUpperCase()}"
             "${product.id.substring(0,5).toUpperCase()}"
+            "${profile.name.substring(0,3)}"
             "${sales.orderNumber.toString()}";
 
         payment.finalAmount = product.salePrice!.amount;
@@ -135,6 +136,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
         order.id = "${userController.user!.id
             .substring(0,5).toUpperCase()}"
             "${event.id.substring(0,5).toUpperCase()}"
+            "${profile.name.substring(0,3).toUpperCase()}"
             "${sales.orderNumber.toString()}";
 
         payment.finalAmount = event.coverPrice!.amount;
@@ -156,8 +158,8 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
     try {
       orderId = await OrderFirestore().insert(order);
       if(orderId.isNotEmpty) {
-        SalesFirestore().updateOrderNumber(sales.orderNumber, order.saleType);
-        SalesFirestore().addOrderId(orderId: order.id, saleType: order.saleType);
+        await SalesFirestore().updateOrderNumber(sales.orderNumber, order.saleType);
+        await SalesFirestore().addOrderId(orderId: order.id, saleType: order.saleType);
         payment.orderId = order.id;
         Get.toNamed(AppRouteConstants.paymentGateway, arguments: [payment, order]);
       } else {

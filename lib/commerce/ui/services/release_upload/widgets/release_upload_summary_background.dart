@@ -14,7 +14,7 @@ class OnlinePositioningSummaryBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ReleaseUploadController>(
-      id: AppPageIdConstants.event,
+      id: AppPageIdConstants.releaseUpload,
       builder: (_) => Positioned(
         top: -50,
         bottom: 0,

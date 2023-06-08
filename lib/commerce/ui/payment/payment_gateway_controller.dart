@@ -17,6 +17,7 @@ import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 import 'package:neom_commons/core/utils/constants/message_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
+import 'package:neom_commons/core/utils/enums/sale_type.dart';
 import 'package:neom_commons/core/utils/enums/user_role.dart';
 import 'package:neom_commons/core/utils/validator.dart';
 import 'package:neom_events/events/ui/event_details_controller.dart';
@@ -75,10 +76,6 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
   String phoneNumber = '';
 
   String apiBase = 'https://api.stripe.com/v1';
-  Map<String, String> headers = {
-    'Authorization': 'Bearer ${AppFlavour.getStripeSecretLiveKey()}',
-    'Content-Type': 'application/x-www-form-urlencoded'
-  };
 
   // If you are using a real device to test the integration replace this url
   // with the endpoint of your test server (it usually should be the IP of your computer)
@@ -96,7 +93,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
   @override
   void onInit() async {
     super.onInit();
-    logger.d("GigEventDetails Controller Init");
+    logger.d("Payment Gateway Controller Init");
 
     try {
 
@@ -215,8 +212,8 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
           ),
         );
 
-        if(Get.find<WalletController>().appCoinProduct.qty == 5
-            && userController.user!.userRole != UserRole.subscriber) {
+        if(false && (Get.find<WalletController>().appCoinProduct.qty == 5
+            && userController.user!.userRole != UserRole.subscriber)) {
           paymentStatus = PaymentStatus.completed;
         } else {
           if(isWebhookPayment) {
@@ -319,58 +316,62 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
   Future<void> handleProcessedPayment() async {
 
 
-    if(paymentStatus == PaymentStatus.completed) {
+    try {
+      if(paymentStatus == PaymentStatus.completed) {
+        Invoice invoice = Invoice(
+          description: order.description,
+          orderId: payment.orderId,
+          createdTime: DateTime.now().millisecondsSinceEpoch,
+          payment: payment,
+        );
+        invoice.toUser = userController.user!;
 
-      Invoice invoice = Invoice(
-        description: order.description,
-        orderId: payment.orderId,
-        createdTime: DateTime.now().millisecondsSinceEpoch,
-        payment: payment,
-      );
-      invoice.toUser = userController.user!;
+        invoice.id = await InvoiceFirestore().insert(invoice);
 
-      invoice.id = await InvoiceFirestore().insert(invoice);
+        if(invoice.id.isNotEmpty) {
+          await OrderFirestore().addInvoiceId(orderId: payment.orderId, invoiceId: invoice.id);
+        }
 
-      if(invoice.id.isNotEmpty) {
-        await OrderFirestore().addInvoiceId(orderId: payment.orderId, invoiceId: invoice.id);
+        if(await UserFirestore().addOrderId(userId: userController.user!.id, orderId: payment.orderId)) {
+          userController.user!.orderIds.add(payment.orderId);
+        } else {
+          logger.w("Something occurred while adding order to User ${userController.user!.id}");
+        }
+
+
+        switch(payment.type) {
+          case PaymentType.event:
+            await Get.find<EventDetailsController>().goingToEvent();
+            Get.toNamed(AppRouteConstants.splashScreen,
+                arguments: [AppRouteConstants.paymentGateway,
+                  AppRouteConstants.home]);
+            break;
+          case PaymentType.product:
+            int coinsQty = Get.find<WalletController>().appCoinProduct.qty;
+            if(await ProfileFirestore().addToWallet(
+                payment.from, coinsQty.toDouble())) {
+              userController.addToWallet(coinsQty);
+            }
+            Get.toNamed(AppRouteConstants.splashScreen,
+                arguments: [AppRouteConstants.paymentGateway,
+                  AppRouteConstants.wallet]);
+            break;
+          case PaymentType.booking:
+            break;
+          case PaymentType.contribution:
+            break;
+          case PaymentType.sponsor:
+            break;
+          case PaymentType.tip:
+            break;
+          case PaymentType.notDefined:
+            break;
+        }
       }
+    } catch (e) {
 
-      if(await UserFirestore().addOrderId(userId: userController.user!.id, orderId: payment.orderId)) {
-        userController.user!.orderIds.add(payment.orderId);
-      } else {
-        logger.w("Something occurred while adding order to User ${userController.user!.id}");
-      }
-
-
-      switch(payment.type) {
-        case PaymentType.event:
-          await Get.find<EventDetailsController>().goingToEvent();
-          Get.toNamed(AppRouteConstants.splashScreen,
-              arguments: [AppRouteConstants.paymentGateway,
-                AppRouteConstants.home]);
-          break;
-        case PaymentType.product:
-          int coinsQty = Get.find<WalletController>().appCoinProduct.qty;
-          if(await ProfileFirestore().addToWallet(
-              payment.from, coinsQty.toDouble())) {
-            userController.addToWallet(coinsQty);
-          }
-          Get.toNamed(AppRouteConstants.splashScreen,
-              arguments: [AppRouteConstants.paymentGateway,
-                AppRouteConstants.wallet]);
-          break;
-        case PaymentType.booking:
-          break;
-        case PaymentType.contribution:
-          break;
-        case PaymentType.sponsor:
-          break;
-        case PaymentType.tip:
-          break;
-        case PaymentType.notDefined:
-          break;
-      }
     }
+
   }
 
 
@@ -382,6 +383,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
     try {
 
+        stripe.Stripe.publishableKey = AppFlavour.getStripePublishableKey();
         // 1. Create payment method providing billingDetails
         paymentMethod = await stripe.Stripe.instance.createPaymentMethod(
             params: stripe.PaymentMethodParams.card(
@@ -389,26 +391,30 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
                     billingDetails: billingDetails
                 )
             )
-
         );
+
         logger.i("Valid payment method added successfully");
         logger.i(paymentMethod.toString());
 
         // 2. call API to create PaymentIntent
         int amountToPayInCents = (payment.price.amount * 100).toInt();
-        paymentIntentResponse = await createPaymentIntent(amountToPayInCents.toString(), payment.price.currency.name);
+        paymentIntentResponse = await createPaymentIntent(
+            amountToPayInCents.toString(),
+            payment.price.currency.name
+        );
 
-        if (paymentIntentResponse['client_secret'] != null && paymentMethod.id.isNotEmpty) {
+        if (paymentIntentResponse['client_secret'] != null
+            && paymentMethod.id.isNotEmpty
+        ) {
           logger.i("Payment intent created successfully");
 
           stripe.PaymentIntent paymentIntent = await stripe.Stripe.instance.confirmPayment(
               paymentIntentClientSecret: paymentIntentResponse['client_secret'],
-              //TODO Verify
-              // stripe.PaymentMethodParams.cardFromMethodId(
-              //   paymentMethodData: stripe.PaymentMethodDataCardFromMethod(
-              //       paymentMethodId: paymentMethod.id
-              //   ),
-              // )
+              data: stripe.PaymentMethodParams.cardFromMethodId(
+                paymentMethodData: stripe.PaymentMethodDataCardFromMethod(
+                    paymentMethodId: paymentMethod.id
+                ),
+              )
           );
 
           if (paymentIntentResponse['requires_action'] == true) {
@@ -517,7 +523,10 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
       final response = await http.post(
           Uri.parse('$apiBase/payment_intents'),
           body: body,
-          headers: headers,
+          headers: {
+            'Authorization': 'Bearer ${AppFlavour.getStripeSecretLiveKey()}',
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
           encoding: Encoding.getByName("utf-8"));
       return jsonDecode(response.body);
     } catch (err) {

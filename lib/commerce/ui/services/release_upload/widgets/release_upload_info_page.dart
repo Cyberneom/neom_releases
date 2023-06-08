@@ -3,10 +3,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/ui/widgets/header_intro.dart';
-import 'package:neom_commons/core/ui/widgets/input_dropdown.dart';
+import 'package:neom_commons/core/ui/widgets/number_limit_input_formatter.dart';
 import 'package:neom_commons/core/ui/widgets/summary_button.dart';
 import 'package:neom_commons/core/utils/app_color.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
@@ -17,7 +16,6 @@ import 'package:neom_commons/core/utils/constants/app_translation_constants.dart
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
 
 import '../release_upload_controller.dart';
-import 'release_upload_widgets.dart';
 
 class ReleaseUploadInfoPage extends StatelessWidget {
   const ReleaseUploadInfoPage({Key? key}) : super(key: key);
@@ -92,7 +90,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
-                        width: AppTheme.fullWidth(context) / 2.3,
+                        width: AppTheme.fullWidth(context) / 2.2,
                         child: GestureDetector(
                           child: Row(
                             children: <Widget>[
@@ -108,40 +106,56 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                           onTap: ()=>_.setIsAutoPublished(),
                         ),
                       ),
-                      Localizations(
-                        locale: const Locale('esp', 'MX'),
-                        delegates: const <LocalizationsDelegate<dynamic>>[
-                          DefaultWidgetsLocalizations.delegate,
-                          DefaultMaterialLocalizations.delegate,
-                        ],
-                        child: SizedBox(
+                      SizedBox(
                         width: AppTheme.fullWidth(context) / 2.5,
-                        child: InputDropdown(
-                          labelText: AppTranslationConstants.publishedDate.tr,
-                          valueText: _.publishedDate == DateTime.now() ? ""
-                              : DateFormat.yMMMd(AppTranslationConstants.esMx).format(_.publishedDate),
-                          valueStyle: Theme.of(context).textTheme.bodyLarge!,
-                          onPressed: () async {
-                            DateTime? selectedDate = await showDatePicker(
-                              context: context,
-                              initialDatePickerMode: DatePickerMode.year,
-                              initialEntryMode: DatePickerEntryMode.calendarOnly,
-                              helpText: AppTranslationConstants.publishedDate.tr,
-                              cancelText: AppTranslationConstants.cancel.tr,
-                              initialDate: DateTime.now(),
-                              currentDate: _.publishedDate,
-                              firstDate: DateTime(1980),
-                              lastDate: DateTime.now(),
-                            );
-
-                            if(selectedDate != null) {
-                              _.setPublishedDate(selectedDate);
+                        child: DropdownButton<int>(
+                          hint: Text(AppTranslationConstants.publishedYear.tr),
+                          value: _.publishedYear != 0 ? _.publishedYear : null,
+                          onChanged: (selectedYear) {
+                            if(selectedYear != null) {
+                              _.setPublishedYear(selectedYear);
                             }
                           },
+                          items: _.getYearsList().reversed.map((int year) {
+                            return DropdownMenuItem<int>(
+                              alignment: Alignment.center,
+                              value: year,
+                              child: Text(year.toString()),
+                            );
+                          }).toList(),
+                          alignment: Alignment.center,
+                          icon: const Icon(Icons.arrow_downward),
+                          iconSize: 20,
+                          elevation: 16,
+                          style: const TextStyle(color: Colors.white),
+                          dropdownColor: AppColor.main75,
+                          underline: Container(
+                            height: 1,
+                            color: Colors.grey,
+                          ),
                         ),
-                      ), ),
+                      ),
                     ],
                   ),
+                  // valueText: _.appReleaseItem.publishedYear == 0 ? "" : _.appReleaseItem.publishedYear.toString(),
+                  // valueStyle: Theme.of(context).textTheme.bodyLarge!,
+                  // onPressed: () async {
+                  //   DateTime? selectedDate = await showDatePicker(
+                  //     context: context,
+                  //     initialDatePickerMode: DatePickerMode.year,
+                  //     initialEntryMode: DatePickerEntryMode.calendarOnly,
+                  //     helpText: AppTranslationConstants.publishedDate.tr,
+                  //     cancelText: AppTranslationConstants.cancel.tr,
+                  //     initialDate: DateTime.now(),
+                  //     currentDate: _.publishedDate,
+                  //     firstDate: DateTime(1980),
+                  //     lastDate: DateTime.now(),
+                  //   );
+                  //
+                  //   if(selectedDate != null) {
+                  //     _.setPublishedDate(selectedDate);
+                  //   }
+                  // },
                   AppTheme.heightSpace20,
                   _.isAutoPublished ? Container() : TextFormField(
                     controller: _.placeController,

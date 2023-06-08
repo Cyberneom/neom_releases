@@ -72,6 +72,9 @@ class SalesFirestore implements SalesRepository {
         case SaleType.booking:
           salesToUpdate = AppFirestoreConstants.bookingSales;
           break;
+        case SaleType.releaseItem:
+          salesToUpdate = AppFirestoreConstants.releaseItemSales;
+          break;
       }
 
       DocumentSnapshot documentSnapshot = await salesReference
@@ -103,14 +106,17 @@ class SalesFirestore implements SalesRepository {
       String salesToUpdate = "";
       switch(saleType) {
         case SaleType.product:
-        salesToUpdate = AppFirestoreConstants.productSales;
-        break;
+          salesToUpdate = AppFirestoreConstants.productSales;
+          break;
         case SaleType.event:
-        salesToUpdate = AppFirestoreConstants.eventSales;
-        break;
+          salesToUpdate = AppFirestoreConstants.eventSales;
+          break;
         case SaleType.booking:
-        salesToUpdate = AppFirestoreConstants.bookingSales;
-        break;
+          salesToUpdate = AppFirestoreConstants.bookingSales;
+          break;
+        case SaleType.releaseItem:
+          salesToUpdate = AppFirestoreConstants.releaseItemSales;
+          break;
       }
 
       DocumentSnapshot documentSnapshot = await salesReference
@@ -118,8 +124,9 @@ class SalesFirestore implements SalesRepository {
 
 
       await documentSnapshot.reference.update({
-              AppFirestoreConstants.orderIds: FieldValue.arrayUnion([orderId])
-            });
+        AppFirestoreConstants.orderIds: FieldValue.arrayUnion([orderId])
+      });
+
       logger.d("$orderId is now at $salesToUpdate");
       return true;
     } catch (e) {
@@ -146,6 +153,9 @@ class SalesFirestore implements SalesRepository {
           break;
         case SaleType.booking:
           salesToUpdate = AppFirestoreConstants.bookingSales;
+          break;
+        case SaleType.releaseItem:
+          salesToUpdate = AppFirestoreConstants.releaseItemSales;
           break;
       }
 

@@ -25,7 +25,7 @@ class OrderDetailsPage extends StatelessWidget {
         body:  SingleChildScrollView(
           child: Container(
             decoration: AppTheme.appBoxDecoration,
-            padding: const EdgeInsets.all(30),
+            padding: const EdgeInsets.all(20),
             height: AppTheme.fullHeight(context),
             child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

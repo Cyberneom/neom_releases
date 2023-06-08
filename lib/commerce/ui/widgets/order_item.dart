@@ -56,6 +56,9 @@ String getAmountToDisplay(PurchaseOrder order) {
       break;
     case SaleType.booking:      
       break;      
+    case SaleType.releaseItem:
+      // TODO: Handle this case.
+      break;
   }
   
   return amount.toString();
@@ -72,6 +75,10 @@ String getCurrencyToDisplay(PurchaseOrder order) {
       currency = order.event!.coverPrice!.currency;
       break;
     case SaleType.booking:
+      // TODO: Handle this case.
+      break;
+    case SaleType.releaseItem:
+      currency = order.releaseItem!.digitalPrice!.currency;
       break;
   }
 

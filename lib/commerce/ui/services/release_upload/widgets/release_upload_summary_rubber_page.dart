@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:hashtagable/hashtagable.dart';
 import 'package:neom_commons/core/app_flavour.dart';
-import 'package:neom_commons/core/ui/static/genres_format.dart';
+import 'package:neom_commons/core/ui/widgets/genres_grid_view.dart';
 import 'package:neom_commons/core/ui/widgets/submit_button.dart';
 import 'package:neom_commons/core/ui/widgets/title_subtitle_row.dart';
 import 'package:neom_commons/core/utils/app_color.dart';
@@ -16,13 +16,13 @@ import 'package:rubber/rubber.dart';
 import '../release_upload_controller.dart';
 
 
-class OnlinePositioningSummaryRubberPage extends StatelessWidget {
-  const OnlinePositioningSummaryRubberPage({Key? key}) : super(key: key);
+class ReleaseUploadSummaryRubberPage extends StatelessWidget {
+  const ReleaseUploadSummaryRubberPage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ReleaseUploadController>(
-      id: AppPageIdConstants.events,
+      id: AppPageIdConstants.releaseUpload,
       builder: (_) =>
         TweenAnimationBuilder(
           duration: const Duration(milliseconds: 600),
@@ -63,7 +63,7 @@ class OnlinePositioningSummaryRubberPage extends StatelessWidget {
                             fontWeight: FontWeight.bold,),
                           textAlign: TextAlign.center,
                         ),
-                        GenresFormat(_.appReleaseItem.genres, AppColor.yellow),
+                        GenresGridView(_.appReleaseItem.genres, AppColor.yellow),
                         AppTheme.heightSpace10,
                         _.appReleaseItem.description.isNotEmpty ?
                         Container(
@@ -89,7 +89,8 @@ class OnlinePositioningSummaryRubberPage extends StatelessWidget {
                         CircleAvatar(
                           backgroundImage: CachedNetworkImageProvider(_.profile.photoUrl.isNotEmpty
                               ? _.profile.photoUrl : AppFlavour.getNoImageUrl(),),
-                          radius: 50.0,
+                          radius: 100.0,
+
                         ),
                         AppTheme.heightSpace5,
                         Text(
@@ -141,7 +142,8 @@ class OnlinePositioningSummaryRubberPage extends StatelessWidget {
                         ),
                         AppTheme.heightSpace10,
                         SubmitButton(context, text: AppTranslationConstants.submitRelease.tr,
-                          isLoading: _.isLoading, onPressed: _.uploadReleaseItem,
+                          isLoading: _.isLoading, isEnabled: !_.isButtonDisabled,
+                          onPressed: _.uploadReleaseItem,
                         ),
                         TitleSubtitleRow("", showDivider: false, subtitle: AppTranslationConstants.submitReleaseMsg.tr),
                       ],
