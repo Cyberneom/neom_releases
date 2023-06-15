@@ -55,6 +55,26 @@ class SalesFirestore implements SalesRepository {
     return sales;
   }
 
+  @override
+  Future<AppSale> retrieveReleaseItemSales() async {
+    logger.i("Retrieving Sales Info");
+    AppSale sales = AppSale();
+
+    try {
+      DocumentSnapshot documentSnapshot = await salesReference
+          .doc(AppFirestoreConstants.releaseItemSales).get();
+      if (documentSnapshot.exists) {
+        sales = AppSale.fromJSON(documentSnapshot.data());
+        logger.i("Sales found with orderNumber ${sales.orderNumber}");
+      }
+    } catch (e) {
+      logger.e(e.toString());
+    }
+
+    logger.d("");
+    return sales;
+  }
+
 
   @override
   Future<bool> updateOrderNumber(int newOrderNumber, SaleType salesType) async {

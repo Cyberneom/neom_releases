@@ -5,5 +5,6 @@ enum PaymentType {
   sponsor,
   contribution,
   tip,
+  releaseItem,
   notDefined
 }

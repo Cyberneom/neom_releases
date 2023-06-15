@@ -5,8 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
+import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:intl_phone_field/countries.dart';
 import 'package:neom_commons/core/app_flavour.dart';
+import 'package:neom_commons/core/data/firestore/app_release_item_firestore.dart';
 import 'package:neom_commons/core/data/firestore/profile_firestore.dart';
 import 'package:neom_commons/core/data/firestore/user_firestore.dart';
 import 'package:neom_commons/core/data/implementations/user_controller.dart';
@@ -17,7 +21,6 @@ import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 import 'package:neom_commons/core/utils/constants/message_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
-import 'package:neom_commons/core/utils/enums/sale_type.dart';
 import 'package:neom_commons/core/utils/enums/user_role.dart';
 import 'package:neom_commons/core/utils/validator.dart';
 import 'package:neom_events/events/ui/event_details_controller.dart';
@@ -70,13 +73,8 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
   set showWalletAmount(bool showWalletAmount) => _showWalletAmount.value = showWalletAmount;
 
   String errorMsg = "";
-  final bool isWebhookPayment = false;
-
-  final bool _saveCard = false;
   String phoneNumber = '';
-
   String apiBase = 'https://api.stripe.com/v1';
-
   // If you are using a real device to test the integration replace this url
   // with the endpoint of your test server (it usually should be the IP of your computer)
   String kApiUrl = Platform.isAndroid
@@ -89,6 +87,8 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
   PurchaseOrder order = PurchaseOrder();
   Payment payment = Payment();
   Address userAddress = Address();
+
+  final InAppPurchase inAppPurchase = InAppPurchase.instance;
 
   @override
   void onInit() async {
@@ -127,11 +127,10 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
   }
 
-
   @override
   void onReady() async {
-    try {
 
+    try {
       String paymentId = await PaymentFirestore().insert(payment);
 
       if(paymentId.isNotEmpty) {
@@ -152,18 +151,15 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
     update([AppPageIdConstants.paymentGateway]);
   }
 
-
   void onUpdate() async {
 
   }
-
 
   @override
   void onClose() {
     cardEditController.removeListener(update);
     cardEditController.dispose();
   }
-
 
   @override
   Future<void> handleStripePayment() async {
@@ -212,21 +208,18 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
           ),
         );
 
-        if(false && (Get.find<WalletController>().appCoinProduct.qty == 5
+        if((Get.find<WalletController>().appCoinProduct.qty == 5
             && userController.user!.userRole != UserRole.subscriber)) {
           paymentStatus = PaymentStatus.completed;
         } else {
-          if(isWebhookPayment) {
-            //TODO Verify if needed
-            await handlePayPress(billingDetails);
-          } else {
-            await handlePaymentMethod(billingDetails);
-          }
+          await handlePaymentMethod(billingDetails);
         }
 
-        PaymentFirestore().updatePaymentStatus(payment.id, paymentStatus);
+        await PaymentFirestore().updatePaymentStatus(payment.id, paymentStatus);
 
-        if(errorMsg.isNotEmpty) {
+        if(errorMsg.isEmpty) {
+          await handleProcessedPayment();
+        } else {
           isButtonDisabled = false;
           isLoading = false;
           Get.snackbar(
@@ -234,8 +227,6 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
             errorMsg.tr,
             snackPosition: SnackPosition.bottom,
           );
-        } else {
-          await handleProcessedPayment();
         }
       } else {
         Get.snackbar(
@@ -291,17 +282,17 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
         logger.i(MessageTranslationConstants.notEnoughFundsMsg.tr);
       }
 
-      PaymentFirestore().updatePaymentStatus(payment.id, paymentStatus);
+      await PaymentFirestore().updatePaymentStatus(payment.id, paymentStatus);
 
-      if(errorMsg.isNotEmpty) {
+      if(errorMsg.isEmpty) {
+        await handleProcessedPayment();
+      } else {
         Get.back();
         Get.snackbar(
           MessageTranslationConstants.errorProcessingPayment.tr,
           errorMsg.tr,
           snackPosition: SnackPosition.bottom,
         );
-      } else {
-        await handleProcessedPayment();
       }
 
     } catch (e) {
@@ -338,10 +329,10 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
           logger.w("Something occurred while adding order to User ${userController.user!.id}");
         }
 
-
         switch(payment.type) {
           case PaymentType.event:
-            await Get.find<EventDetailsController>().goingToEvent();
+            final eventDetailsController = Get.find<EventDetailsController>();
+            await eventDetailsController.goingToEvent();
             Get.toNamed(AppRouteConstants.splashScreen,
                 arguments: [AppRouteConstants.paymentGateway,
                   AppRouteConstants.home]);
@@ -366,10 +357,21 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
             break;
           case PaymentType.notDefined:
             break;
+          case PaymentType.releaseItem:
+            if(await ProfileFirestore().addBoughtItem(userId: userController.user!.id, boughtItem: order.releaseItem?.id ?? "")) {
+              userController.user!.boughtItems ??= [];
+              userController.user!.boughtItems!.add(order.releaseItem!.id);
+            }
+
+            AppReleaseItemFirestore().addBoughtUser(releaseItemId: order.releaseItem!.id, userId: userController.user!.id);
+            Get.toNamed(AppRouteConstants.splashScreen,
+                arguments: [AppRouteConstants.paymentGateway,
+                  AppRouteConstants.lists]);
+            break;
         }
       }
     } catch (e) {
-
+      AppUtilities.logger.e(e.toString());
     }
 
   }
@@ -457,60 +459,6 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
   }
 
-
-  @override
-  Future<void> handlePayPress(stripe.BillingDetails billingDetails) async {
-
-
-    if (cardFieldInputDetails == null) {
-      errorMsg = MessageTranslationConstants.pleaseFillCardInfo;
-      return;
-    }
-
-    // 1. fetch Intent Client Secret from backend
-    final clientSecret = await fetchPaymentIntentClientSecret();
-
-    // 2. Gather customer billing information (ex. email)
-
-
-    // 3. Confirm payment with card details
-    // The rest will be done automatically using webhooks
-    // ignore: unused_local_variable
-    final paymentIntent = await stripe.Stripe.instance.confirmPayment(
-      paymentIntentClientSecret: clientSecret['clientSecret'],
-      options: stripe.PaymentMethodOptions(
-        setupFutureUsage:
-        _saveCard == true ? stripe.PaymentIntentsFutureUsage.OffSession : null,
-      ),
-      //TODO Verify
-      //data: stripe.PaymentMethodParams.
-    );
-
-    Get.snackbar("Success", 'Success!: The payment was confirmed successfully!');
-  }
-
-
-  @override
-  Future<Map<String, dynamic>> fetchPaymentIntentClientSecret() async {
-    final url = Uri.parse('$kApiUrl/create-payment-intent');
-    final response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: json.encode({
-        'email': emailController.text,
-        'currency': 'usd',
-        'items': [
-          {'id': 'id'}
-        ],
-        'request_three_d_secure': 'any',
-      }),
-    );
-    return json.decode(response.body);
-  }
-
-
   @override
   Future<Map<String, dynamic>> createPaymentIntent(
       String amount, String currency) async {
@@ -547,7 +495,6 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
     }
   }
 
-
   @override
   Future<Map<String, dynamic>> callNoWebhookPayEndpointIntentId({
     required String paymentIntentId,
@@ -562,6 +509,5 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
     );
     return json.decode(response.body);
   }
-
 
 }

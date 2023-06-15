@@ -72,7 +72,7 @@ class AppProduct {
     imgUrl = data["imgUrl"] ?? "",
     isAvailable = data["isAvailable"] ?? true,    
     numberOfSales = data["numberOfSales"] ?? 0,
-    reviewStars = data["reviewStars"] ?? 10,
+    reviewStars = (data["reviewStars"] ?? 10).toDouble(),
     lastReview = Review.fromJSON(data["lastReview"] ?? {}),
     reviewIds = data["reviewIds"]?.cast<String>() ?? [],
     createdTime = data["createdTime"] ?? 0,

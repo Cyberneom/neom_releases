@@ -3,5 +3,6 @@ enum ProductType {
   physical,  
   digital,
   service,
-  external
+  external,
+  subscription
 }

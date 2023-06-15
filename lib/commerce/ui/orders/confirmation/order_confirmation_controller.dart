@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:neom_commons/core/data/implementations/user_controller.dart';
 import 'package:neom_commons/core/domain/model/app_profile.dart';
+import 'package:neom_commons/core/domain/model/app_release_item.dart';
 import 'package:neom_commons/core/domain/model/booking.dart';
 import 'package:neom_commons/core/domain/model/event.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
@@ -45,6 +46,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
   AppProduct product = AppProduct();
   Event event = Event();
   Booking booking = Booking();
+  AppReleaseItem releaseItem = AppReleaseItem();
   
   Payment payment = Payment();
   double discountPercentage = 0.0;
@@ -81,9 +83,15 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
           order.event = event;
           payment.type = PaymentType.event;
           payment.to = event.owner!.id;
+        } else if (Get.arguments[0] is AppReleaseItem) {
+          releaseItem = Get.arguments[0];
+          order.saleType = SaleType.releaseItem;
+          order.description = releaseItem.name;
+          order.releaseItem = releaseItem;
+          payment.type = PaymentType.releaseItem;
+          payment.to = releaseItem.ownerId;
         }
       }
-
 
     } catch (e) {
       logger.i(e.toString());
@@ -99,48 +107,86 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
       DateTime now = DateTime.now();
       order.createdTime = now.millisecondsSinceEpoch;
 
-      if(product.id.isNotEmpty) {
-        displayedName = product.name;
-        displayedDescription = product.description;
+      switch(order.saleType) {
+        case SaleType.product:
+          if(product.id.isNotEmpty) {
+            displayedName = product.name;
+            displayedDescription = product.description;
 
-        payment.price.amount = product.regularPrice!.amount;
-        payment.price.currency = product.regularPrice!.currency;
-        if(product.regularPrice!.amount != product.salePrice!.amount) {
-          payment.discountAmount = (product.regularPrice!.amount - product.salePrice!.amount).toPrecision(2);
-          discountPercentage = ((100 * payment.discountAmount) / payment.price.amount).toPrecision(2);
-        }
+            payment.price.amount = product.regularPrice!.amount;
+            payment.price.currency = product.regularPrice!.currency;
+            if(product.regularPrice!.amount != product.salePrice!.amount) {
+              payment.discountAmount = (product.regularPrice!.amount - product.salePrice!.amount).toPrecision(2);
+              discountPercentage = ((100 * payment.discountAmount) / payment.price.amount).toPrecision(2);
+            }
 
-        sales = await SalesFirestore().retrieveProductSales();
-        sales.orderNumber = sales.orderNumber + 1;
+            sales = await SalesFirestore().retrieveProductSales();
+            sales.orderNumber = sales.orderNumber + 1;
 
-        order.id = "${userController.user!.id
-            .substring(0,5).toUpperCase()}"
-            "${product.id.substring(0,5).toUpperCase()}"
-            "${profile.name.substring(0,3)}"
-            "${sales.orderNumber.toString()}";
+            order.id = "${userController.user!.id
+                .substring(0,5).toUpperCase()}"
+                "${product.id.substring(0,5).toUpperCase()}"
+                "${profile.name.substring(0,3)}"
+                "${sales.orderNumber.toString()}";
 
-        payment.finalAmount = product.salePrice!.amount;
-        payment.tax = product.salePrice!.amount * AppPaymentConstants.mexicanTaxesAmount;
+            payment.finalAmount = product.salePrice!.amount;
+            payment.tax = product.salePrice!.amount * AppPaymentConstants.mexicanTaxesAmount;
 
 
-      } else if (event.id.isNotEmpty) {
-        displayedName = event.name;
-        displayedDescription = event.description;
-        displayedImgUrl = event.imgUrl;
-        payment.price.amount = event.coverPrice!.amount;
-        payment.price.currency = event.coverPrice!.currency;
+          }
+          break;
+        case SaleType.event:
+          if (event.id.isNotEmpty) {
+            displayedName = event.name;
+            displayedDescription = event.description;
+            displayedImgUrl = event.imgUrl;
+            payment.price.amount = event.coverPrice!.amount;
+            payment.price.currency = event.coverPrice!.currency;
 
-        sales = await SalesFirestore().retrieveEventSales();
-        sales.orderNumber = sales.orderNumber + 1;
+            sales = await SalesFirestore().retrieveEventSales();
+            sales.orderNumber = sales.orderNumber + 1;
 
-        order.id = "${userController.user!.id
-            .substring(0,5).toUpperCase()}"
-            "${event.id.substring(0,5).toUpperCase()}"
-            "${profile.name.substring(0,3).toUpperCase()}"
-            "${sales.orderNumber.toString()}";
+            order.id = "${userController.user!.id
+                .substring(0,5).toUpperCase()}"
+                "${event.id.substring(0,5).toUpperCase()}"
+                "${profile.name.substring(0,3).toUpperCase()}"
+                "${sales.orderNumber.toString()}";
 
-        payment.finalAmount = event.coverPrice!.amount;
-        payment.tax = event.coverPrice!.amount * AppPaymentConstants.mexicanTaxesAmount;
+            payment.finalAmount = event.coverPrice!.amount;
+            payment.tax = event.coverPrice!.amount * AppPaymentConstants.mexicanTaxesAmount;
+          }
+          break;
+        case SaleType.booking:
+          // TODO: Handle this case.
+          break;
+        case SaleType.releaseItem:
+          if (releaseItem.id.isNotEmpty) {
+            displayedName = releaseItem.name;
+            displayedDescription = releaseItem.description;
+            displayedImgUrl = releaseItem.imgUrl;
+
+            if (releaseItem.isPhysical) {
+              payment.price.amount = releaseItem.physicalPrice!.amount;
+              payment.price.currency = releaseItem.physicalPrice!.currency;
+            } else {
+              payment.price.amount = releaseItem.digitalPrice!.amount;
+              payment.price.currency = releaseItem.digitalPrice!.currency;
+            }
+
+
+            sales = await SalesFirestore().retrieveReleaseItemSales();
+            sales.orderNumber = sales.orderNumber + 1;
+
+            order.id = "${userController.user!.id
+                .substring(0,5).toUpperCase()}"
+                "${releaseItem.id.substring(0,5).toUpperCase()}"
+                "${profile.name.substring(0,3).toUpperCase()}"
+                "${sales.orderNumber.toString()}";
+
+            payment.finalAmount = payment.price.amount;
+            payment.tax = payment.finalAmount * AppPaymentConstants.mexicanTaxesAmount;
+          }
+          break;
       }
 
 
@@ -154,7 +200,9 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
 
   Future<void> confirmOrder() async {
     logger.i("Order was confirmed and would be created");
+    // isLoading = true;
     String orderId = "";
+    update([AppPageIdConstants.orderConfirmation]);
     try {
       orderId = await OrderFirestore().insert(order);
       if(orderId.isNotEmpty) {

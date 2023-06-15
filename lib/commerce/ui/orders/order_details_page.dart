@@ -37,8 +37,8 @@ class OrderDetailsPage extends StatelessWidget {
                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                        children: <Widget>[
                          SizedBox(
-                           height: 100,
-                           width: 100,
+                           width: AppTheme.fullWidth(context)/4,
+                           height: AppTheme.fullWidth(context)/4,
                            child: _.order.saleType == SaleType.product
                                ? Image.asset(AppAssets.appCoins13)
                                : Image.network(_.displayedImgUrl.isNotEmpty ? _.displayedImgUrl
@@ -47,7 +47,7 @@ class OrderDetailsPage extends StatelessWidget {
                          ),
                          Column(
                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                           crossAxisAlignment: CrossAxisAlignment.end,
+                           crossAxisAlignment: CrossAxisAlignment.start,
                            children: <Widget>[
                                Text(_.order.saleType.name.tr,
                                  style: const TextStyle(
@@ -67,14 +67,14 @@ class OrderDetailsPage extends StatelessWidget {
                                ),
                                AppTheme.heightSpace10,
                              SizedBox(
-                               width: 120,
-                               child:
-                               Text(_.displayedDescription,
+                               width: AppTheme.fullWidth(context)/2,
+                               child: Text(_.displayedDescription,
                                    style: const TextStyle(
-                                       fontSize: 12
+                                       fontSize: 12,
                                    ),
+                                   textAlign: TextAlign.justify,
                                    overflow: TextOverflow.ellipsis,
-                                   maxLines: 2
+                                   maxLines: 3
                                ),
                              ),
                              AppTheme.heightSpace10,
@@ -158,7 +158,7 @@ class OrderDetailsPage extends StatelessWidget {
                              color: Colors.grey,
                              fontSize: 16)
                       ),
-                      Text("${_.payment.price.amount} ${_.payment.price.currency.name.toUpperCase()}",
+                      Text("${_.payment.price.amount} ${_.payment.price.currency.name.tr.toUpperCase()}",
                          style: const TextStyle(
                              color: Colors.grey,
                              fontSize: 16)
@@ -176,7 +176,7 @@ class OrderDetailsPage extends StatelessWidget {
                                fontSize: 16
                            )
                        ),
-                       Text("${_.payment.discountAmount} ${_.payment.price.currency.name.toUpperCase()}",
+                       Text("${_.payment.discountAmount} ${_.payment.price.currency.name.tr.toUpperCase()}",
                            style: const TextStyle(
                                color: Colors.grey,
                                fontSize: 16)
@@ -193,7 +193,7 @@ class OrderDetailsPage extends StatelessWidget {
                                color: AppColor.white80,
                                fontSize: 16, fontWeight: FontWeight.w600)
                        ),
-                       Text("${_.payment.finalAmount} ${_.payment.price.currency.name.toUpperCase()}",
+                       Text("${_.payment.finalAmount} ${_.payment.price.currency.name.tr.toUpperCase()}",
                            style: TextStyle(
                                color: AppColor.white80,
                                fontSize: 16)

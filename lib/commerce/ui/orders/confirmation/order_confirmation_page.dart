@@ -3,10 +3,12 @@ import 'package:get/get.dart';
 import 'package:neom_commons/core/app_flavour.dart';
 
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
+import 'package:neom_commons/core/ui/widgets/submit_button.dart';
 import 'package:neom_commons/core/utils/app_color.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_assets.dart';
+import 'package:neom_commons/core/utils/constants/app_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/sale_type.dart';
@@ -27,78 +29,75 @@ class OrderConfirmationPage extends StatelessWidget {
             decoration: AppTheme.appBoxDecoration,
             padding: const EdgeInsets.all(20),
             height: AppTheme.fullHeight(context),
-            child: Obx(()=> _.isLoading ? const Center(child: CircularProgressIndicator()) : Column(
+            child: Obx(()=> _.isLoading ? const Center(child: CircularProgressIndicator())
+                : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                    Container(
                      decoration: AppTheme.appBoxDecorationBlueGrey,
                      padding: const EdgeInsets.all(10),
                      child: Row(
-                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                       mainAxisAlignment: MainAxisAlignment.start,
                        children: <Widget>[
                          SizedBox(
-                          height: 100,
-                          width: 100,
-                          child: _.order.saleType == SaleType.product
+                           width: AppTheme.fullWidth(context)/4,
+                           height: AppTheme.fullWidth(context)/4,
+                           child: _.order.saleType == SaleType.product
                               ? Image.asset(AppAssets.appCoins13)
                               : Image.network(_.displayedImgUrl.isNotEmpty ? _.displayedImgUrl
                               : AppFlavour.getNoImageUrl()
                           ),
                          ),
-                         Column(
+                         SizedBox(
+                           width: AppTheme.fullWidth(context)/2,
+                           child: Column(
                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                           crossAxisAlignment: CrossAxisAlignment.center,
+                           crossAxisAlignment: CrossAxisAlignment.start,
                            children: <Widget>[
-                               Text(_.order.saleType.name.tr,
+                             Text(_.order.saleType.name.tr,
+                               style: const TextStyle(
+                                   fontSize: 15,
+                                   fontWeight: FontWeight.bold
+                               ),
+                             ),
+                             AppTheme.heightSpace10,
+                             Text(_.displayedName,
                                  style: const TextStyle(
-                                     fontSize: 15,
-                                     fontWeight: FontWeight.bold
+                                     fontSize: 12
                                  ),
                                  overflow: TextOverflow.ellipsis,
-                                 maxLines: 1,
-                               ),
-                               AppTheme.heightSpace10,
-                               Text(_.displayedName,
-                                   style: const TextStyle(
-                                       fontSize: 12
-                                   ),
-                                   overflow: TextOverflow.ellipsis,
-                                   maxLines: 1
-                               ),
-                               AppTheme.heightSpace10,
-                               SizedBox(
-                                 width: 120,
-                                 child:
-                                   Text(_.displayedDescription,
-                                     style: const TextStyle(
-                                         fontSize: 12
-                                     ),
-                                     overflow: TextOverflow.ellipsis,
-                                     maxLines: 2
+                                 maxLines: 2
+                             ),
+                             AppTheme.heightSpace10,
+                             Text(_.displayedDescription,
+                                 style: const TextStyle(
+                                     fontSize: 12
                                  ),
-                               ),
-                               AppTheme.heightSpace10,
+                                 overflow: TextOverflow.ellipsis,
+                                 maxLines: 2
+                             ),
+                             AppTheme.heightSpace10,
                              _.product.reviewIds.isNotEmpty ? Row(
-                                 children: <Widget>[
-                                   Container(
-                                       margin: const EdgeInsets.only(right: 5),
-                                       child: const Icon(Icons.star,color: Colors.yellow, size: 15)),
-                                   Container(
+                               children: <Widget>[
+                                 Container(
                                      margin: const EdgeInsets.only(right: 5),
-                                     child: Align(
-                                       alignment: Alignment.topLeft,
-                                       child:  Text("${_.product.reviewStars.toString()} (${_.product.reviewIds.length.toString()})",
-                                           style: const TextStyle(
-                                               fontSize: 12,
-                                               fontWeight: FontWeight.bold
-                                           ),
-                                           overflow: TextOverflow.ellipsis),
-                                     ),
+                                     child: const Icon(Icons.star,color: Colors.yellow, size: 15)),
+                                 Container(
+                                   margin: const EdgeInsets.only(right: 5),
+                                   child: Align(
+                                     alignment: Alignment.topLeft,
+                                     child:  Text("${_.product.reviewStars.toString()} (${_.product.reviewIds.length.toString()})",
+                                         style: const TextStyle(
+                                             fontSize: 12,
+                                             fontWeight: FontWeight.bold
+                                         ),
+                                         overflow: TextOverflow.ellipsis),
                                    ),
-                                 ],
-                               ) : Container(),
+                                 ),
+                               ],
+                             ) : Container(),
                            ],
-                         ),
+                         ),),
                        ],
                      ),
                    ),
@@ -140,7 +139,7 @@ class OrderConfirmationPage extends StatelessWidget {
                          fontSize: 18)
                   ),
                   AppTheme.heightSpace5,
-                  Text(_.order.description.tr,
+                  Text("${_.order.description.tr}${_.product.description.isNotEmpty ? " - ${_.product.description}" : ""}",
                     style: const TextStyle(
                         color: Colors.grey,
                         fontSize: 16),
@@ -153,12 +152,13 @@ class OrderConfirmationPage extends StatelessWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      Text(_.displayedName,
+                      Text(_.displayedName.length < AppConstants.maxAppItemNameLength
+                          ? _.displayedName : "${_.displayedName.substring(0, AppConstants.maxAppItemNameLength)}...",
                          style: const TextStyle(
                              color: Colors.grey,
-                             fontSize: 16)
+                             fontSize: 16),
                       ),
-                      Text("${_.payment.price.amount} ${_.payment.price.currency.name.toUpperCase()}",
+                      Text("${_.payment.price.amount} ${_.payment.price.currency.name.tr.toUpperCase()}",
                          style: const TextStyle(
                              color: Colors.grey,
                              fontSize: 16)
@@ -176,7 +176,7 @@ class OrderConfirmationPage extends StatelessWidget {
                                fontSize: 16
                            )
                        ),
-                       Text("${_.payment.discountAmount} ${_.payment.price.currency.name.toUpperCase()}",
+                       Text("${_.payment.discountAmount} ${_.payment.price.currency.name.tr.toUpperCase()}",
                            style: const TextStyle(
                                color: Colors.grey,
                                fontSize: 16)
@@ -193,7 +193,7 @@ class OrderConfirmationPage extends StatelessWidget {
                                color: AppColor.white80,
                                fontSize: 16, fontWeight: FontWeight.w600)
                        ),
-                       Text("${_.payment.finalAmount} ${_.payment.price.currency.name.toUpperCase()}",
+                       Text("${_.payment.finalAmount} ${_.payment.price.currency.name.tr.toUpperCase()}",
                            style: TextStyle(
                                color: AppColor.white80,
                                fontSize: 16)
@@ -201,27 +201,11 @@ class OrderConfirmationPage extends StatelessWidget {
                      ],
                    ),
                    AppTheme.heightSpace20,
-                   Center(
-                     child: SizedBox(
-                       width: AppTheme.fullWidth(context) * 0.5,
-                       child: TextButton(
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          backgroundColor: AppColor.bondiBlue75,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.0)
-                          ),
-                        ),
-                        onPressed: () async {
-                          await _.confirmOrder();
-                        },
-                        child: Text(AppTranslationConstants.confirmOrder.tr,
-                            style: const TextStyle(color: Colors.white),
-                            textAlign: TextAlign.center
-                        )
-                       ),
-                     ),
-                   )
+                  Center(
+                     child: SubmitButton(context, text: AppTranslationConstants.confirmOrder.tr,
+                         onPressed: () async {await _.confirmOrder();
+                     }),
+                  )
              ]
             ),),
           ),

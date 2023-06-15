@@ -17,4 +17,6 @@ abstract class SalesRepository {
     required String orderId,
     required SaleType saleType});
 
+  Future<AppSale> retrieveReleaseItemSales();
+
 }

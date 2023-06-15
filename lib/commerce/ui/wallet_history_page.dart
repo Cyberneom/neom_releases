@@ -5,7 +5,6 @@ import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/utils/app_color.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
-import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/core_utilities.dart';
@@ -78,8 +77,7 @@ class WalletHistoryPage extends StatelessWidget {
                           ),
                         ),
                         onPressed: () {
-                          true ? AppUtilities.showSnackBar(AppTranslationConstants.underConstruction, AppTranslationConstants.underConstructionMsg)
-                          : Alert(
+                          Alert(
                               context: context,
                               style: AlertStyle(
                                   backgroundColor: AppColor.main50,
@@ -111,7 +109,7 @@ class WalletHistoryPage extends StatelessWidget {
                                         iconSize: 20,
                                         elevation: 16,
                                         style: const TextStyle(color: Colors.white),
-                                        dropdownColor: AppColor.getMain(),
+                                        dropdownColor: AppColor.main75,
                                         underline: Container(
                                           height: 1,
                                           color: Colors.grey,
@@ -127,7 +125,7 @@ class WalletHistoryPage extends StatelessWidget {
                                         style: const TextStyle(fontSize: 15),
                                       ),
                                       Obx(()=> DropdownButton<String>(
-                                        items: AppCurrency.values.map((AppCurrency currency) {
+                                        items: AppCurrency.values.getRange(0, 1).map((AppCurrency currency) {
                                           return DropdownMenuItem<String>(
                                             value: currency.name,
                                             child: Text(currency.name.toUpperCase()),
@@ -146,7 +144,7 @@ class WalletHistoryPage extends StatelessWidget {
                                         iconSize: 20,
                                         elevation: 16,
                                         style: const TextStyle(color: Colors.white),
-                                        dropdownColor: AppColor.getMain(),
+                                        dropdownColor: AppColor.main75,
                                         underline: Container(
                                           height: 1,
                                           color: Colors.grey,

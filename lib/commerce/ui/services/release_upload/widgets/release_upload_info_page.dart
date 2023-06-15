@@ -137,25 +137,6 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  // valueText: _.appReleaseItem.publishedYear == 0 ? "" : _.appReleaseItem.publishedYear.toString(),
-                  // valueStyle: Theme.of(context).textTheme.bodyLarge!,
-                  // onPressed: () async {
-                  //   DateTime? selectedDate = await showDatePicker(
-                  //     context: context,
-                  //     initialDatePickerMode: DatePickerMode.year,
-                  //     initialEntryMode: DatePickerEntryMode.calendarOnly,
-                  //     helpText: AppTranslationConstants.publishedDate.tr,
-                  //     cancelText: AppTranslationConstants.cancel.tr,
-                  //     initialDate: DateTime.now(),
-                  //     currentDate: _.publishedDate,
-                  //     firstDate: DateTime(1980),
-                  //     lastDate: DateTime.now(),
-                  //   );
-                  //
-                  //   if(selectedDate != null) {
-                  //     _.setPublishedDate(selectedDate);
-                  //   }
-                  // },
                   AppTheme.heightSpace20,
                   _.isAutoPublished ? Container() : TextFormField(
                     controller: _.placeController,

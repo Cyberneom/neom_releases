@@ -28,7 +28,7 @@ class PaymentGatewayPage extends StatelessWidget {
       id: AppPageIdConstants.paymentGateway,
       init: PaymentGatewayController(),
       builder: (_) => Scaffold(
-        appBar: AppBarChild(),
+        appBar: AppBarChild(title: AppTranslationConstants.paymentDetails.tr),
         body: SingleChildScrollView(
           controller: ScrollController(initialScrollOffset: 100),
           child: Container(

@@ -19,22 +19,40 @@ class OrderItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
+    Widget leadingImg = Container();
+    switch(order.saleType) {
+
+      case SaleType.product:
+        leadingImg = Image.asset(AppAssets.appCoin, height: 40);
+        break;
+      case SaleType.event:
+        leadingImg  = Image.network(order.event!.imgUrl);
+        break;
+      case SaleType.booking:
+        // TODO: Handle this case.
+        break;
+      case SaleType.releaseItem:
+        leadingImg  = Image.network(order.releaseItem!.imgUrl);
+        break;
+    }
     return Container(
       padding: const EdgeInsets.all(10),
       child: ListTile(
-        leading: order.saleType == SaleType.product ? Image.asset(AppAssets.appCoin, height: 40) :
-        order.saleType == SaleType.event ? Image.network(order.event!.imgUrl) : Container(),
+        leading: leadingImg,
         title: Text(
           order.description,
           style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 18
-          )
+          ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(AppUtilities.dateFormat(order.createdTime),
           style: const TextStyle(fontSize: 15),
         ),
-        trailing: Text("${getAmountToDisplay(order)} ${getCurrencyToDisplay(order).toUpperCase()}",
+        trailing: Text("${getAmountToDisplay(order)} ${getCurrencyToDisplay(order).tr.toUpperCase()}",
             style: const TextStyle(
                 color: AppColor.white,
                 fontSize: 18)
@@ -57,7 +75,9 @@ String getAmountToDisplay(PurchaseOrder order) {
     case SaleType.booking:      
       break;      
     case SaleType.releaseItem:
-      // TODO: Handle this case.
+      amount = order.releaseItem!.isPhysical
+          ? order.releaseItem!.physicalPrice!.amount
+          : order.releaseItem!.digitalPrice!.amount;
       break;
   }
   

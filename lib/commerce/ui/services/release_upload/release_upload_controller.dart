@@ -18,8 +18,10 @@ import 'package:neom_posts/neom_posts.dart';
 import 'package:neom_timeline/neom_timeline.dart';
 import 'package:rubber/rubber.dart';
 
+import '../../../domain/use_cases/release_upload_service.dart';
 
-class ReleaseUploadController extends GetxController with GetTickerProviderStateMixin {
+
+class ReleaseUploadController extends GetxController with GetTickerProviderStateMixin implements ReleaseUploadService {
 
   var logger = AppUtilities.logger;
 
@@ -35,14 +37,14 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   late RubberAnimationController rubberAnimationController;
   late RubberAnimationController releaseUploadDetailsAnimationController;
 
-  TextEditingController nameController = TextEditingController(text:"Quemando mis razones");
-  TextEditingController descController = TextEditingController(text:"La obra consta de un número de poemas en distintos formatos y en algunos casos, con cierta similitud a una crónica relatada de manera poética. Diferentes escenarios y atmósferas se presentan a cada poema, donde tras un análisis es posible detectar distintas etapas en la vida del autor, en sus distintos torrentes de amores, alegrías, pensares y pesares. Poemas como “Ensúciate” evocan una invitación a la autocrítica seguida de experiencias, mientras que en otros escritos como “Cuando sea viejo” o “La foto de mi hermano” se obvia la nostalgia y melancolía asociada al pasar del tiempo y las distancias y sus subsecuentes efectos en las relaciones inter -e intra- personales. Otros tantos escritos como “He de admitir y confesar” y “Oh naturaleza” intentan resolver la incertidumbre muchas veces presente en el ser humano. Otras venturas más instintivas se presentan en “Mostrarlo, sentirlo y hacerlo”, donde los deseos carnales del humano son comparados con la necesidad del amor.");
+  TextEditingController nameController = TextEditingController();
+  TextEditingController descController = TextEditingController();
   TextEditingController placeController = TextEditingController();
   TextEditingController maxDistanceKmController = TextEditingController();
   TextEditingController durationController = TextEditingController();
   TextEditingController paymentAmountController = TextEditingController();
-  TextEditingController digitalPriceController = TextEditingController(text: "");
-  TextEditingController physicalPriceController = TextEditingController(text: "");
+  TextEditingController digitalPriceController = TextEditingController();
+  TextEditingController physicalPriceController = TextEditingController();
 
   final RxList<String> _requiredInstruments = <String>[].obs;
   List<String> get requiredInstruments =>  _requiredInstruments;
@@ -369,7 +371,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   }
 
   @override
-  bool validateNameDesc(){
+  bool validateNameDesc() {
     //TODO Implement musician payment
     return nameController.text.isNotEmpty && descController.text.isNotEmpty
         && durationController.text.isNotEmpty && appReleaseItem.previewUrl.isNotEmpty;
@@ -569,7 +571,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   }
 
   List<int> getYearsList() {
-    int startYear = AppConstants.firstYearDOB;
+    int startYear = AppConstants.firstReleaseYear;
     int currentYear = DateTime.now().year;
     return List.generate(currentYear - startYear + 1, (index) => startYear + index);
   }
