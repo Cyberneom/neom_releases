@@ -140,7 +140,7 @@ class OrderDetailsPage extends StatelessWidget {
                          fontSize: 18)
                   ),
                   AppTheme.heightSpace5,
-                  Text(_.order.description.tr,
+                  Text("${_.order.description.tr}${_.order.product!.description.isNotEmpty ? " - ${_.order.product!.description}" : ""}",
                     style: const TextStyle(
                         color: Colors.grey,
                         fontSize: 16),

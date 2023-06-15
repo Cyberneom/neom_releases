@@ -6,8 +6,6 @@ import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:in_app_purchase/in_app_purchase.dart';
-import 'package:in_app_purchase_android/billing_client_wrappers.dart';
-import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 import 'package:intl_phone_field/countries.dart';
 import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/data/firestore/app_release_item_firestore.dart';
@@ -208,8 +206,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
           ),
         );
 
-        if((Get.find<WalletController>().appCoinProduct.qty == 5
-            && userController.user!.userRole != UserRole.subscriber)) {
+        if(userController.user!.userRole == UserRole.superAdmin) {
           paymentStatus = PaymentStatus.completed;
         } else {
           await handlePaymentMethod(billingDetails);
@@ -338,7 +335,13 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
                   AppRouteConstants.home]);
             break;
           case PaymentType.product:
-            int coinsQty = Get.find<WalletController>().appCoinProduct.qty;
+            int coinsQty = 0;
+            try {
+              coinsQty = Get.find<WalletController>().appCoinProduct.qty;
+            } catch(e) {
+              coinsQty = Get.put(WalletController()).appCoinProduct.qty;
+            }
+
             if(await ProfileFirestore().addToWallet(
                 payment.from, coinsQty.toDouble())) {
               userController.addToWallet(coinsQty);

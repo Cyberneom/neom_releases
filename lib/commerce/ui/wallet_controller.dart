@@ -285,7 +285,7 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
     try {
       appCoinProduct.salePrice!.amount = paymentAmount;
       appCoinProduct.salePrice!.currency = paymentCurrency;
-      Get.offAndToNamed(AppRouteConstants.orderConfirmation, arguments: [appCoinProduct]);
+      Get.toNamed(AppRouteConstants.orderConfirmation, arguments: [appCoinProduct]);
     } catch (e) {
       logger.e(e.toString());
     }
