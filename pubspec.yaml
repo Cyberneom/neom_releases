@@ -1,6 +1,6 @@
 name: neom_commerce
 description: Commerce Details for Cyberneom.
-version: 1.0.3
+version: 1.0.4
 homepage: https://github.com/emmanuel-montoya/neom_commerce
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -32,9 +32,6 @@ dependency_overrides:
   intl: 0.18.1
   neom_posts:
     path: ../neom_posts
-
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
 
 # The following section is specific to Flutter packages.
 flutter:
