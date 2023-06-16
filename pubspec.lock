@@ -1021,7 +1021,7 @@ packages:
       path: "../neom_commons"
       relative: true
     source: path
-    version: "1.0.3"
+    version: "1.0.4"
   neom_events:
     dependency: transitive
     description:
