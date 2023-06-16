@@ -6,6 +6,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:get/get.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:neom_commons/core/app_flavour.dart';
 
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/ui/widgets/submit_button.dart';
@@ -15,6 +16,7 @@ import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/constants/message_translation_constants.dart';
 import 'package:neom_commons/core/utils/core_utilities.dart';
+import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 import 'payment_gateway_controller.dart';
 
 
@@ -53,7 +55,7 @@ class PaymentGatewayPage extends StatelessWidget {
                       controller: _.emailController,
                       decoration: InputDecoration(
                           hintText: AppTranslationConstants.enterEmail.tr,
-                          labelText: 'Email'),
+                          labelText: AppTranslationConstants.email.tr),
                       onChanged: (value) {
                         //emailController.text;
                       },
@@ -66,9 +68,9 @@ class PaymentGatewayPage extends StatelessWidget {
                         _.cardFieldInputDetails = card;
                       },
                       style: CardFormStyle(
-                        placeholderColor: AppColor.white,
-                        textColor: AppColor.white,
-                        backgroundColor: Platform.isIOS ? AppColor.white : AppColor.main25,
+                        placeholderColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.gigmeout) ? Colors.black : AppColor.white,
+                        textColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.gigmeout) ? Colors.black : AppColor.white,
+                        backgroundColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.gigmeout) ? AppColor.white : AppColor.main25,
                       ),
                       countryCode: Get.locale!.countryCode,
                       enablePostalCode: false,
@@ -120,7 +122,7 @@ Widget buildPhoneField({required PaymentGatewayController paymentGatewayControll
           ),
       ),
       initialValue: paymentGatewayController.phoneController.text,
-      initialCountryCode: Get.locale!.countryCode,
+      initialCountryCode: "MX",
       onChanged: (phone) {
         paymentGatewayController.phoneController.text = phone.number;
       },

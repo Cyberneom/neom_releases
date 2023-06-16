@@ -91,6 +91,10 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   FilePickerResult? get releaseFile => _releaseFile.value;
   set releaseFile(FilePickerResult? releaseFile) => _releaseFile.value = releaseFile;
 
+  final Rx<File?> _iOSFile = File("").obs;
+  File? get iOSFile => _iOSFile.value;
+  set iOSFile(File? iOSFile) => _iOSFile.value = iOSFile;
+
   String releaseFilePath = "";
   @override
   void onInit() async {
@@ -212,6 +216,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
     appReleaseItem.watchingProfiles = [];
     appReleaseItem.boughtUsers = [];
+    appReleaseItem.createdTime = DateTime.now().millisecondsSinceEpoch;
 
     try {
       if(postUploadController.croppedImageFile.path.isNotEmpty) {
@@ -224,8 +229,15 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       if(appReleaseItem.previewUrl.isNotEmpty) {
         logger.d("Uploading file from: ${appReleaseItem.previewUrl}");
-        appReleaseItem.previewUrl = await AppUploadFirestore()
-            .uploadPdf(appReleaseItem.name, AppUtilities.getFileFromPath(releaseFilePath));
+
+        if(Platform.isIOS && iOSFile != null) {
+          appReleaseItem.previewUrl = await AppUploadFirestore()
+              .uploadPdf(appReleaseItem.name, iOSFile!.absolute);
+        } else {
+          appReleaseItem.previewUrl = await AppUploadFirestore()
+              .uploadPdf(appReleaseItem.name, await AppUtilities.getFileFromPath(releaseFilePath));
+        }
+
 
         logger.d("Updating Remote Preview URL as: ${appReleaseItem.previewUrl}");
       }
@@ -281,6 +293,13 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
             userController.user!.releaseItemIds = [appReleaseItem.id];
           }
         }
+
+        FirebaseMessagingCalls.sendGlobalPushNotification(
+            fromProfile: profile,
+            notificationType: PushNotificationType.releaseAppItemAdded,
+            referenceId: appReleaseItem.id,
+            imgUrl: appReleaseItem.imgUrl
+        );
       }
     } catch (e) {
       logger.e(e.toString());
@@ -561,13 +580,39 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       if (releaseFile != null && (releaseFile?.files.isNotEmpty ?? false)) {
         appReleaseItem.previewUrl = releaseFile?.files.first.name ?? "";
-        releaseFilePath = releaseFile?.paths.first ?? "";
       }
+
+      releaseFilePath = getReleaseFilePath(releaseFile);
+
+      if(Platform.isIOS) {
+        iOSFile = await AppUtilities.getFileFromPath(releaseFilePath);
+      }
+
     } catch (e) {
       logger.e(e.toString());
     }
 
     update([AppPageIdConstants.releaseUpload]);
+  }
+
+  String getReleaseFilePath(FilePickerResult? filePickerResult) {
+
+    String releasePath = "";
+
+    try {
+      if(Platform.isIOS) {
+        PlatformFile? file = filePickerResult?.files.first;
+        String uriPath = file?.path ?? "";
+        final fileUri = Uri.parse(uriPath);
+        releasePath = File.fromUri(fileUri).path;
+      } else {
+        releasePath = filePickerResult?.paths.first ?? "";
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return releasePath;
   }
 
   List<int> getYearsList() {
@@ -576,4 +621,9 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     return List.generate(currentYear - startYear + 1, (index) => startYear + index);
   }
 
+  void gotoPdfPreview() {
+    releaseFilePath = getReleaseFilePath(releaseFile);
+    Get.toNamed(AppRouteConstants.PDFViewer,
+        arguments: [releaseFilePath, false]);
+  }
 }

@@ -11,7 +11,6 @@ import 'package:neom_commons/core/utils/app_color.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_hero_tag_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
 
@@ -151,9 +150,10 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                     ),
                   ),
                   AppTheme.heightSpace20,
-                  _.postUploadController.croppedImageFile.path.isNotEmpty ?
-                  Text(AppTranslationConstants.tapCoverToPreviewRelease.tr, style: const TextStyle(decoration: TextDecoration.underline),) :
-                  Container(),
+                  _.postUploadController.croppedImageFile.path.isNotEmpty
+                      ? Text(AppTranslationConstants.tapCoverToPreviewRelease.tr,
+                    style: const TextStyle(decoration: TextDecoration.underline),)
+                      : Container(),
                   _.postUploadController.croppedImageFile.path.isNotEmpty ?
                   AppTheme.heightSpace5 : Container(),
                   _.postUploadController.croppedImageFile.path.isEmpty ?
@@ -181,8 +181,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                               height: 270,
                               width: 180
                             ),
-                            onTap: () => Get.toNamed(AppRouteConstants.PDFViewer,
-                                arguments: [_.releaseFile?.paths.first, false]),
+                            onTap: () => _.gotoPdfPreview()
                           ),
                         ),
                         FloatingActionButton(

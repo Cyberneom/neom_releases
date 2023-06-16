@@ -89,7 +89,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                         CircleAvatar(
                           backgroundImage: CachedNetworkImageProvider(_.profile.photoUrl.isNotEmpty
                               ? _.profile.photoUrl : AppFlavour.getNoImageUrl(),),
-                          radius: 100.0,
+                          radius: 80.0,
 
                         ),
                         AppTheme.heightSpace5,

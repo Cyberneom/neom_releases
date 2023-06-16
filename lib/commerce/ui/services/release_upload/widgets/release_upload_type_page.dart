@@ -35,15 +35,15 @@ class ReleaseUploadType extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: <Widget>[
                       AppTheme.heightSpace10,
+                      buildActionChip(
+                        appEnum: ReleaseType.single,
+                        controllerFunction: _.setReleaseType,
+                      ),
+                      AppTheme.heightSpace10,
                        buildActionChip(
                          appEnum: ReleaseType.album,
                          controllerFunction: _.setReleaseType,
                        ),
-                      AppTheme.heightSpace10,
-                      buildActionChip(
-                          appEnum: ReleaseType.single,
-                          controllerFunction: _.setReleaseType,
-                      ),
                       AppTheme.heightSpace10,
                       buildActionChip(
                         appEnum: ReleaseType.ep,
