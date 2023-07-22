@@ -18,9 +18,9 @@ class ReleaseUploadSummaryPage extends StatelessWidget {
       body: Container(
         height: AppTheme.fullHeight(context),
         decoration: AppTheme.appBoxDecoration,
-        child: Stack(
+        child: const Stack(
         alignment: Alignment.center,
-        children: const [
+        children: [
           OnlinePositioningSummaryBackground(),
           ReleaseUploadSummaryRubberPage(),
           CustomBackButton(),

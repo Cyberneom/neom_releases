@@ -5,7 +5,7 @@ homepage: https://github.com/emmanuel-montoya/neom_commerce
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 environment:
-  sdk: ">=2.19.6 <3.0.0"
+  sdk: ">=3.0.0 <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:
@@ -15,10 +15,12 @@ dependencies:
   neom_commons:
     git:
       url: https://github.com/Cyberneom/neom_commons.git
+  neom_posts:
+    git:
+      url: https://github.com/Cyberneom/neom_posts.git
 
   #not working for products
   woosignal: ^3.1.1
-#  month_year_picker: ^0.3.0+1
   in_app_purchase: ^3.1.7
 
 dev_dependencies:
@@ -29,10 +31,9 @@ dev_dependencies:
 dependency_overrides:
   neom_commons:
     path: ../neom_commons
-  intl: 0.18.1
   neom_posts:
     path: ../neom_posts
+  intl: 0.18.1
 
 # The following section is specific to Flutter packages.
 flutter:
-
