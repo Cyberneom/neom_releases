@@ -20,7 +20,7 @@ dependencies:
       url: https://github.com/Cyberneom/neom_posts.git
 
   #not working for products
-  woosignal: ^3.1.1
+#  woosignal: ^3.8.0
   in_app_purchase: ^3.1.7
 
 dev_dependencies:
