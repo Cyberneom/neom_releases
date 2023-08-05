@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:neom_commons/core/app_flavour.dart';
@@ -11,6 +13,7 @@ import 'package:neom_commons/core/utils/constants/app_assets.dart';
 import 'package:neom_commons/core/utils/constants/app_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
+import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 import 'package:neom_commons/core/utils/enums/sale_type.dart';
 import 'order_confirmation_controller.dart';
 
@@ -205,7 +208,53 @@ class OrderConfirmationPage extends StatelessWidget {
                      child: SubmitButton(context, text: AppTranslationConstants.confirmOrder.tr,
                          onPressed: () async {await _.confirmOrder();
                      }),
-                  )
+                  ),
+                  AppFlavour.appInUse == AppInUse.cyberneom ? Center(
+                    child: TextButton(
+                      onPressed: () async {
+                        await _.inAppPurchasePayment();
+                        // showModalBottomSheet(
+                        //   context: context,
+                        //   builder: (context) {
+                        //     return FutureBuilder(
+                        //       future: InAppPurchase.instance.queryProductDetails(<String>{_.inAppProductId}),
+                        //       builder: (context, snapshot) {
+                        //         if (snapshot.connectionState == ConnectionState.done) {
+                        //           if (snapshot.hasError) {
+                        //             return Text('Error getting products');
+                        //           } else {
+                        //             List<ProductDetails> products = snapshot.data?.productDetails ?? [];
+                        //             return ListView(
+                        //               shrinkWrap: true,
+                        //               children: products
+                        //                   .map((product) => ListTile(
+                        //                   tileColor: AppColor.main75,
+                        //                   leading: Icon(!Platform.isAndroid
+                        //                       ? FontAwesomeIcons.googlePay : FontAwesomeIcons.applePay,
+                        //                       size: 30),
+                        //                   title: Text(product.title),
+                        //                   subtitle: Text(product.description, textAlign: TextAlign.justify,),
+                        //                   trailing: Text(product.price,),
+                        //                   onTap: () async {
+                        //                     await _.inAppPurchasePayment(product);
+                        //                   }))
+                        //                   .toList(),
+                        //             );
+                        //           }
+                        //         } else {
+                        //           return Center(child: CircularProgressIndicator());
+                        //         }
+                        //       },
+                        //     );
+                        //   },
+                        // );
+                      },
+                      child: Text(Platform.isAndroid
+                          ? AppTranslationConstants.payWithInAppPurchaseAndroid.tr : AppTranslationConstants.payWithInAppPurchaseIOS.tr,
+                        style: const TextStyle(color: AppColor.white, decoration: TextDecoration.underline),
+                      ),
+                    ),
+                  ) : Container()
              ]
             ),),
           ),

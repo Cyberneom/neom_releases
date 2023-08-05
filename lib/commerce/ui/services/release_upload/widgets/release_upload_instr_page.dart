@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
-import 'package:neom_commons/core/ui/widgets/header_intro.dart';
-import 'package:neom_commons/core/utils/app_theme.dart';
-import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
-import 'package:neom_commons/core/utils/constants/message_translation_constants.dart';
+import 'package:neom_commons/neom_commons.dart';
 import '../release_upload_controller.dart';
 import 'release_upload_instr_list.dart';
 
@@ -23,7 +18,8 @@ class ReleaseUploadInstrPage extends StatelessWidget {
           decoration: AppTheme.appBoxDecoration,
           child: Column(
               children: <Widget>[
-                HeaderIntro(subtitle: AppTranslationConstants.releaseUploadInstr.tr, showLogo: false,),
+                AppFlavour.appInUse == AppInUse.gigmeout ? AppTheme.heightSpace100 : Container(),
+                HeaderIntro(subtitle: AppTranslationConstants.releaseUploadInstr.tr, showLogo: AppFlavour.appInUse == AppInUse.gigmeout,),
                 const Expanded(child: ReleaseUploadInstrList(),),
               ]
           ),

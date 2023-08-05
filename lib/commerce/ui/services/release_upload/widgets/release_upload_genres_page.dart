@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:neom_commons/core/app_flavour.dart';
 
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/ui/widgets/header_intro.dart';
@@ -7,6 +8,7 @@ import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/constants/message_translation_constants.dart';
+import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 import '../release_upload_controller.dart';
 
 class ReleaseUploadGenresPage extends StatelessWidget {
@@ -23,22 +25,20 @@ class ReleaseUploadGenresPage extends StatelessWidget {
            body: Container(
              height: AppTheme.fullHeight(context),
              decoration: AppTheme.appBoxDecoration,
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    HeaderIntro(subtitle: AppTranslationConstants.releaseUploadGenres.tr, showLogo: false,),
-                    SizedBox(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.vertical,
-                        child: Wrap(
-                          alignment: WrapAlignment.center,
-                          children: _.genreChips.toList()
-                        ),
-                       ),
-                     ),
+              child: Column(
+                children: [
+                  AppFlavour.appInUse == AppInUse.gigmeout ? AppTheme.heightSpace100 : Container(),
+                  HeaderIntro(subtitle: AppTranslationConstants.releaseUploadGenres.tr, showLogo: AppFlavour.appInUse == AppInUse.gigmeout,),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Wrap(
+                        alignment: WrapAlignment.center,
+                        children: _.genreChips.toList()
+                      ),
+                    ),
+                  ),
                 ],
               ),
-            ),
            ),
            floatingActionButton: _.selectedGenres.isNotEmpty ? FloatingActionButton(
              tooltip: AppTranslationConstants.next.tr,

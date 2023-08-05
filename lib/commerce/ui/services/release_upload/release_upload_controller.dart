@@ -313,8 +313,8 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     logger.v("");
 
     try {
-      Prediction prediction = await mapsController.placeAutocomplate(context, placeController.text);
-      publisherPlace = await CoreUtilities.predictionToGooglePlace(prediction);
+      Prediction prediction = await mapsController.placeAutoComplete(context, placeController.text);
+      publisherPlace = await mapsController.predictionToGooglePlace(prediction);
       mapsController.goToPosition(publisherPlace.position!);
       placeController.text = publisherPlace.name;
       FocusScope.of(context).requestFocus(FocusNode()); //remove focus
@@ -391,9 +391,10 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
   @override
   bool validateNameDesc() {
-    //TODO Implement musician payment
-    return nameController.text.isNotEmpty && descController.text.isNotEmpty
-        && durationController.text.isNotEmpty && appReleaseItem.previewUrl.isNotEmpty;
+    return nameController.text.isNotEmpty
+        && descController.text.isNotEmpty
+        && appReleaseItem.previewUrl.isNotEmpty
+        && (durationController.text.isNotEmpty || AppFlavour.appInUse == AppInUse.gigmeout);
   }
 
   Future<void> addGenresToReleaseItem() async {
@@ -474,7 +475,11 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   Future<void> addReleaseCoverImg() async {
     logger.d("");
     try {
-      await postUploadController.handleImage(ratioX: 6, ratioY: 9, uploadImageType: UploadImageType.releaseItem);
+      await postUploadController.handleImage(uploadImageType: UploadImageType.releaseItem,
+        ratioX: AppFlavour.appInUse == AppInUse.gigmeout ? 1 : 6,
+        ratioY: AppFlavour.appInUse == AppInUse.gigmeout ? 1 : 9,
+
+      );
     } catch (e) {
       logger.e(e.toString());
     }
@@ -575,7 +580,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     try {
       releaseFile = await FilePicker.platform.pickFiles(
         type: FileType.custom,
-        allowedExtensions: ['pdf'],
+        allowedExtensions: [AppFlavour.appInUse == AppInUse.gigmeout ? 'mp3' : 'pdf'],
       );
 
       if (releaseFile != null && (releaseFile?.files.isNotEmpty ?? false)) {

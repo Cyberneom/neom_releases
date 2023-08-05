@@ -13,6 +13,7 @@ import 'package:neom_commons/core/utils/constants/app_hero_tag_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
+import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 
 import '../release_upload_controller.dart';
 
@@ -33,7 +34,8 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
              child: SingleChildScrollView(
                child: Column(
                 children: <Widget>[
-                  HeaderIntro(subtitle: AppTranslationConstants.releaseUploadNameDesc.tr, showLogo: false,),
+                  AppFlavour.appInUse == AppInUse.gigmeout ? AppTheme.heightSpace100 : Container(),
+                  HeaderIntro(subtitle: AppTranslationConstants.releaseUploadNameDesc.tr, showLogo: AppFlavour.appInUse == AppInUse.gigmeout,),
                   AppTheme.heightSpace10,
                   Container(
                     padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
@@ -65,7 +67,8 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                 Container(
+                  AppFlavour.appInUse == AppInUse.emxi ?
+                  Container(
                    padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                    child: Row(
                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -115,7 +118,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                          ),
                         ),
                     ],),
-                 ),
+                  ) : Container(),
                   TitleSubtitleRow("", showDivider: false, vPadding: 10, subtitle: AppTranslationConstants.releasePriceMsg.tr,
                   url: AppFlavour.getDigitalPositioningUrl()),
                   AppTheme.heightSpace10,

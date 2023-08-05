@@ -9,15 +9,6 @@ class AppCoinProductConstants {
   static List<AppProduct> appCoinProducts = [
     AppProduct(
       name: "App Coins Pack",
-      description: "5 App Coins",
-      type: ProductType.coins,
-      regularPrice: Price(currency: AppCurrency.mxn, amount: 25),
-      salePrice: Price(currency: AppCurrency.mxn, amount: 25),
-      qty: 5,
-      imgUrl: "https://firebasestorage.googleapis.com/v0/b/gig-me-out.appspot.com/o/AppStatics%2FProductAssets%2Fgigcoins_13.png?alt=media&token=7bcb4383-edf8-4efa-be7f-07e5b4d11ca6",
-    ),
-    AppProduct(
-      name: "App Coins Pack",
       description: "10 App Coins",
       type: ProductType.coins,
       regularPrice: Price(currency: AppCurrency.mxn, amount: 50),

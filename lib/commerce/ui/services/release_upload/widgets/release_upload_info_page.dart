@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/ui/widgets/header_intro.dart';
 import 'package:neom_commons/core/ui/widgets/number_limit_input_formatter.dart';
@@ -13,6 +14,7 @@ import 'package:neom_commons/core/utils/constants/app_hero_tag_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
+import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 
 import '../release_upload_controller.dart';
 
@@ -36,7 +38,9 @@ class ReleaseUploadInfoPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  HeaderIntro(subtitle: AppTranslationConstants.releaseUploadPLaceDate.tr, showLogo: false,),
+                  AppFlavour.appInUse == AppInUse.gigmeout ? AppTheme.heightSpace100 : Container(),
+                  HeaderIntro(subtitle: AppTranslationConstants.releaseUploadPLaceDate.tr, showLogo: AppFlavour.appInUse == AppInUse.gigmeout,),
+
                   AppTheme.heightSpace10,
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -5,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
-import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:intl_phone_field/countries.dart';
 import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/data/firestore/app_release_item_firestore.dart';
@@ -33,6 +33,8 @@ import '../../domain/use_cases/payment_gateway_service.dart';
 import '../../utils/enums/payment_status.dart';
 import '../../utils/enums/payment_type.dart';
 import '../wallet_controller.dart';
+
+
 
 class PaymentGatewayController extends GetxController with GetTickerProviderStateMixin implements PaymentGatewayService {
 
@@ -75,9 +77,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
   String apiBase = 'https://api.stripe.com/v1';
   // If you are using a real device to test the integration replace this url
   // with the endpoint of your test server (it usually should be the IP of your computer)
-  String kApiUrl = Platform.isAndroid
-      ? 'http://10.0.2.2:4242'
-      : 'http://localhost:4242';
+  String kApiUrl = Platform.isAndroid ? 'http://10.0.2.2:4242' : 'http://localhost:4242';
 
   stripe.CardFieldInputDetails? cardFieldInputDetails;
   stripe.CardFormEditController cardEditController = stripe.CardFormEditController();
@@ -86,15 +86,12 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
   Payment payment = Payment();
   Address userAddress = Address();
 
-  final InAppPurchase inAppPurchase = InAppPurchase.instance;
-
   @override
   void onInit() async {
     super.onInit();
     logger.d("Payment Gateway Controller Init");
 
     try {
-
       if(Get.arguments != null && Get.arguments.isNotEmpty) {
         if (Get.arguments[0] is Payment) {
           payment = Get.arguments[0];
@@ -106,7 +103,6 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
       }
 
       profile = userController.user!.profiles.first;
-
       emailController.text = userController.user?.email ?? "";
       phoneController.text = userController.user?.phoneNumber ?? "";
 
@@ -115,10 +111,6 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
           phoneCountry = country; //Mexico
         }
       }
-
-      //TODO Verify if addListener is needed
-      //cardEditController.details = cardEditController.initalDetails!;
-      //cardEditController.addListener(onUpdate);
     } catch (e) {
       logger.i(e.toString());
     }
@@ -127,6 +119,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
   @override
   void onReady() async {
+    super.onReady();
 
     try {
       String paymentId = await PaymentFirestore().insert(payment);
@@ -139,6 +132,10 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
       if(payment.price.currency == AppCurrency.appCoin) {
         update([AppPageIdConstants.paymentGateway]);
         await payWithAppCoins();
+      } else if(payment.status == PaymentStatus.completed
+          && (order.googlePlayPurchaseDetails != null || order.appStorePurchaseDetails != null)) {
+        paymentStatus = payment.status;
+        await handleProcessedPayment();
       } else {
         isLoading = false;
       }
@@ -147,10 +144,6 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
     }
 
     update([AppPageIdConstants.paymentGateway]);
-  }
-
-  void onUpdate() async {
-
   }
 
   @override
@@ -302,7 +295,6 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
   @override
   Future<void> handleProcessedPayment() async {
-
 
     try {
       if(paymentStatus == PaymentStatus.completed) {

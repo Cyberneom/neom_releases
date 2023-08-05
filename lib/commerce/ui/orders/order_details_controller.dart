@@ -6,11 +6,9 @@ import 'package:neom_commons/core/domain/model/booking.dart';
 import 'package:neom_commons/core/domain/model/event.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/core/utils/constants/message_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/sale_type.dart';
 
 import '../../data/firestore/invoice_firestore.dart';
-import '../../data/firestore/order_firestore.dart';
 import '../../data/firestore/payment_firestore.dart';
 import '../../domain/models/app_product.dart';
 import '../../domain/models/invoice.dart';
@@ -38,7 +36,6 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
   Map<String, Invoice> get invoices => _invoices;
   set invoices(Map<String, Invoice> invoices) => _invoices.value = invoices;
 
-
   AppProfile profile = AppProfile();
 
   AppProduct? product;
@@ -59,7 +56,7 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
   @override
   void onInit() async {
     super.onInit();
-    logger.d("EventDetails Controller Init");
+    logger.d("Order Details Controller Init");
 
     try {
       profile = userController.user!.profiles.first;
@@ -131,28 +128,5 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
     isLoading = false;
     update([AppPageIdConstants.orderDetails]);
   }
-
-  Future<void> confirmOrder() async {
-    logger.i("Order was confirmed and would be created");
-    String orderId = "";
-    try {
-      orderId = await OrderFirestore().insert(order);
-      if(orderId.isNotEmpty) {
-
-
-      } else {
-        Get.snackbar(
-          MessageTranslationConstants.errorCreatingOrder.tr,
-          MessageTranslationConstants.errorCreatingOrderMsg.tr,
-          snackPosition: SnackPosition.bottom,);
-      }
-    } catch (e) {
-      logger.e(e.toString());
-    }
-
-
-
-  }
-
 
 }

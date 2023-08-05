@@ -114,8 +114,7 @@ class WalletHistoryPage extends StatelessWidget {
                                           height: 1,
                                           color: Colors.grey,
                                         ),
-                                      ),
-                                      ),
+                                      ),),
                                     ],
                                   ),
                                   Row(

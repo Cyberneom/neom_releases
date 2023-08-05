@@ -1,15 +1,12 @@
+import 'dart:async';
+import 'dart:io';
+
 import 'package:get/get.dart';
-import 'package:neom_commons/core/data/implementations/user_controller.dart';
-import 'package:neom_commons/core/domain/model/app_profile.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
+import 'package:in_app_purchase_android/src/types/google_play_purchase_details.dart';
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:neom_commons/core/domain/model/app_release_item.dart';
-import 'package:neom_commons/core/domain/model/booking.dart';
-import 'package:neom_commons/core/domain/model/event.dart';
-import 'package:neom_commons/core/utils/app_utilities.dart';
-import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/core/utils/constants/app_payment_constants.dart';
-import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
-import 'package:neom_commons/core/utils/constants/message_translation_constants.dart';
-import 'package:neom_commons/core/utils/enums/sale_type.dart';
+import 'package:neom_commons/neom_commons.dart';
 
 import '../../../data/firestore/order_firestore.dart';
 import '../../../data/firestore/sales_firestore.dart';
@@ -17,8 +14,10 @@ import '../../../domain/models/app_product.dart';
 import '../../../domain/models/app_sale.dart';
 import '../../../domain/models/payment.dart';
 import '../../../domain/models/purchase_order.dart';
+import '../../../utils/constants/app_commerce_constants.dart';
 import '../../../utils/enums/payment_status.dart';
 import '../../../utils/enums/payment_type.dart';
+import 'in_app_payment_queue_delegate.dart';
 
 class OrderConfirmationController extends GetxController with GetTickerProviderStateMixin {
 
@@ -59,6 +58,14 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
   String displayedDescription = "";
   String displayedImgUrl = "";
 
+  final InAppPurchase inAppPurchase = InAppPurchase.instance;
+  late StreamSubscription<dynamic> _subscription;
+  List<ProductDetails> inAppProducts = [];
+
+  String inAppProductId = "";
+  bool isConsumable = false;
+  bool isAppPurchaseLoading = false;
+
   @override
   void onInit() async {
     super.onInit();
@@ -76,6 +83,8 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
           order.description = product.name;
           order.product = product;
           payment.type = PaymentType.product;
+          inAppProductId = product.id;
+          isConsumable = true;
         } else if (Get.arguments[0] is Event) {
           event = Get.arguments[0];
           order.saleType = SaleType.event;
@@ -83,6 +92,11 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
           order.event = event;
           payment.type = PaymentType.event;
           payment.to = event.owner!.id;
+          AppCommerceConstants.eventCoverLevels.forEach((key, value) {
+            if(event.coverPrice!.amount == value) {
+              inAppProductId = key;
+            }
+          });
         } else if (Get.arguments[0] is AppReleaseItem) {
           releaseItem = Get.arguments[0];
           order.saleType = SaleType.releaseItem;
@@ -99,9 +113,9 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
 
   }
 
-
   @override
   void onReady() async {
+    super.onReady();
     try {
 
       DateTime now = DateTime.now();
@@ -123,10 +137,9 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
             sales = await SalesFirestore().retrieveProductSales();
             sales.orderNumber = sales.orderNumber + 1;
 
-            order.id = "${userController.user!.id
-                .substring(0,5).toUpperCase()}"
+            order.id = "${userController.user!.id.substring(0,5).toUpperCase()}"
                 "${product.id.substring(0,5).toUpperCase()}"
-                "${profile.name.substring(0,3)}"
+                "${profile.name.substring(0,3).toUpperCase()}"
                 "${sales.orderNumber.toString()}";
 
             payment.finalAmount = product.salePrice!.amount;
@@ -194,8 +207,20 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
       logger.e(e.toString());
     }
 
+    await initInAppPurchase();
     isLoading = false;
     update([AppPageIdConstants.orderConfirmation]);
+  }
+
+  @override
+  void dispose() async {
+    super.dispose();
+    if (Platform.isIOS) {
+      final InAppPurchaseStoreKitPlatformAddition iosPlatformAddition = inAppPurchase
+          .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+      await iosPlatformAddition.setDelegate(null);
+    }
+    await _subscription.cancel();
   }
 
   Future<void> confirmOrder() async {
@@ -219,7 +244,89 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
     } catch (e) {
       logger.e(e.toString());
     }
+  }
 
+  Future<void> inAppPurchasePayment() async {
+    AppUtilities.logger.d("InAppPurchase Payment for productId $inAppProductId");
+    try {
+      if(inAppProducts.isNotEmpty) {
+        ProductDetails productDetails = inAppProducts.firstWhere((element) => element.id == inAppProductId);
+        final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
+        bool inAppPaymentSuccess = false;
+        isAppPurchaseLoading = true;
+        if(isConsumable) {
+          inAppPaymentSuccess = await inAppPurchase.buyConsumable(purchaseParam: purchaseParam);
+        } else {
+          inAppPaymentSuccess = await inAppPurchase.buyNonConsumable(purchaseParam: purchaseParam);
+        }
+
+        if(inAppPaymentSuccess) {
+
+        }
+      }
+    } catch(e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    isAppPurchaseLoading = false;
+    update([AppPageIdConstants.orderConfirmation]);
+  }
+
+  Future<void> initInAppPurchase() async {
+    final Stream purchaseUpdated = InAppPurchase.instance.purchaseStream;
+    _subscription = purchaseUpdated.listen((purchaseDetailsList) async {
+      await _listenToPurchaseUpdated(purchaseDetailsList);
+    }, onDone: () async {
+      await _subscription.cancel();
+    }, onError: (error) {
+      AppUtilities.logger.e(error.toString());
+    });
+
+    if (Platform.isIOS) {
+      final InAppPurchaseStoreKitPlatformAddition iosPlatformAddition = inAppPurchase
+          .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+      await iosPlatformAddition.setDelegate(InAppPaymentQueueDelegate());
+    }
+
+    final bool available = await InAppPurchase.instance.isAvailable();
+    if (available) {
+      Set<String> kIds = <String>{inAppProductId};
+      final ProductDetailsResponse response = await InAppPurchase.instance.queryProductDetails(kIds);
+      if (response.notFoundIDs.isNotEmpty) {
+        AppUtilities.logger.i("The following Product Ids were not found: ${response.notFoundIDs.toString()}");
+      }
+      inAppProducts = response.productDetails;
+    } else {
+      AppUtilities.logger.i("The InAppPurchase Store could not be reached or accessed");
+    }
+  }
+
+  Future<void> _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) async {
+    for (var purchaseDetails in purchaseDetailsList) {
+      if (purchaseDetails.status == PurchaseStatus.pending) {
+        // _showPendingUI();
+      } else {
+        if (purchaseDetails.status == PurchaseStatus.purchased ||
+            purchaseDetails.status == PurchaseStatus.restored) {
+
+          if(Platform.isAndroid && purchaseDetails is GooglePlayPurchaseDetails) {
+            order.googlePlayPurchaseDetails = purchaseDetails;
+          } else if(Platform.isIOS && purchaseDetails is AppStorePurchaseDetails){
+            order.appStorePurchaseDetails = purchaseDetails;
+          }
+
+          payment.status = PaymentStatus.completed;
+          await confirmOrder();
+        } else if (purchaseDetails.pendingCompletePurchase) {
+          await InAppPurchase.instance.completePurchase(purchaseDetails);
+        } else if (purchaseDetails.status == PurchaseStatus.error) {
+          AppUtilities.showSnackBar(AppTranslationConstants.inAppPurchase,
+              purchaseDetails.status.toString(), duration: const Duration(seconds: 4));
+          AppUtilities.logger.e(purchaseDetails.status.toString());
+          // _handleError(purchaseDetails.error!);
+        }
+      }
+    }
   }
 
 
