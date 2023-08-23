@@ -83,9 +83,9 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   Place get publisherPlace => _publisherPlace.value;
   set publisherPlace(Place publisherPlace) => _publisherPlace.value = publisherPlace;
 
-  final RxMap<String, AppItem> _itemsToRelease = <String,AppItem>{}.obs;
-  Map<String,AppItem> get itemsToRelease =>  _itemsToRelease;
-  set itemsToRelease(Map<String,AppItem> itemsToRelease) => _itemsToRelease.value = itemsToRelease;
+  // final RxMap<String, AppMediaItem> _itemsToRelease = <String,AppMediaItem>{}.obs;
+  // Map<String,AppMediaItem> get itemsToRelease =>  _itemsToRelease;
+  // set itemsToRelease(Map<String,AppMediaItem> itemsToRelease) => _itemsToRelease.value = itemsToRelease;
 
   final Rx<FilePickerResult?> _releaseFile = const FilePickerResult([]).obs;
   FilePickerResult? get releaseFile => _releaseFile.value;
@@ -171,7 +171,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     logger.d("Release Type as ${releaseType.name}");
     appReleaseItem.type = releaseType;
     appReleaseItem.imgUrl == "";
-    itemsToRelease.clear();
+    // itemsToRelease.clear();///TODO VERIFY IF NEEDED
 
     Get.toNamed(AppRouteConstants.releaseUploadInstr);
     update([AppPageIdConstants.releaseUpload]);
