@@ -8,6 +8,7 @@ import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/ui/widgets/header_intro.dart';
 import 'package:neom_commons/core/ui/widgets/number_limit_input_formatter.dart';
 import 'package:neom_commons/core/ui/widgets/title_subtitle_row.dart';
+import 'package:neom_commons/core/utils/app_color.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_hero_tag_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
@@ -28,6 +29,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
          return Scaffold(
            extendBodyBehindAppBar: true,
            appBar: AppBarChild(color: Colors.transparent),
+           backgroundColor: AppColor.main50,
            body: Container(
              height: AppTheme.fullHeight(context),
              decoration: AppTheme.appBoxDecoration,

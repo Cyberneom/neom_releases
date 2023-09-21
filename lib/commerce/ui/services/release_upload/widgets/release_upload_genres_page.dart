@@ -4,6 +4,7 @@ import 'package:neom_commons/core/app_flavour.dart';
 
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/ui/widgets/header_intro.dart';
+import 'package:neom_commons/core/utils/app_color.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
@@ -22,6 +23,7 @@ class ReleaseUploadGenresPage extends StatelessWidget {
          return Scaffold(
            extendBodyBehindAppBar: true,
            appBar: AppBarChild(color: Colors.transparent),
+           backgroundColor: AppColor.main50,
            body: Container(
              height: AppTheme.fullHeight(context),
              decoration: AppTheme.appBoxDecoration,

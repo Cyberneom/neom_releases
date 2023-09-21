@@ -5,6 +5,7 @@ import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/ui/widgets/header_intro.dart';
 import 'package:neom_commons/core/ui/widgets/summary_button.dart';
 import 'package:neom_commons/core/ui/widgets/title_subtitle_row.dart';
+import 'package:neom_commons/core/utils/app_color.dart';
 
 import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_assets.dart';
@@ -26,6 +27,7 @@ class ReleaseUploadPage extends StatelessWidget {
         return Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBarChild(color: Colors.transparent),
+          backgroundColor: AppColor.main50,
           body: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: AppTheme.appBoxDecoration,
@@ -43,17 +45,21 @@ class ReleaseUploadPage extends StatelessWidget {
                         TitleSubtitleRow(AppTranslationConstants.digitalSalesModel.tr, subtitle: AppTranslationConstants.digitalSalesModelMsg.tr,showDivider: false,),
                         AppTheme.heightSpace10,
                       ],) : Container(),
-                    SizedBox(
-                      width: AppTheme.fullWidth(context)*0.6,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10.0),
-                        child: Image.asset(AppAssets.releaseUploadIntro,
-                          fit: BoxFit.cover,),
-                      ),
-                    ),
-                    AppTheme.heightSpace10,
-                    TitleSubtitleRow(AppTranslationConstants.physicalSalesModel.tr, subtitle: AppTranslationConstants.physicalSalesModelMsg.tr,showDivider: false),
-                    AppTheme.heightSpace10,
+                    AppFlavour.appInUse == AppInUse.emxi ? Column(
+                      children: [
+                        SizedBox(
+                          width: AppTheme.fullWidth(context)*0.6,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10.0),
+                            child: Image.asset(AppAssets.releaseUploadIntro,
+                              fit: BoxFit.cover,),
+                          ),
+                        ),
+                        AppTheme.heightSpace10,
+                        TitleSubtitleRow(AppTranslationConstants.physicalSalesModel.tr, subtitle: AppTranslationConstants.physicalSalesModelMsg.tr,showDivider: false),
+                        AppTheme.heightSpace10,
+                      ],
+                    ) : Container(),
                     SummaryButton(AppTranslationConstants.toStart.tr, onPressed: ()=>Get.toNamed(AppRouteConstants.releaseUploadType)),
                     AppTheme.heightSpace10,
                   ],

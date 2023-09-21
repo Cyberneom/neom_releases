@@ -30,6 +30,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
         return Obx(()=> Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBarChild(color: Colors.transparent),
+          backgroundColor: AppColor.main50,
           body:  Container(
             height: MediaQuery.of(context).size.height,
             padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
@@ -40,9 +41,8 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                 children: <Widget>[
                   AppFlavour.appInUse == AppInUse.gigmeout ? AppTheme.heightSpace100 : Container(),
                   HeaderIntro(subtitle: AppTranslationConstants.releaseUploadPLaceDate.tr, showLogo: AppFlavour.appInUse == AppInUse.gigmeout,),
-
                   AppTheme.heightSpace10,
-                  Row(
+                  AppFlavour.appInUse == AppInUse.emxi ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
@@ -87,7 +87,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                         ),
                       ),
                     ],
-                  ),
+                  ) : Container(),
                   AppTheme.heightSpace10,
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -131,7 +131,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                           iconSize: 20,
                           elevation: 16,
                           style: const TextStyle(color: Colors.white),
-                          dropdownColor: AppColor.main75,
+                          dropdownColor: AppColor.getMain(),
                           underline: Container(
                             height: 1,
                             color: Colors.grey,
@@ -154,7 +154,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                     ),
                   ),
                   AppTheme.heightSpace20,
-                  _.postUploadController.croppedImageFile.path.isNotEmpty
+                  _.postUploadController.croppedImageFile.path.isNotEmpty && AppFlavour.appInUse == AppInUse.emxi
                       ? Text(AppTranslationConstants.tapCoverToPreviewRelease.tr,
                     style: const TextStyle(decoration: TextDecoration.underline),)
                       : Container(),
@@ -185,7 +185,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                               height: 270,
                               width: 180
                             ),
-                            onTap: () => _.gotoPdfPreview()
+                            onTap: () => AppFlavour.appInUse == AppInUse.emxi ? _.gotoPdfPreview() : {}
                           ),
                         ),
                         FloatingActionButton(

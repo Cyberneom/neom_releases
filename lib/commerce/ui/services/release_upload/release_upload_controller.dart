@@ -46,6 +46,10 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   TextEditingController digitalPriceController = TextEditingController();
   TextEditingController physicalPriceController = TextEditingController();
 
+  final RxBool _showSongsDropDown = false.obs;
+  bool get showSongsDropDown => _showSongsDropDown.value;
+  set showSongsDropDown(bool showSongsDropDown) => _showSongsDropDown.value = showSongsDropDown;
+
   final RxList<String> _requiredInstruments = <String>[].obs;
   List<String> get requiredInstruments =>  _requiredInstruments;
   set requiredInstruments(List<String> requiredInstruments) => _requiredInstruments.value = requiredInstruments;
@@ -96,6 +100,10 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   set iOSFile(File? iOSFile) => _iOSFile.value = iOSFile;
 
   String releaseFilePath = "";
+  List<String> releaseFilePaths = [];
+  int releaseItemsQty = 0;
+  Itemlist releaseItemList = Itemlist();
+
   @override
   void onInit() async {
 
@@ -173,7 +181,26 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     appReleaseItem.imgUrl == "";
     // itemsToRelease.clear();///TODO VERIFY IF NEEDED
 
+    if(AppFlavour.appInUse != AppInUse.gigmeout || releaseType == ReleaseType.single) {
+      showSongsDropDown = false;
+      releaseItemsQty = 1;
+      // Get.toNamed(AppRouteConstants.releaseUploadInstr);
+      Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
+    } else {
+      releaseItemsQty = 2;
+      showSongsDropDown = true;
+    }
+
+    update([AppPageIdConstants.releaseUpload]);
+  }
+
+  @override
+  Future<void> setAppReleaseItemsQty(int itemsQty) async {
+    logger.d("Settings $itemsQty Items for ${appReleaseItem.type} Release");
+    releaseItemsQty = itemsQty;
+
     Get.toNamed(AppRouteConstants.releaseUploadInstr);
+
     update([AppPageIdConstants.releaseUpload]);
   }
 
@@ -400,7 +427,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   Future<void> addGenresToReleaseItem() async {
     logger.d("Adding ${genres.length} to release.");
     appReleaseItem.genres = selectedGenres;
-    Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
+    Get.toNamed(AppRouteConstants.releaseUploadInfo);
   }
 
   Future<void> addNameDescToReleaseItem() async {
@@ -409,7 +436,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     setReleaseDesc();
     setReleaseDuration();
     setDigitalReleasePrice();
-    Get.toNamed(AppRouteConstants.releaseUploadInfo);
+    Get.toNamed(AppRouteConstants.releaseUploadInstr);
   }
 
   void setPhysicalReleasePrice() {

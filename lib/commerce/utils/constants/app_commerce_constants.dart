@@ -20,6 +20,8 @@ class AppCommerceConstants {
     "event_cover_level_4": 200,
   };
 
+  static List<int> appReleaseItemsQty = List<int>.generate(15, (index) => index + 1);
+
   ///This info is needed for quotations.
   static const double revenuePercentage = 0.25; ///Revenue percentage from service
   static const int processACost = 20; ///Cost Per Unit of Duration

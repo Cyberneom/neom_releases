@@ -30,7 +30,7 @@ class OnlinePositioningSummaryBackground extends StatelessWidget {
                   : _.appReleaseItem.imgUrl.isNotEmpty ? _.appReleaseItem.imgUrl : AppFlavour.getNoImageUrl(),
                 width: AppTheme.fullWidth(context),
                 height: AppTheme.fullHeight(context),
-                fit: BoxFit.cover,
+                fit: BoxFit.fitWidth,
               ),
               Container(
                 width: AppTheme.fullWidth(context),

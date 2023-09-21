@@ -14,6 +14,7 @@ class ReleaseUploadInstrPage extends StatelessWidget {
       builder: (_) => Scaffold(
         extendBodyBehindAppBar: true,
         appBar: AppBarChild(color: Colors.transparent),
+        backgroundColor: AppColor.main50,
         body: Container(
           decoration: AppTheme.appBoxDecoration,
           child: Column(
