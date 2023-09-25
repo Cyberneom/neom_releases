@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_webservice/places.dart';
+import 'package:just_audio/just_audio.dart';
 import 'package:neom_commons/core/data/firestore/app_release_item_firestore.dart';
 import 'package:neom_commons/core/data/firestore/app_upload_firestore.dart';
 import 'package:neom_commons/core/domain/model/app_release_item.dart';
@@ -83,6 +84,10 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   AppReleaseItem get appReleaseItem => _appReleaseItem.value;
   set appReleaseItem(AppReleaseItem appReleaseItem) => _appReleaseItem.value = appReleaseItem;
 
+  final RxList<AppReleaseItem> _appReleaseItems = <AppReleaseItem>[].obs;
+  List<AppReleaseItem> get appReleaseItems => _appReleaseItems;
+  set appReleaseItems(List<AppReleaseItem> appReleaseItems) => _appReleaseItems.value = appReleaseItems;
+
   final Rx<Place> _publisherPlace = Place().obs;
   Place get publisherPlace => _publisherPlace.value;
   set publisherPlace(Place publisherPlace) => _publisherPlace.value = publisherPlace;
@@ -101,8 +106,12 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
   String releaseFilePath = "";
   List<String> releaseFilePaths = [];
+  int releaseItemIndex = 1;
   int releaseItemsQty = 0;
   Itemlist releaseItemList = Itemlist();
+
+  bool durationIsSelected = true;
+  AudioPlayer audioPlayer = AudioPlayer();
 
   @override
   void onInit() async {
@@ -129,7 +138,6 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
           )
       );
 
-
       digitalPriceController.text = AppFlavour.getInitialPrice();
       appReleaseItem.digitalPrice = Price(currency: AppCurrency.mxn, amount: double.parse(AppFlavour.getInitialPrice()));
       appReleaseItem.ownerId = profile.id;
@@ -138,8 +146,6 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       appReleaseItem.genres = [];
 
       mapsController.goToPosition(profile.position!);
-
-
     } catch(e) {
       logger.e(e.toString());
     }
@@ -198,9 +204,6 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   Future<void> setAppReleaseItemsQty(int itemsQty) async {
     logger.d("Settings $itemsQty Items for ${appReleaseItem.type} Release");
     releaseItemsQty = itemsQty;
-
-    Get.toNamed(AppRouteConstants.releaseUploadInstr);
-
     update([AppPageIdConstants.releaseUpload]);
   }
 
@@ -382,6 +385,19 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     update([AppPageIdConstants.releaseUpload]);
   }
 
+  @override
+  void setItemlistName() {
+    logger.d("");
+    releaseItemList.name = nameController.text.trim();
+    update([AppPageIdConstants.releaseUpload]);
+  }
+
+  @override
+  void setItemlistDesc() {
+    logger.d("");
+    releaseItemList.description = descController.text.trim();
+    update([AppPageIdConstants.releaseUpload]);
+  }
 
   @override
   void setReleaseName() {
@@ -394,6 +410,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   void setReleaseDesc() {
     logger.d("");
     appReleaseItem.description = descController.text.trim();
+    appReleaseItem.lyrics = descController.text.trim();
     update([AppPageIdConstants.releaseUpload]);
   }
 
@@ -403,37 +420,59 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       appReleaseItem.duration = int.parse(durationController.text);
     }
 
+    durationIsSelected = true;
     update([AppPageIdConstants.releaseUpload]);
   }
 
   void setDigitalReleasePrice() {
-    logger.d("");
+    logger.d("setDigitalReleasePrice");
     
     if(digitalPriceController.text.isNotEmpty) {
       appReleaseItem.digitalPrice!.amount = double.parse(digitalPriceController.text);
     }
 
+    durationIsSelected = false;
     update([AppPageIdConstants.releaseUpload]);
   }
 
   @override
-  bool validateNameDesc() {
+  bool validateItemlistNameDesc() {
     return nameController.text.isNotEmpty
-        && descController.text.isNotEmpty
-        && appReleaseItem.previewUrl.isNotEmpty
-        && (durationController.text.isNotEmpty || AppFlavour.appInUse == AppInUse.gigmeout);
+        && descController.text.isNotEmpty;
+  }
+
+  @override
+  bool validateNameDesc() {
+    return nameController.text.isNotEmpty && descController.text.isNotEmpty
+        && appReleaseItem.previewUrl.isNotEmpty && durationController.text.isNotEmpty;
   }
 
   Future<void> addGenresToReleaseItem() async {
     logger.d("Adding ${genres.length} to release.");
     appReleaseItem.genres = selectedGenres;
-    Get.toNamed(AppRouteConstants.releaseUploadInfo);
+
+    try {
+      if(releaseItemIndex == releaseItemsQty) {
+        Get.toNamed(AppRouteConstants.releaseUploadInfo);
+      } else {
+        appReleaseItems.add(AppReleaseItem.fromJSON(appReleaseItem.toJSON()));
+        releaseItemIndex++;
+        Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
+      }
+    } catch(e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    update([AppPageIdConstants.releaseUpload]);
   }
 
   Future<void> addNameDescToReleaseItem() async {
     logger.d("");
+    audioPlayer.stop();
     setReleaseName();
     setReleaseDesc();
+    setItemlistName();
+    setItemlistDesc();
     setReleaseDuration();
     setDigitalReleasePrice();
     Get.toNamed(AppRouteConstants.releaseUploadInstr);
@@ -620,6 +659,21 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         iOSFile = await AppUtilities.getFileFromPath(releaseFilePath);
       }
 
+      if(AppFlavour.appInUse == AppInUse.gigmeout) {
+        audioPlayer.setFilePath(releaseFilePath);
+        await audioPlayer.play();
+        appReleaseItem.duration = audioPlayer.duration?.inSeconds ?? 0;
+        durationController.text = appReleaseItem.duration.toString();
+        if(appReleaseItem.duration > 0 && appReleaseItem.duration <= AppConstants.maxAudioDuration) {
+          AppUtilities.logger.i("Audio duration of ${appReleaseItem.duration} seconds");
+        } else {
+          releaseFilePath = '';
+          appReleaseItem.previewUrl = '';
+          AppUtilities.showSnackBar(AppTranslationConstants.releaseUpload, AppTranslationConstants.releaseItemDurationMsg.tr);
+        }
+
+      }
+
     } catch (e) {
       logger.e(e.toString());
     }
@@ -657,5 +711,34 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     releaseFilePath = getReleaseFilePath(releaseFile);
     Get.toNamed(AppRouteConstants.PDFViewer,
         arguments: [releaseFilePath, false]);
+  }
+
+  void increase() {
+    if(durationIsSelected) {
+      int currentValue = int.tryParse(durationController.text) ?? 0;
+      durationController.text = (currentValue + 1).toString();
+    } else {
+      int currentValue = int.tryParse(digitalPriceController.text) ?? 0;
+      digitalPriceController.text = (currentValue + 1).toString();
+    }
+
+    update([AppPageIdConstants.releaseUpload]);
+  }
+
+  void decrease() {
+    if(durationIsSelected) {
+      int currentValue = int.tryParse(durationController.text) ?? 0;
+      if (currentValue > 0) {
+        durationController.text = (currentValue - 1).toString();
+      }
+    } else {
+      int currentValue = int.tryParse(digitalPriceController.text) ?? 0;
+      if (currentValue > 0) {
+        digitalPriceController.text = (currentValue - 1).toString();
+      }
+    }
+
+
+    update([AppPageIdConstants.releaseUpload]);
   }
 }

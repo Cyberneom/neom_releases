@@ -13,7 +13,11 @@ class ReleaseUploadInstrPage extends StatelessWidget {
       id: AppPageIdConstants.releaseUpload,
       builder: (_) => Scaffold(
         extendBodyBehindAppBar: true,
-        appBar: AppBarChild(color: Colors.transparent),
+        appBar: AppBarChild(
+          color: _.releaseItemsQty > 1 ? null : Colors.transparent,
+          title: _.releaseItemsQty > 1 ? '${AppTranslationConstants.releaseItem.tr} ${_.releaseItemIndex} '
+              '${AppTranslationConstants.of.tr} ${_.releaseItemsQty}' : '',
+        ),
         backgroundColor: AppColor.main50,
         body: Container(
           decoration: AppTheme.appBoxDecoration,

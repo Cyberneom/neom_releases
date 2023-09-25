@@ -12,7 +12,7 @@ import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:rubber/rubber.dart';
-
+import 'package:readmore/readmore.dart';
 import '../release_upload_controller.dart';
 
 
@@ -70,27 +70,47 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                           padding: const EdgeInsets.only(left: 10, right: 10),
                           child: Align(alignment: Alignment.centerLeft,
                               child: SingleChildScrollView(
-                                child: HashTagText(
-                                  text: _.appReleaseItem.description,
-                                  softWrap: true,
-                                  maxLines: 10,
-                                  overflow: TextOverflow.ellipsis,
+                                child: ReadMoreText(_.appReleaseItem.description,
+                                  trimLines: 6,
+                                  colorClickableText: Colors.grey.shade500,
+                                  trimMode: TrimMode.Line,
+                                  trimCollapsedText: '... ${AppTranslationConstants.readMore.tr}',
                                   textAlign: TextAlign.justify,
-                                  basicStyle: const TextStyle(fontSize: 16),
-                                  decoratedStyle: const TextStyle(fontSize: 16, color: AppColor.dodgetBlue),
-                                  onTap: (text) {
-                                    AppUtilities.logger.i(text);
-                                  },
+                                  style: const TextStyle(
+                                    letterSpacing: 0.5,
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 16,
+                                  ),
+                                  trimExpandedText: ' ${AppTranslationConstants.less.tr.capitalize!}',
                                 ),
+                                // HashTagText(
+                                //   text: _.appReleaseItem.description,
+                                //   softWrap: true,
+                                //   maxLines: 10,
+                                //   overflow: TextOverflow.ellipsis,
+                                //   textAlign: TextAlign.justify,
+                                //   basicStyle: const TextStyle(fontSize: 16),
+                                //   decoratedStyle: const TextStyle(fontSize: 16, color: AppColor.dodgetBlue),
+                                //   onTap: (text) {
+                                //     AppUtilities.logger.i(text);
+                                //   },
+                                // ),
                               )
                           ),
                         ) : Container(),
                         AppTheme.heightSpace10,
                         CircleAvatar(
-                          backgroundImage: CachedNetworkImageProvider(_.profile.photoUrl.isNotEmpty
-                              ? _.profile.photoUrl : AppFlavour.getNoImageUrl(),),
                           radius: 80.0,
-
+                          child: ClipOval(
+                            child: CachedNetworkImage(
+                              imageUrl: _.profile.photoUrl.isNotEmpty
+                                  ? _.profile.photoUrl
+                                  : AppFlavour.getNoImageUrl(),
+                              width: 160.0, // Set the width to twice the radius
+                              height: 160.0, // Set the height to twice the radius
+                              fit: BoxFit.cover, // You can adjust the fit mode as needed
+                            ),
+                          ),
                         ),
                         AppTheme.heightSpace5,
                         Text(

@@ -10,7 +10,6 @@ import 'package:neom_commons/core/ui/widgets/number_limit_input_formatter.dart';
 import 'package:neom_commons/core/ui/widgets/title_subtitle_row.dart';
 import 'package:neom_commons/core/utils/app_color.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
-import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_hero_tag_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
@@ -19,8 +18,8 @@ import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 
 import '../release_upload_controller.dart';
 
-class ReleaseUploadNameDescPage extends StatelessWidget {
-  const ReleaseUploadNameDescPage({Key? key}) : super(key: key);
+class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
+  const ReleaseUploadItemlistNameDescPage({Key? key}) : super(key: key);
   
   @override
   Widget build(BuildContext context) {
@@ -29,11 +28,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
       builder: (_) {
          return Scaffold(
            extendBodyBehindAppBar: true,
-           appBar: AppBarChild(
-             color: _.releaseItemsQty > 1 ? null : Colors.transparent,
-             title: _.releaseItemsQty > 1 ? '${AppTranslationConstants.releaseItem.tr} ${_.releaseItemIndex} '
-                 '${AppTranslationConstants.of.tr} ${_.releaseItemsQty}' : '',
-           ),
+           appBar: AppBarChild(color: Colors.transparent),
            backgroundColor: AppColor.main50,
            body: Container(
              height: AppTheme.fullHeight(context),
@@ -43,7 +38,8 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                 children: <Widget>[
                   AppFlavour.appInUse == AppInUse.gigmeout ? AppTheme.heightSpace100 : Container(),
                   HeaderIntro(
-                    subtitle: AppTranslationConstants.releaseUploadNameDesc.tr,
+                    subtitle: '${AppTranslationConstants.releaseUploadItemlistNameDesc1.tr} ${_.appReleaseItem.type.value.tr.toUpperCase()}? '
+                        '${AppTranslationConstants.releaseUploadItemlistNameDesc2.tr}',
                     showLogo: AppFlavour.appInUse == AppInUse.gigmeout,
                   ),
                   AppTheme.heightSpace10,
@@ -51,10 +47,10 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                     child: TextFormField(
                       controller: _.nameController,
-                      onChanged:(text) => _.setReleaseName() ,
+                      onChanged:(text) => _.setItemlistName() ,
                       decoration: InputDecoration(
                         filled: true,
-                        labelText: AppTranslationConstants.releaseTitle.tr,
+                        labelText: '${AppTranslationConstants.releaseItemlistTitle.tr} ${_.appReleaseItem.type.value.tr.toLowerCase()}',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -64,13 +60,13 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                     child: TextFormField(
-                      minLines: 4,
-                      maxLines: 8,
+                      minLines: 5,
+                      maxLines: 10,
                       controller: _.descController,
-                      onChanged:(text) => _.setReleaseDesc() ,
+                      onChanged:(text) => _.setItemlistDesc() ,
                       decoration: InputDecoration(
                         filled: true,
-                        labelText: AppTranslationConstants.releaseDesc.tr,
+                        labelText: '${AppTranslationConstants.releaseItemlistDesc.tr} ${_.appReleaseItem.type.value.tr.toLowerCase()}',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -84,7 +80,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                      children: [
                        SizedBox(
-                         width: AppTheme.fullWidth(context) / 2.75,
+                         width: AppTheme.fullWidth(context) / 2.3,
                          child: TextFormField(
                            controller: _.durationController,
                            keyboardType: TextInputType.number,
@@ -104,43 +100,9 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                            },
                          ),
                        ),
-                       Column(
-                         mainAxisSize: MainAxisSize.min,
-                         children: [
-                           IconButton(
-                             icon: Icon(Icons.keyboard_arrow_up),
-                             onPressed: () {
-                               _.increase();
-                             },
-                           ),
-                           IconButton(
-                             icon: Icon(Icons.keyboard_arrow_down),
-                             onPressed: () {
-                               _.decrease();
-                             },
-                           ),
-                         ],
-                       ),
-                      AppFlavour.appInUse != AppInUse.emxi ? Container(
-                           width: AppTheme.fullWidth(context) / 2.75,
-                           alignment: Alignment.centerRight,
-                           child:
-                           Column(
-                             mainAxisAlignment: MainAxisAlignment.center,
-                             crossAxisAlignment: CrossAxisAlignment.center,
-                             children: [
-                               Text(AppUtilities.secondsToMinutes(
-                                 int.parse(_.durationController.text.isNotEmpty ? _.durationController.text : "0"),),
-                                 style: const TextStyle(fontSize: 40),
-                               ),
-                               Text('${AppTranslationConstants.minutes.tr} - ${AppTranslationConstants.seconds.tr}',
-                                   style: TextStyle(fontSize: 10, letterSpacing: 1.2 )
-                               ),
-                             ],
-                           )
-                      ) : SizedBox(
-                        width: AppTheme.fullWidth(context) / 2.75,
-                        child: TextFormField(
+                       SizedBox(
+                         width: AppTheme.fullWidth(context) / 2.3,
+                         child: TextFormField(
                            controller: _.digitalPriceController,
                            inputFormatters: [
                              FilteringTextInputFormatter.digitsOnly,
@@ -163,41 +125,14 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                         ),
                     ],),
                   ) : Container(),
-                  if(_.releaseItemsQty == 1) TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20, subtitle: AppTranslationConstants.releasePriceMsg.tr,
+                  TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20, subtitle: AppTranslationConstants.releasePriceMsg.tr,
                   url: AppFlavour.getDigitalPositioningUrl()),
                   AppTheme.heightSpace10,
-                  GestureDetector(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(FontAwesomeIcons.file, size: 20),
-                        AppTheme.widthSpace5,
-                        Text(_.appReleaseItem.previewUrl.isEmpty
-                            ? AppTranslationConstants.addReleaseFile.tr
-                            : AppTranslationConstants.changeReleaseFile.tr,
-                          style: const TextStyle(color: Colors.white70,),
-                        ),
-                      ],
-                    ),
-                    onTap: () async {_.addReleaseFile();}
-                  ),
-                  Obx(() =>_.appReleaseItem.previewUrl.isNotEmpty
-                      ? Container(
-                      padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
-                      child: Text(_.appReleaseItem.previewUrl,
-                        style: const TextStyle(color: Colors.white70,),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        textAlign: TextAlign.center,
-                      ),
-                    ) : Container(),
-                  ),
-                  AppTheme.heightSpace30
                 ],
               ),
              ),
           ),
-           floatingActionButton: _.validateNameDesc() ? FloatingActionButton(
+           floatingActionButton: _.validateItemlistNameDesc() ? FloatingActionButton(
              heroTag: AppHeroTagConstants.clearImg,
              tooltip: AppTranslationConstants.next,
              child: const Icon(Icons.navigate_next),

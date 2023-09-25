@@ -182,7 +182,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                           child: GestureDetector(
                             child: Image.file(
                               File(_.postUploadController.croppedImageFile.path),
-                              height: 270,
+                              height: 180,
                               width: 180
                             ),
                             onTap: () => AppFlavour.appInUse == AppInUse.emxi ? _.gotoPdfPreview() : {}

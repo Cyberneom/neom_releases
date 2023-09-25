@@ -23,6 +23,7 @@ dependencies:
 #  woosignal: ^3.8.0
   in_app_purchase: ^3.1.7
   in_app_purchase_storekit: ^0.3.6+4
+  just_audio: 0.9.35
 
 dev_dependencies:
   flutter_test:
