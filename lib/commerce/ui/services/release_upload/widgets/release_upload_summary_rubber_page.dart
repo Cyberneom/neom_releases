@@ -1,20 +1,26 @@
+import 'dart:io';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:hashtagable_v3/hashtagable.dart';
 import 'package:neom_commons/core/app_flavour.dart';
+import 'package:neom_commons/core/domain/model/app_release_item.dart';
 import 'package:neom_commons/core/ui/widgets/genres_grid_view.dart';
 import 'package:neom_commons/core/ui/widgets/submit_button.dart';
 import 'package:neom_commons/core/ui/widgets/title_subtitle_row.dart';
 import 'package:neom_commons/core/utils/app_color.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
+import 'package:neom_commons/core/utils/constants/app_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
-import 'package:rubber/rubber.dart';
+import 'package:neom_commons/core/utils/enums/release_type.dart';
+import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:readmore/readmore.dart';
-import '../release_upload_controller.dart';
+import 'package:rubber/rubber.dart';
 
+import '../release_upload_controller.dart';
 
 class ReleaseUploadSummaryRubberPage extends StatelessWidget {
   const ReleaseUploadSummaryRubberPage({Key? key}) : super(key: key);
@@ -41,15 +47,13 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
             ),
             upperLayer: Column(
               children: [
-                Center(
-                    child: _.getCoverImageWidget(context)
-                ),
+                Center(child: _.getCoverImageWidget(context)),
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColor.main50,
+                      color: AppColor.main75,
                       borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(50.0),
+                        top: Radius.circular(25.0),
                       ),
                     ),
                     child: ListView(
@@ -57,20 +61,20 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                       padding: const EdgeInsets.all(AppTheme.padding10),
                       controller: _.scrollController,
                       children: [
-                        Text(_.appReleaseItem.name.capitalize!,
+                        Text(_.releaseItemList.name.capitalize!,
                           style: TextStyle(
                             fontSize: _.appReleaseItem.bandsFulfillment.length == 1 ? 20 : 25.0,
                             fontWeight: FontWeight.bold,),
                           textAlign: TextAlign.center,
                         ),
-                        GenresGridView(_.appReleaseItem.genres, AppColor.yellow),
                         AppTheme.heightSpace10,
-                        _.appReleaseItem.description.isNotEmpty ?
+                        _.releaseItemList.description.isNotEmpty ?
                         Container(
-                          padding: const EdgeInsets.only(left: 10, right: 10),
-                          child: Align(alignment: Alignment.centerLeft,
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: Align(
+                              alignment: Alignment.centerLeft,
                               child: SingleChildScrollView(
-                                child: ReadMoreText(_.appReleaseItem.description,
+                                child: ReadMoreText(_.releaseItemList.description,
                                   trimLines: 6,
                                   colorClickableText: Colors.grey.shade500,
                                   trimMode: TrimMode.Line,
@@ -100,15 +104,15 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                         ) : Container(),
                         AppTheme.heightSpace10,
                         CircleAvatar(
-                          radius: 80.0,
+                          radius: 60.0,
                           child: ClipOval(
                             child: CachedNetworkImage(
                               imageUrl: _.profile.photoUrl.isNotEmpty
                                   ? _.profile.photoUrl
                                   : AppFlavour.getNoImageUrl(),
-                              width: 160.0, // Set the width to twice the radius
-                              height: 160.0, // Set the height to twice the radius
-                              fit: BoxFit.cover, // You can adjust the fit mode as needed
+                              width: 120.0, /// Set the width to twice the radius
+                              height: 120.0, /// Set the height to twice the radius
+                              fit: BoxFit.cover, /// You can adjust the fit mode as needed
                             ),
                           ),
                         ),
@@ -160,20 +164,75 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                               ) : Container()
                             ]
                         ),
-                        AppTheme.heightSpace10,
-                        SubmitButton(context, text: AppTranslationConstants.submitRelease.tr,
+                        GenresGridView(_.appReleaseItem.genres, AppColor.yellow),
+                        (_.appReleaseItem.type == ReleaseType.single || (_.appReleaseItems.isEmpty)) ? Container() : Column(
+                          children: <Widget>[
+                            Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(FontAwesomeIcons.music, size: 12),
+                                  AppTheme.widthSpace5,
+                                  Text('${_.appReleaseItem.type.value.tr.toUpperCase()} (${_.appReleaseItems.length})')
+                                ]
+                            ),
+                            Container(
+                              constraints: BoxConstraints(
+                                maxHeight: _.appReleaseItems.length <= 2 ? 150 : 200,
+                              ),
+                              child: Expanded(child: buildReleaseItems(context, _),),
+                            ),
+                          ],
+                        ),
+                        _.releaseItemIndex > 0 ? Obx(()=> Container(
+                          child: LinearPercentIndicator(
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            lineHeight: AppTheme.fullHeight(context) /15,
+                            percent: _.releaseItemIndex/_.releaseItemsQty,
+                            center: Text("${AppTranslationConstants.adding.tr} "
+                                "${_.releaseItemIndex} ${AppTranslationConstants.outOf.tr} ${_.releaseItemsQty}"
+                            ),
+                            progressColor: AppColor.bondiBlue,
+                          ),
+                        ),) : SubmitButton(context, text: AppTranslationConstants.submitRelease.tr,
                           isLoading: _.isLoading, isEnabled: !_.isButtonDisabled,
                           onPressed: _.uploadReleaseItem,
                         ),
-                        TitleSubtitleRow("", showDivider: false, subtitle: AppTranslationConstants.submitReleaseMsg.tr),
+                        if(_.releaseItemIndex == 0) TitleSubtitleRow("", showDivider: false, subtitle: AppTranslationConstants.submitReleaseMsg.tr),
                       ],
                     ),
                   ),
-                )
+                ),
               ],
             ),
           ),
         ),
     );
   }
+
+  Widget buildReleaseItems(BuildContext context, ReleaseUploadController _) {
+    return ListView.builder(
+      padding: EdgeInsets.zero,
+      itemCount: _.appReleaseItems.length,
+      itemBuilder: (context, index) {
+        AppReleaseItem releaseItem = _.appReleaseItems.elementAt(index);
+
+        return ListTile(
+          leading: Image.file(
+              File(_.releaseCoverImgPath),
+              height: 40, width: 40
+          ),
+          title: Text(releaseItem.name.isEmpty ? ""
+              : releaseItem.name.length > AppConstants.maxAppItemNameLength ? "${releaseItem.name.substring(0,AppConstants.maxAppItemNameLength)}...": releaseItem.name),
+          subtitle: Row(children: [Text(releaseItem.ownerName.isEmpty ? ""
+              : releaseItem.ownerName.length > AppConstants.maxArtistNameLength ? "${releaseItem.ownerName.substring(0,AppConstants.maxArtistNameLength)}...": releaseItem.ownerName), const SizedBox(width:5,),
+              ]),
+          trailing: Text(AppUtilities.secondsToMinutes(releaseItem.duration,)),
+          ///FEATURE
+          // onTap: () => Get.to(() => MediaPlayerPage(appMediaItem: AppMediaItem.fromAppReleaseItem(releaseItem)),transition: Transition.zoom),
+
+        );
+      },
+    );
+  }
+
 }

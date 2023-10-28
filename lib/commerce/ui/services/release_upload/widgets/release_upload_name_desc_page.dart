@@ -27,11 +27,20 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
     return GetBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
       builder: (_) {
-         return Scaffold(
+         return WillPopScope(
+           onWillPop: () async {
+             if(_.releaseItemsQty > 1 && _.appReleaseItems.isNotEmpty) {
+               _.removeLastReleaseItem();
+             }
+                          
+           AppUtilities.logger.w('Custom logic executed before popping the screen');
+           return true; // Return true to allow the back button press to pop the screen
+         },
+        child: Scaffold(
            extendBodyBehindAppBar: true,
            appBar: AppBarChild(
              color: _.releaseItemsQty > 1 ? null : Colors.transparent,
-             title: _.releaseItemsQty > 1 ? '${AppTranslationConstants.releaseItem.tr} ${_.releaseItemIndex} '
+             title: _.releaseItemsQty > 1 ? '${AppTranslationConstants.releaseItem.tr} ${_.appReleaseItems.length+1} '
                  '${AppTranslationConstants.of.tr} ${_.releaseItemsQty}' : '',
            ),
            backgroundColor: AppColor.main50,
@@ -67,7 +76,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                       minLines: 4,
                       maxLines: 8,
                       controller: _.descController,
-                      onChanged:(text) => _.setReleaseDesc() ,
+                      onChanged:(text) => _.setReleaseDesc(),
                       decoration: InputDecoration(
                         filled: true,
                         labelText: AppTranslationConstants.releaseDesc.tr,
@@ -108,13 +117,13 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                          mainAxisSize: MainAxisSize.min,
                          children: [
                            IconButton(
-                             icon: Icon(Icons.keyboard_arrow_up),
+                             icon: const Icon(Icons.keyboard_arrow_up),
                              onPressed: () {
                                _.increase();
                              },
                            ),
                            IconButton(
-                             icon: Icon(Icons.keyboard_arrow_down),
+                             icon: const Icon(Icons.keyboard_arrow_down),
                              onPressed: () {
                                _.decrease();
                              },
@@ -134,7 +143,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                                  style: const TextStyle(fontSize: 40),
                                ),
                                Text('${AppTranslationConstants.minutes.tr} - ${AppTranslationConstants.seconds.tr}',
-                                   style: TextStyle(fontSize: 10, letterSpacing: 1.2 )
+                                   style: const TextStyle(fontSize: 10, letterSpacing: 1.2 )
                                ),
                              ],
                            )
@@ -172,7 +181,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                       children: [
                         const Icon(FontAwesomeIcons.file, size: 20),
                         AppTheme.widthSpace5,
-                        Text(_.appReleaseItem.previewUrl.isEmpty
+                        Text(_.releaseFilePreviewURL.isEmpty
                             ? AppTranslationConstants.addReleaseFile.tr
                             : AppTranslationConstants.changeReleaseFile.tr,
                           style: const TextStyle(color: Colors.white70,),
@@ -181,10 +190,10 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                     ),
                     onTap: () async {_.addReleaseFile();}
                   ),
-                  Obx(() =>_.appReleaseItem.previewUrl.isNotEmpty
+                  Obx(() => _.releaseFilePreviewURL.isNotEmpty
                       ? Container(
                       padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
-                      child: Text(_.appReleaseItem.previewUrl,
+                      child: Text(_.releaseFilePreviewURL,
                         style: const TextStyle(color: Colors.white70,),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -205,6 +214,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                _.addNameDescToReleaseItem()
              },
            ) : Container(),
+         ),
          );
       }
     );

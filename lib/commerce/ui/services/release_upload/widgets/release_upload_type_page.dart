@@ -47,24 +47,24 @@ class ReleaseUploadType extends StatelessWidget {
                         controllerFunction: _.setReleaseType,
                           isSelected: _.releaseItemsQty == 1
                       ),
-                      // AppTheme.heightSpace10,
-                      //  buildActionChip(
-                      //    appEnum: ReleaseType.album,
-                      //    controllerFunction: _.setReleaseType,
-                      //    isSelected: _.appReleaseItem.type == ReleaseType.album
-                      //  ),
-                      // AppTheme.heightSpace10,
-                      // buildActionChip(
-                      //   appEnum: ReleaseType.ep,
-                      //   controllerFunction: _.setReleaseType,
-                      //   isSelected: _.appReleaseItem.type == ReleaseType.ep
-                      // ),
-                      // AppTheme.heightSpace10,
-                      // buildActionChip(
-                      //   appEnum: ReleaseType.demo,
-                      //   controllerFunction: _.setReleaseType,
-                      //   isSelected: _.appReleaseItem.type == ReleaseType.demo
-                      // ),
+                      AppTheme.heightSpace10,
+                       buildActionChip(
+                         appEnum: ReleaseType.album,
+                         controllerFunction: _.setReleaseType,
+                         isSelected: _.appReleaseItem.type == ReleaseType.album
+                       ),
+                      AppTheme.heightSpace10,
+                      buildActionChip(
+                        appEnum: ReleaseType.ep,
+                        controllerFunction: _.setReleaseType,
+                        isSelected: _.appReleaseItem.type == ReleaseType.ep
+                      ),
+                      AppTheme.heightSpace10,
+                      buildActionChip(
+                        appEnum: ReleaseType.demo,
+                        controllerFunction: _.setReleaseType,
+                        isSelected: _.appReleaseItem.type == ReleaseType.demo
+                      ),
                     ]
                   ),
                   AppTheme.heightSpace20,
@@ -78,7 +78,8 @@ class ReleaseUploadType extends StatelessWidget {
                           borderRadius: BorderRadius.circular(10.0),
                           items: AppCommerceConstants.appReleaseItemsQty
                             .where((itemsQty) => itemsQty >= (_.appReleaseItem.type == ReleaseType.demo ? 1 : 2)
-                              && itemsQty <= (_.appReleaseItem.type == ReleaseType.album ? 15 : 5)
+                              && itemsQty <= (_.appReleaseItem.type == ReleaseType.album ? 15 :
+                              _.appReleaseItem.type == ReleaseType.ep ? 6 : 4)
                           ).map((int itemsQty) {
                             return DropdownMenuItem<int>(
                               value: itemsQty,

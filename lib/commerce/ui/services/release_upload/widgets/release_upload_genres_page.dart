@@ -24,7 +24,7 @@ class ReleaseUploadGenresPage extends StatelessWidget {
            extendBodyBehindAppBar: true,
            appBar: AppBarChild(
              color: _.releaseItemsQty > 1 ? null : Colors.transparent,
-             title: _.releaseItemsQty > 1 ? '${AppTranslationConstants.releaseItem.tr} ${_.releaseItemIndex} '
+             title: _.releaseItemsQty > 1 ? '${AppTranslationConstants.releaseItem.tr} ${_.appReleaseItems.length+1} '
                  '${AppTranslationConstants.of.tr} ${_.releaseItemsQty}' : '',
            ),
            backgroundColor: AppColor.main50,

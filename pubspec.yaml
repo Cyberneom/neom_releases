@@ -18,24 +18,33 @@ dependencies:
   neom_posts:
     git:
       url: https://github.com/Cyberneom/neom_posts.git
+  neom_music_player:
+    git:
+      url: https://github.com/Cyberneom/neom_music_player.git
 
   #not working for products
 #  woosignal: ^3.8.0
-  in_app_purchase: ^3.1.7
-  in_app_purchase_storekit: ^0.3.6+4
+  in_app_purchase: ^3.1.11
+  in_app_purchase_storekit: ^0.3.6+7
   just_audio: 0.9.35
+  percent_indicator: ^4.2.3
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^3.0.0
 
 dependency_overrides:
   neom_commons:
     path: ../neom_commons
   neom_posts:
     path: ../neom_posts
-  intl: 0.18.1
+  neom_music_player:
+    path: ../neom_music_player
+  http: 1.1.0
+  uuid: 4.1.0
+  logger: 2.0.2+1
+  google_api_headers: 2.0.3
 
 # The following section is specific to Flutter packages.
 flutter:

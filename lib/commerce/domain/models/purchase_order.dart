@@ -108,9 +108,9 @@ class PurchaseOrder {
       status: EnumToString.fromString(PurchaseStatus.values, data["status"] ?? PurchaseStatus.error.name)
           ?? PurchaseStatus.error,
       verificationData: PurchaseVerificationData(
-        localVerificationData: data["verificationData"]["localVerificationData"] ?? "",
-        serverVerificationData: data["verificationData"]["serverVerificationData"] ?? "",
-        source: data["verificationData"]["source"] ?? "",
+        localVerificationData: data["verificationData"]?["localVerificationData"] ?? "",
+        serverVerificationData: data["verificationData"]?["serverVerificationData"] ?? "",
+        source: data["verificationData"]?["source"] ?? "",
       ),
       billingClientPurchase: PurchaseWrapper(
         orderId: data["billingClientPurchase"]?["orderId"] ?? "",

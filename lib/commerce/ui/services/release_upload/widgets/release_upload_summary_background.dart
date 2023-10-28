@@ -24,20 +24,18 @@ class OnlinePositioningSummaryBackground extends StatelessWidget {
           builder: (_, double value, child){
             return Transform.scale(scale: value, child: child,);
           },
-          child: Stack(
-            children: [
-              CachedNetworkImage(imageUrl: _.appReleaseItem.imgUrl.isNotEmpty ? _.appReleaseItem.imgUrl
-                  : _.appReleaseItem.imgUrl.isNotEmpty ? _.appReleaseItem.imgUrl : AppFlavour.getNoImageUrl(),
-                width: AppTheme.fullWidth(context),
-                height: AppTheme.fullHeight(context),
-                fit: BoxFit.fitWidth,
-              ),
-              Container(
-                width: AppTheme.fullWidth(context),
-                height: AppTheme.fullHeight(context),
-                color: Colors.black.withOpacity(0.6),
-              )
-            ],
+          child: Container(
+            width: AppTheme.fullWidth(context),
+            height: AppTheme.fullHeight(context),
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            color: Colors.black.withOpacity(0.6),
+            child: _.appReleaseItem.imgUrl.isNotEmpty ? CachedNetworkImage(imageUrl: _.appReleaseItem.imgUrl,
+              width: AppTheme.fullWidth(context), height: AppTheme.fullHeight(context),
+              fit: BoxFit.fitWidth,
+            ) : Image.asset(AppFlavour.getAppLogoPath(),
+              width: AppTheme.fullWidth(context), height: AppTheme.fullHeight(context),
+              fit: BoxFit.fitWidth,
+            ),
           ),
         ),
       )

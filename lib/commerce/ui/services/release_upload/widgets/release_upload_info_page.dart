@@ -27,7 +27,14 @@ class ReleaseUploadInfoPage extends StatelessWidget {
     return GetBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
       builder: (_) {
-        return Obx(()=> Scaffold(
+        return WillPopScope(
+          onWillPop: () async {
+            if(_.releaseItemsQty > 1 && _.appReleaseItems.isNotEmpty) {
+              _.removeLastReleaseItem();
+            }
+            return true; // Return true to allow the back button press to pop the screen
+        },
+        child: Obx(()=> Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBarChild(color: Colors.transparent),
           backgroundColor: AppColor.main50,
@@ -154,13 +161,12 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                     ),
                   ),
                   AppTheme.heightSpace20,
-                  _.postUploadController.croppedImageFile.path.isNotEmpty && AppFlavour.appInUse == AppInUse.emxi
+                  _.releaseCoverImgPath.isNotEmpty && AppFlavour.appInUse == AppInUse.emxi
                       ? Text(AppTranslationConstants.tapCoverToPreviewRelease.tr,
                     style: const TextStyle(decoration: TextDecoration.underline),)
                       : Container(),
-                  _.postUploadController.croppedImageFile.path.isNotEmpty ?
-                  AppTheme.heightSpace5 : Container(),
-                  _.postUploadController.croppedImageFile.path.isEmpty ?
+                  _.releaseCoverImgPath.isNotEmpty ? AppTheme.heightSpace5 : Container(),
+                  _.releaseCoverImgPath.isEmpty ?
                   GestureDetector(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -181,7 +187,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(5.0),
                           child: GestureDetector(
                             child: Image.file(
-                              File(_.postUploadController.croppedImageFile.path),
+                              File(_.releaseCoverImgPath),
                               height: 180,
                               width: 180
                             ),
@@ -210,7 +216,8 @@ class ReleaseUploadInfoPage extends StatelessWidget {
               ),
             ),
           ),
-        ));
+        )),
+        );
       }
     );
   }

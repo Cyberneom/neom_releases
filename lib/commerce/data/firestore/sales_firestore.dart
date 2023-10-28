@@ -51,7 +51,6 @@ class SalesFirestore implements SalesRepository {
       logger.e(e.toString());
     }
 
-    logger.d("");
     return sales;
   }
 
@@ -78,7 +77,7 @@ class SalesFirestore implements SalesRepository {
 
   @override
   Future<bool> updateOrderNumber(int newOrderNumber, SaleType salesType) async {
-    logger.d("");
+    logger.d("updateOrderNumber for Sales Type ${salesType.name} to $newOrderNumber");
 
     try {
       String salesToUpdate = "";

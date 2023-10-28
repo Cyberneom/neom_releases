@@ -320,8 +320,8 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
         } else if (purchaseDetails.pendingCompletePurchase) {
           await InAppPurchase.instance.completePurchase(purchaseDetails);
         } else if (purchaseDetails.status == PurchaseStatus.error) {
-          AppUtilities.showSnackBar(AppTranslationConstants.inAppPurchase,
-              purchaseDetails.status.toString(), duration: const Duration(seconds: 4));
+          AppUtilities.showSnackBar(title: AppTranslationConstants.inAppPurchase,
+              message: purchaseDetails.status.toString(), duration: const Duration(seconds: 5));
           AppUtilities.logger.e(purchaseDetails.status.toString());
           // _handleError(purchaseDetails.error!);
         }

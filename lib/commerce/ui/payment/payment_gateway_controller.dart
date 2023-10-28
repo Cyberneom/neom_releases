@@ -243,9 +243,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
       ///Validate and get coins from user wallet
       if(userController.user!.wallet.amount >= payment.price.amount) {
         ///Add coins to host wallet
-        if(await ProfileFirestore().addToWallet(
-            payment.to,
-            payment.price.amount)) {
+        if(await ProfileFirestore().addToWallet(payment.to, payment.price.amount)) {
           ///Remove coins from user wallet
           if(await ProfileFirestore().subtractFromWallet(payment.from, payment.price.amount)) {
             paymentStatus = PaymentStatus.completed;
@@ -278,13 +276,11 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
         await handleProcessedPayment();
       } else {
         Get.back();
-        Get.snackbar(
-          MessageTranslationConstants.errorProcessingPayment.tr,
-          errorMsg.tr,
-          snackPosition: SnackPosition.bottom,
+        AppUtilities.showSnackBar(
+          title: MessageTranslationConstants.errorProcessingPayment.tr,
+          message: errorMsg.tr,
         );
       }
-
     } catch (e) {
       logger.e(e.toString());
     }
@@ -320,11 +316,19 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
         switch(payment.type) {
           case PaymentType.event:
-            final eventDetailsController = Get.find<EventDetailsController>();
-            await eventDetailsController.goingToEvent();
+            EventDetailsController eventDetailsController;
+            if (Get.isRegistered<EventDetailsController>()) {
+              eventDetailsController = Get.find<EventDetailsController>();
+              eventDetailsController.goingToEvent();
+            } else {
+              eventDetailsController = EventDetailsController();
+              Get.put(eventDetailsController);
+              eventDetailsController.event = order.event!;
+              eventDetailsController.goingToEvent();
+            }
+
             Get.toNamed(AppRouteConstants.splashScreen,
-                arguments: [AppRouteConstants.paymentGateway,
-                  AppRouteConstants.home]);
+                arguments: [AppRouteConstants.paymentGateway, AppRouteConstants.home]);
             break;
           case PaymentType.product:
             int coinsQty = 0;
@@ -464,7 +468,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
         'payment_method_types[]': 'card'
       };
       final response = await http.post(
-          Uri.parse('$apiBase/payment_intents'),
+          Uri.parse('${AppFlavour.getPaymentGatewayBaseURL()}/payment_intents'),
           body: body,
           headers: {
             'Authorization': 'Bearer ${AppFlavour.getStripeSecretLiveKey()}',

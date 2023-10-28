@@ -4,6 +4,7 @@ import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 import 'ui/orders/confirmation/order_confirmation_page.dart';
 import 'ui/orders/order_details_page.dart';
 import 'ui/payment/payment_gateway_page.dart';
+import 'ui/quotation/quotation_page.dart';
 import 'ui/services/commerce_services_page.dart';
 import 'ui/services/release_upload/release_upload_page.dart';
 import 'ui/services/release_upload/widgets/release_upload_genres_page.dart';
@@ -41,6 +42,11 @@ class CommerceRoutes {
     GetPage(
       name: AppRouteConstants.services,
       page: () => const CommerceServicesPage(),
+      transition: Transition.zoom,
+    ),
+    GetPage(
+      name: AppRouteConstants.quotation,
+      page: () => const QuotationPage(),
       transition: Transition.zoom,
     ),
     GetPage(

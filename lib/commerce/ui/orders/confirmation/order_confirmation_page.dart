@@ -45,12 +45,16 @@ class OrderConfirmationPage extends StatelessWidget {
                          SizedBox(
                            width: AppTheme.fullWidth(context)/4,
                            height: AppTheme.fullWidth(context)/4,
-                           child: _.order.saleType == SaleType.product
-                              ? Image.asset(AppAssets.appCoins13)
-                              : Image.network(_.displayedImgUrl.isNotEmpty ? _.displayedImgUrl
-                              : AppFlavour.getNoImageUrl()
-                          ),
+                           child: ClipRRect(
+                               borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+                               child: _.order.saleType == SaleType.product 
+                                   ? Image.asset(AppAssets.appCoins13) 
+                                   : Image.network(_.displayedImgUrl.isNotEmpty ? _.displayedImgUrl 
+                                   : AppFlavour.getNoImageUrl(),
+                               )
+                           ),
                          ),
+                         AppTheme.widthSpace10,
                          SizedBox(
                            width: AppTheme.fullWidth(context)/2,
                            child: Column(
