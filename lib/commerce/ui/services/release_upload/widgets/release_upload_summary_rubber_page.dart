@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/domain/model/app_release_item.dart';
 import 'package:neom_commons/core/ui/widgets/genres_grid_view.dart';
+import 'package:neom_commons/core/ui/widgets/read_more_container.dart';
 import 'package:neom_commons/core/ui/widgets/submit_button.dart';
 import 'package:neom_commons/core/ui/widgets/title_subtitle_row.dart';
 import 'package:neom_commons/core/utils/app_color.dart';
@@ -15,6 +16,7 @@ import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
+import 'package:neom_commons/core/utils/enums/itemlist_type.dart';
 import 'package:neom_commons/core/utils/enums/release_type.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:readmore/readmore.dart';
@@ -32,7 +34,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
       builder: (_) =>
         TweenAnimationBuilder(
           duration: const Duration(milliseconds: 600),
-          tween: Tween<double>(begin: AppTheme.fullHeight(context) / 2, end: 0),
+          tween: Tween<double>(begin: AppTheme.fullHeight(context)/2, end: 0),
           builder: (_, double value, child) {
             return Transform.translate(
               offset: Offset(0, value),
@@ -42,18 +44,24 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
           child: RubberBottomSheet(
             scrollController: _.scrollController,
             animationController: _.releaseUploadDetailsAnimationController,
-            lowerLayer: Container(
-              color: Colors.transparent,
-            ),
+            lowerLayer: Container(color: Colors.transparent,),
             upperLayer: Column(
               children: [
-                Center(child: _.getCoverImageWidget(context)),
+                Center(
+                  child: ClipRRect(
+                      borderRadius: const BorderRadius.only(
+                        topLeft: Radius.circular(20), /// Adjust the radius here for desired roundness
+                        topRight: Radius.circular(20),
+                      ),
+                      child: _.getCoverImageWidget(context)
+                  ),
+                ),
                 Expanded(
                   child: Container(
                     decoration: BoxDecoration(
-                      color: AppColor.main75,
+                      color: AppColor.main95,
                       borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(25.0),
+                        top: Radius.circular(50.0),
                       ),
                     ),
                     child: ListView(
@@ -61,60 +69,27 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                       padding: const EdgeInsets.all(AppTheme.padding10),
                       controller: _.scrollController,
                       children: [
-                        Text(_.releaseItemList.name.capitalize!,
+                        Text(_.releaseItemlist.name.capitalize,
                           style: TextStyle(
-                            fontSize: _.appReleaseItem.bandsFulfillment.length == 1 ? 20 : 25.0,
+                            fontSize: 25,
                             fontWeight: FontWeight.bold,),
                           textAlign: TextAlign.center,
                         ),
                         AppTheme.heightSpace10,
-                        _.releaseItemList.description.isNotEmpty ?
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: SingleChildScrollView(
-                                child: ReadMoreText(_.releaseItemList.description,
-                                  trimLines: 6,
-                                  colorClickableText: Colors.grey.shade500,
-                                  trimMode: TrimMode.Line,
-                                  trimCollapsedText: '... ${AppTranslationConstants.readMore.tr}',
-                                  textAlign: TextAlign.justify,
-                                  style: const TextStyle(
-                                    letterSpacing: 0.5,
-                                    fontWeight: FontWeight.w500,
-                                    fontSize: 16,
-                                  ),
-                                  trimExpandedText: ' ${AppTranslationConstants.less.tr.capitalize!}',
-                                ),
-                                // HashTagText(
-                                //   text: _.appReleaseItem.description,
-                                //   softWrap: true,
-                                //   maxLines: 10,
-                                //   overflow: TextOverflow.ellipsis,
-                                //   textAlign: TextAlign.justify,
-                                //   basicStyle: const TextStyle(fontSize: 16),
-                                //   decoratedStyle: const TextStyle(fontSize: 16, color: AppColor.dodgetBlue),
-                                //   onTap: (text) {
-                                //     AppUtilities.logger.i(text);
-                                //   },
-                                // ),
-                              )
-                          ),
-                        ) : Container(),
+                        ReadMoreContainer(text: _.releaseItemlist.type != ItemlistType.single ? _.releaseItemlist.description : _.appReleaseItem.description),
                         AppTheme.heightSpace10,
                         CircleAvatar(
-                          radius: 60.0,
                           child: ClipOval(
                             child: CachedNetworkImage(
                               imageUrl: _.profile.photoUrl.isNotEmpty
                                   ? _.profile.photoUrl
                                   : AppFlavour.getNoImageUrl(),
-                              width: 120.0, /// Set the width to twice the radius
-                              height: 120.0, /// Set the height to twice the radius
+                              width: (AppTheme.fullWidth(context)/6)*2, /// Set the width to twice the radius
+                              height: (AppTheme.fullWidth(context)/6)*2, /// Set the height to twice the radius
                               fit: BoxFit.cover, /// You can adjust the fit mode as needed
                             ),
                           ),
+                          radius: AppTheme.fullWidth(context)/6,
                         ),
                         AppTheme.heightSpace5,
                         Text(
@@ -122,16 +97,16 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                           textAlign: TextAlign.center, style: const TextStyle(fontSize: 15),
                         ),
                         AppTheme.heightSpace10,
-                        Text(!_.isAutoPublished || (_.appReleaseItem.place?.name.isNotEmpty ?? false)
+                        Text(!_.isAutoPublished.value || (_.appReleaseItem.place?.name.isNotEmpty ?? false)
                             ? (_.appReleaseItem.place?.name ?? "")
                             : AppTranslationConstants.autoPublishing.tr,
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
                         AppTheme.heightSpace10,
                         Column(
                             children: [
-                              (_.isPhysical && _.appReleaseItem.physicalPrice!.amount != 0) ?
+                              (_.isPhysical.value && _.appReleaseItem.physicalPrice!.amount != 0) ?
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -194,7 +169,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                             progressColor: AppColor.bondiBlue,
                           ),
                         ),) : SubmitButton(context, text: AppTranslationConstants.submitRelease.tr,
-                          isLoading: _.isLoading, isEnabled: !_.isButtonDisabled,
+                          isLoading: _.isLoading.value, isEnabled: !_.isButtonDisabled.value,
                           onPressed: _.uploadReleaseItem,
                         ),
                         if(_.releaseItemIndex == 0) TitleSubtitleRow("", showDivider: false, subtitle: AppTranslationConstants.submitReleaseMsg.tr),
@@ -218,7 +193,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
 
         return ListTile(
           leading: Image.file(
-              File(_.releaseCoverImgPath),
+              File(_.releaseCoverImgPath.value),
               height: 40, width: 40
           ),
           title: Text(releaseItem.name.isEmpty ? ""

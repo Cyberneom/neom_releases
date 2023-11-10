@@ -23,8 +23,8 @@ class ReleaseUploadInstrPage extends StatelessWidget {
           decoration: AppTheme.appBoxDecoration,
           child: Column(
               children: <Widget>[
-                AppFlavour.appInUse == AppInUse.gigmeout ? AppTheme.heightSpace100 : Container(),
-                HeaderIntro(subtitle: AppTranslationConstants.releaseUploadInstr.tr, showLogo: AppFlavour.appInUse == AppInUse.gigmeout,),
+                AppFlavour.appInUse == AppInUse.g ? AppTheme.heightSpace100 : Container(),
+                HeaderIntro(subtitle: AppTranslationConstants.releaseUploadInstr.tr, showLogo: AppFlavour.appInUse == AppInUse.g,),
                 const Expanded(child: ReleaseUploadInstrList(),),
               ]
           ),

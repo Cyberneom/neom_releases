@@ -68,9 +68,9 @@ class PaymentGatewayPage extends StatelessWidget {
                         _.cardFieldInputDetails = card;
                       },
                       style: CardFormStyle(
-                        placeholderColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.gigmeout) ? Colors.black : AppColor.white,
-                        textColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.gigmeout) ? Colors.black : AppColor.white,
-                        backgroundColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.gigmeout) ? AppColor.white : AppColor.main25,
+                        placeholderColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.g) ? Colors.black : AppColor.white,
+                        textColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.g) ? Colors.black : AppColor.white,
+                        backgroundColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.g) ? AppColor.white : AppColor.main25,
                       ),
                       countryCode: Get.locale!.countryCode,
                       enablePostalCode: false,

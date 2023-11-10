@@ -33,8 +33,8 @@ class ReleaseUploadGenresPage extends StatelessWidget {
              decoration: AppTheme.appBoxDecoration,
               child: Column(
                 children: [
-                  AppFlavour.appInUse == AppInUse.gigmeout ? AppTheme.heightSpace100 : Container(),
-                  HeaderIntro(subtitle: AppTranslationConstants.releaseUploadGenres.tr, showLogo: AppFlavour.appInUse == AppInUse.gigmeout,),
+                  AppFlavour.appInUse == AppInUse.g ? AppTheme.heightSpace100 : Container(),
+                  HeaderIntro(subtitle: AppTranslationConstants.releaseUploadGenres.tr, showLogo: AppFlavour.appInUse == AppInUse.g,),
                   Expanded(
                     child: SingleChildScrollView(
                       child: Wrap(

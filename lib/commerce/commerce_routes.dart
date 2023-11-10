@@ -7,6 +7,7 @@ import 'ui/payment/payment_gateway_page.dart';
 import 'ui/quotation/quotation_page.dart';
 import 'ui/services/commerce_services_page.dart';
 import 'ui/services/release_upload/release_upload_page.dart';
+import 'ui/services/release_upload/widgets/release_upload_band_or_solo_page.dart';
 import 'ui/services/release_upload/widgets/release_upload_genres_page.dart';
 import 'ui/services/release_upload/widgets/release_upload_info_page.dart';
 import 'ui/services/release_upload/widgets/release_upload_instr_page.dart';
@@ -57,6 +58,11 @@ class CommerceRoutes {
     GetPage(
       name: AppRouteConstants.releaseUploadType,
       page: () => const ReleaseUploadType(),
+      transition: Transition.zoom,
+    ),
+    GetPage(
+      name: AppRouteConstants.releaseUploadBandOrSolo,
+      page: () => const ReleaseUploadBandOrSoloPage(),
       transition: Transition.zoom,
     ),
     GetPage(

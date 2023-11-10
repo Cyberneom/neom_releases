@@ -207,7 +207,7 @@ class QuotationPage extends StatelessWidget {
                         fontWeight: FontWeight.w400),
                   ) : Container(),
                   const Divider(),
-                  AppFlavour.appInUse == AppInUse.emxi && _.userController.user!.userRole != UserRole.subscriber ?
+                  AppFlavour.appInUse == AppInUse.e && _.userController.user!.userRole != UserRole.subscriber ?
                   Column(
                     children: [
                       buildPhoneField(quotationController: _),

@@ -36,16 +36,16 @@ class ReleaseUploadPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    HeaderIntro(subtitle: AppTranslationConstants.releaseUpload.tr,showLogo: AppFlavour.appInUse == AppInUse.gigmeout),
+                    HeaderIntro(subtitle: AppTranslationConstants.releaseUpload.tr,showLogo: AppFlavour.appInUse == AppInUse.g),
                     AppTheme.heightSpace10,
                     TitleSubtitleRow(AppTranslationConstants.digitalPositioning.tr, subtitle: AppTranslationConstants.releaseUploadIntro.tr,showDivider: false,),
                     AppTheme.heightSpace10,
-                    AppFlavour.appInUse == AppInUse.emxi ? Column(
+                    AppFlavour.appInUse == AppInUse.e ? Column(
                       children: [
                         TitleSubtitleRow(AppTranslationConstants.digitalSalesModel.tr, subtitle: AppTranslationConstants.digitalSalesModelMsg.tr,showDivider: false,),
                         AppTheme.heightSpace10,
                       ],) : Container(),
-                    AppFlavour.appInUse == AppInUse.emxi ? Column(
+                    AppFlavour.appInUse == AppInUse.e ? Column(
                       children: [
                         SizedBox(
                           width: AppTheme.fullWidth(context)*0.6,

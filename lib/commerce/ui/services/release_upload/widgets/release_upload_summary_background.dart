@@ -28,7 +28,7 @@ class OnlinePositioningSummaryBackground extends StatelessWidget {
             width: AppTheme.fullWidth(context),
             height: AppTheme.fullHeight(context),
             padding: const EdgeInsets.symmetric(horizontal: 10),
-            color: Colors.black.withOpacity(0.6),
+            color: Colors.black.withOpacity(0.4),
             child: _.appReleaseItem.imgUrl.isNotEmpty ? CachedNetworkImage(imageUrl: _.appReleaseItem.imgUrl,
               width: AppTheme.fullWidth(context), height: AppTheme.fullHeight(context),
               fit: BoxFit.fitWidth,

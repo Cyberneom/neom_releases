@@ -46,10 +46,10 @@ class ReleaseUploadInfoPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  AppFlavour.appInUse == AppInUse.gigmeout ? AppTheme.heightSpace100 : Container(),
-                  HeaderIntro(subtitle: AppTranslationConstants.releaseUploadPLaceDate.tr, showLogo: AppFlavour.appInUse == AppInUse.gigmeout,),
+                  AppFlavour.appInUse == AppInUse.g ? AppTheme.heightSpace100 : Container(),
+                  HeaderIntro(subtitle: AppTranslationConstants.releaseUploadPLaceDate.tr, showLogo: AppFlavour.appInUse == AppInUse.g,),
                   AppTheme.heightSpace10,
-                  AppFlavour.appInUse == AppInUse.emxi ? Row(
+                  AppFlavour.appInUse == AppInUse.e ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
@@ -58,7 +58,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                           child: Row(
                             children: <Widget>[
                               Checkbox(
-                                value: _.isPhysical,
+                                value: _.isPhysical.value,
                                 onChanged: (bool? newValue) {
                                   _.setIsPhysical();
                                   },
@@ -73,7 +73,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                         width: AppTheme.fullWidth(context) / 2.5,
                         child: TextFormField(
                           controller: _.physicalPriceController,
-                          enabled: _.isPhysical,
+                          enabled: _.isPhysical.value,
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly,
                             NumberLimitInputFormatter(1000),
@@ -105,7 +105,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                           child: Row(
                             children: <Widget>[
                               Checkbox(
-                                value: _.isAutoPublished,
+                                value: _.isAutoPublished.value,
                                 onChanged: (bool? newValue) {
                                   _.setIsAutoPublished();
                                 },
@@ -120,7 +120,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                         width: AppTheme.fullWidth(context) / 2.5,
                         child: DropdownButton<int>(
                           hint: Text(AppTranslationConstants.publishedYear.tr),
-                          value: _.publishedYear != 0 ? _.publishedYear : null,
+                          value: _.publishedYear.value != 0 ? _.publishedYear.value : null,
                           onChanged: (selectedYear) {
                             if(selectedYear != null) {
                               _.setPublishedYear(selectedYear);
@@ -148,10 +148,10 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                     ],
                   ),
                   AppTheme.heightSpace20,
-                  _.isAutoPublished ? Container() : TextFormField(
+                  _.isAutoPublished.value ? Container() : TextFormField(
                     controller: _.placeController,
                     onTap:() => _.getPublisherPlace(context) ,
-                    enabled: !_.isAutoPublished,
+                    enabled: !_.isAutoPublished.value,
                     decoration: InputDecoration(
                       filled: true,
                       labelText: AppTranslationConstants.specifyPublishingPlace.tr,
@@ -161,7 +161,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                     ),
                   ),
                   AppTheme.heightSpace20,
-                  _.releaseCoverImgPath.isNotEmpty && AppFlavour.appInUse == AppInUse.emxi
+                  _.releaseCoverImgPath.isNotEmpty && AppFlavour.appInUse == AppInUse.e
                       ? Text(AppTranslationConstants.tapCoverToPreviewRelease.tr,
                     style: const TextStyle(decoration: TextDecoration.underline),)
                       : Container(),
@@ -187,11 +187,11 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(5.0),
                           child: GestureDetector(
                             child: Image.file(
-                              File(_.releaseCoverImgPath),
+                              File(_.releaseCoverImgPath.value),
                               height: 180,
                               width: 180
                             ),
-                            onTap: () => AppFlavour.appInUse == AppInUse.emxi ? _.gotoPdfPreview() : {}
+                            onTap: () => AppFlavour.appInUse == AppInUse.e ? _.gotoPdfPreview() : {}
                           ),
                         ),
                         FloatingActionButton(

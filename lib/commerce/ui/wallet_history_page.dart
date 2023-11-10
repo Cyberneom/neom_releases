@@ -155,7 +155,7 @@ class WalletHistoryPage extends StatelessWidget {
                                   Obx(()=> Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Text("${AppTranslationConstants.totalToPay.tr.capitalizeFirst!}:",
+                                      Text("${AppTranslationConstants.totalToPay.tr.capitalizeFirst}:",
                                         style: const TextStyle(fontSize: 15),
                                       ),
                                       Row(

@@ -32,11 +32,11 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
              child: SingleChildScrollView(
                child: Column(
                 children: <Widget>[
-                  AppFlavour.appInUse == AppInUse.gigmeout ? AppTheme.heightSpace100 : Container(),
+                  AppFlavour.appInUse == AppInUse.g ? AppTheme.heightSpace100 : Container(),
                   HeaderIntro(
                     subtitle: '${AppTranslationConstants.releaseUploadItemlistNameDesc1.tr} ${_.appReleaseItem.type.value.tr.toUpperCase()}? '
                         '${AppTranslationConstants.releaseUploadItemlistNameDesc2.tr}',
-                    showLogo: AppFlavour.appInUse == AppInUse.gigmeout,
+                    showLogo: AppFlavour.appInUse == AppInUse.g,
                   ),
                   AppTheme.heightSpace10,
                   Container(

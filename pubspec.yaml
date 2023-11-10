@@ -15,18 +15,22 @@ dependencies:
   neom_commons:
     git:
       url: https://github.com/Cyberneom/neom_commons.git
-  neom_posts:
+  neom_bands:
     git:
-      url: https://github.com/Cyberneom/neom_posts.git
+      url: https://github.com/emmanuel-montoya/neom_bands.git
   neom_music_player:
     git:
       url: https://github.com/Cyberneom/neom_music_player.git
+  neom_posts:
+    git:
+      url: https://github.com/Cyberneom/neom_posts.git
+
 
   #not working for products
 #  woosignal: ^3.8.0
   in_app_purchase: ^3.1.11
   in_app_purchase_storekit: ^0.3.6+7
-  just_audio: 0.9.35
+#  just_audio: 0.9.35
   percent_indicator: ^4.2.3
 
 dev_dependencies:
@@ -37,10 +41,12 @@ dev_dependencies:
 dependency_overrides:
   neom_commons:
     path: ../neom_commons
-  neom_posts:
-    path: ../neom_posts
+  neom_bands:
+    path: ../neom_bands
   neom_music_player:
     path: ../neom_music_player
+  neom_posts:
+    path: ../neom_posts
   http: 1.1.0
   uuid: 4.1.0
   logger: 2.0.2+1

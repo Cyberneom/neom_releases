@@ -50,10 +50,10 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
              child: SingleChildScrollView(
                child: Column(
                 children: <Widget>[
-                  AppFlavour.appInUse == AppInUse.gigmeout ? AppTheme.heightSpace100 : Container(),
+                  AppFlavour.appInUse == AppInUse.g ? AppTheme.heightSpace100 : Container(),
                   HeaderIntro(
                     subtitle: AppTranslationConstants.releaseUploadNameDesc.tr,
-                    showLogo: AppFlavour.appInUse == AppInUse.gigmeout,
+                    showLogo: AppFlavour.appInUse == AppInUse.g,
                   ),
                   AppTheme.heightSpace10,
                   Container(
@@ -86,7 +86,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  AppFlavour.appInUse == AppInUse.emxi ?
+                  AppFlavour.appInUse == AppInUse.e ?
                   Container(
                    padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                    child: Row(
@@ -130,7 +130,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                            ),
                          ],
                        ),
-                      AppFlavour.appInUse != AppInUse.emxi ? Container(
+                      AppFlavour.appInUse != AppInUse.e ? Container(
                            width: AppTheme.fullWidth(context) / 2.75,
                            alignment: Alignment.centerRight,
                            child:
@@ -193,7 +193,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                   Obx(() => _.releaseFilePreviewURL.isNotEmpty
                       ? Container(
                       padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
-                      child: Text(_.releaseFilePreviewURL,
+                      child: Text(_.releaseFilePreviewURL.value,
                         style: const TextStyle(color: Colors.white70,),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

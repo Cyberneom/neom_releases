@@ -36,7 +36,7 @@ class ReleaseUploadType extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                HeaderIntro(subtitle: AppTranslationConstants.releaseUploadType.tr,showLogo: AppFlavour.appInUse == AppInUse.gigmeout),
+                HeaderIntro(subtitle: AppTranslationConstants.releaseUploadType.tr,showLogo: AppFlavour.appInUse == AppInUse.g),
                 AppTheme.heightSpace10,
                 Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -68,7 +68,7 @@ class ReleaseUploadType extends StatelessWidget {
                     ]
                   ),
                   AppTheme.heightSpace20,
-                  _.showSongsDropDown ? SizedBox(
+                  _.showSongsDropDown.value ? SizedBox(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -96,7 +96,7 @@ class ReleaseUploadType extends StatelessWidget {
                       ],
                     ),
                   ) : Container(),
-                  if(AppFlavour.appInUse == AppInUse.emxi) TitleSubtitleRow("", hPadding: 20,subtitle: AppTranslationConstants.salesModelMsg.tr,showDivider: false,),
+                  if(AppFlavour.appInUse == AppInUse.e) TitleSubtitleRow("", hPadding: 20,subtitle: AppTranslationConstants.salesModelMsg.tr,showDivider: false,),
               ],
             ),
           ),
@@ -106,7 +106,7 @@ class ReleaseUploadType extends StatelessWidget {
             elevation: AppTheme.elevationFAB,
             child: const Icon(Icons.navigate_next),
             onPressed: () {
-              Get.toNamed(AppRouteConstants.releaseUploadItemlistNameDesc);
+              Get.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
             },
           ) : Container(),
       ),

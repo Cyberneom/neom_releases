@@ -213,10 +213,11 @@ class OrderConfirmationPage extends StatelessWidget {
                          onPressed: () async {await _.confirmOrder();
                      }),
                   ),
-                  AppFlavour.appInUse == AppInUse.cyberneom ? Center(
+                  AppFlavour.appInUse == AppInUse.c ? Center(
                     child: TextButton(
                       onPressed: () async {
                         await _.inAppPurchasePayment();
+                        ///DEPRECATED
                         // showModalBottomSheet(
                         //   context: context,
                         //   builder: (context) {

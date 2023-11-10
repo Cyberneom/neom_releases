@@ -20,7 +20,7 @@ class ReleaseUploadInstrList extends StatelessWidget{
           Instrument instrument = _.instrumentController.instruments.values.elementAt(index);
           return ListTile(
             onTap: () => _.requiredInstruments.contains(instrument.name) ? _.removeInstrument(index) : _.addInstrument(index),
-            title: Center(child: Text(instrument.name.tr, style: const TextStyle(fontSize: AppTheme.chipsFontSize)),),
+            title: Center(child: Text(instrument.name.tr.capitalizeFirst, style: const TextStyle(fontSize: AppTheme.chipsFontSize)),),
             tileColor: _.requiredInstruments.contains(instrument.name) ? AppColor.getMain() : Colors.transparent,
           );
         },
