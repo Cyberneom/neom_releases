@@ -34,7 +34,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                 children: <Widget>[
                   AppFlavour.appInUse == AppInUse.g ? AppTheme.heightSpace100 : Container(),
                   HeaderIntro(
-                    subtitle: '${AppTranslationConstants.releaseUploadItemlistNameDesc1.tr} ${_.appReleaseItem.type.value.tr.toUpperCase()}? '
+                    subtitle: '${AppTranslationConstants.releaseUploadItemlistNameDesc1.tr} ${_.appReleaseItem.value.type.value.tr.toUpperCase()}? '
                         '${AppTranslationConstants.releaseUploadItemlistNameDesc2.tr}',
                     showLogo: AppFlavour.appInUse == AppInUse.g,
                   ),
@@ -46,7 +46,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                       onChanged:(text) => _.setItemlistName() ,
                       decoration: InputDecoration(
                         filled: true,
-                        labelText: '${AppTranslationConstants.releaseItemlistTitle.tr} ${_.appReleaseItem.type.value.tr.toLowerCase()}',
+                        labelText: '${AppTranslationConstants.releaseItemlistTitle.tr} ${_.appReleaseItem.value.type.value.tr.toLowerCase()}',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -62,7 +62,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                       onChanged:(text) => _.setItemlistDesc() ,
                       decoration: InputDecoration(
                         filled: true,
-                        labelText: '${AppTranslationConstants.releaseItemlistDesc.tr} ${_.appReleaseItem.type.value.tr.toLowerCase()}',
+                        labelText: '${AppTranslationConstants.releaseItemlistDesc.tr} ${_.appReleaseItem.value.type.value.tr.toLowerCase()}',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),

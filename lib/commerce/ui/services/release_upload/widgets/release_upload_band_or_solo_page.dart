@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:neom_commons/core/app_flavour.dart';
 
 import 'package:neom_commons/core/domain/model/band.dart';
+import 'package:neom_commons/core/domain/model/band_member.dart';
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/ui/widgets/header_intro.dart';
 import 'package:neom_commons/core/utils/app_color.dart';
@@ -13,6 +14,8 @@ import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
+import 'package:neom_commons/core/utils/core_utilities.dart';
+import 'package:neom_commons/core/utils/enums/band_member_role.dart';
 import '../release_upload_controller.dart';
 
 class ReleaseUploadBandOrSoloPage extends StatelessWidget {
@@ -44,7 +47,10 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
                   itemCount: _.bandController.bands.length,
                   itemBuilder: (context, index) {
                     Band band = _.bandController.bands.values.elementAt(index);
-                    return GestureDetector(
+                    BandMember profileMember = band.members!.values.firstWhere((element) => element.profileId == _.profile.id);
+                    bool canUploadItems = profileMember.role != BandMemberRole.member; ///VERIFY IF IS MORE THAN JUST A MEMBER
+
+                    return canUploadItems ? GestureDetector(
                       child: ListTile(
                         leading: SizedBox(
                           width: 50,
@@ -58,12 +64,12 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
-                            (band.appMediaItems?.isNotEmpty ?? false)
+                            (CoreUtilities.getTotalItemsQty(band.itemlists ?? {}) > 0)
                               ? ActionChip(
                                 backgroundColor: AppColor.main50,
                                 avatar: CircleAvatar(
                                   backgroundColor: AppColor.white80,
-                                  child: Text(band.appMediaItems!.length.toString()),
+                                  child: Text(CoreUtilities.getTotalItemsQty(band.itemlists ?? {}).toString()),
                                 ),
                                 label: Icon(
                                     AppFlavour.getAppItemIcon(),
@@ -77,7 +83,7 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
                       onTap: () async {
                         _.setSelectedBand(band);
                       },
-                    );
+                    ) : Container();
                   },
                 ),),
               ),],

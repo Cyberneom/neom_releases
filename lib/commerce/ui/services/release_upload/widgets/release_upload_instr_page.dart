@@ -14,9 +14,9 @@ class ReleaseUploadInstrPage extends StatelessWidget {
       builder: (_) => Scaffold(
         extendBodyBehindAppBar: true,
         appBar: AppBarChild(
-          color: _.releaseItemsQty > 1 ? null : Colors.transparent,
-          title: _.releaseItemsQty > 1 ? '${AppTranslationConstants.releaseItem.tr} ${_.appReleaseItems.length+1} '
-              '${AppTranslationConstants.of.tr} ${_.releaseItemsQty}' : '',
+          color: _.releaseItemsQty.value > 1 ? null : Colors.transparent,
+          title: _.releaseItemsQty.value > 1  && _.appReleaseItems.length < _.releaseItemsQty.value  ? '${AppTranslationConstants.releaseItem.tr} ${_.appReleaseItems.length+1} '
+              '${AppTranslationConstants.of.tr} ${_.releaseItemsQty.value}' : '',
         ),
         backgroundColor: AppColor.main50,
         body: Container(
@@ -29,18 +29,18 @@ class ReleaseUploadInstrPage extends StatelessWidget {
               ]
           ),
         ),
-      floatingActionButton: _.requiredInstruments.isNotEmpty ? FloatingActionButton(
+      floatingActionButton: _.instrumentsUsed.value.isNotEmpty ? FloatingActionButton(
           tooltip: AppTranslationConstants.next.tr,
           elevation: AppTheme.elevationFAB,
           child: const Icon(Icons.navigate_next),
           onPressed: () {
-            if(_.requiredInstruments.isNotEmpty) {
+            if(_.instrumentsUsed.isNotEmpty) {
               _.addInstrumentsToReleaseItem();
             } else {
-              Get.snackbar(
-                  MessageTranslationConstants.introInstrumentSelection.tr,
-                  MessageTranslationConstants.introInstrumentMsg.tr,
-                  snackPosition: SnackPosition.bottom);
+              AppUtilities.showSnackBar(
+                title: MessageTranslationConstants.introInstrumentSelection.tr,
+                message: MessageTranslationConstants.introInstrumentMsg.tr,
+              );
             }
           },
         ) : Container(),

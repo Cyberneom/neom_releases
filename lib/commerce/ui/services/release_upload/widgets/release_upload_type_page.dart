@@ -25,7 +25,7 @@ class ReleaseUploadType extends StatelessWidget {
     return GetBuilder<ReleaseUploadController>(
         id: AppPageIdConstants.releaseUpload,
         init: ReleaseUploadController(),
-        builder: (_) => Scaffold(
+        builder: (_) => Obx(()=> Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBarChild(color: Colors.transparent),
           backgroundColor: AppColor.main50,
@@ -45,41 +45,42 @@ class ReleaseUploadType extends StatelessWidget {
                       buildActionChip(
                         appEnum: ReleaseType.single,
                         controllerFunction: _.setReleaseType,
-                          isSelected: _.releaseItemsQty == 1
+                          isSelected: _.appReleaseItem.value.type == ReleaseType.single && _.releaseItemsQty == 1
                       ),
                       AppTheme.heightSpace10,
                        buildActionChip(
                          appEnum: ReleaseType.album,
                          controllerFunction: _.setReleaseType,
-                         isSelected: _.appReleaseItem.type == ReleaseType.album
+                         isSelected: _.appReleaseItem.value.type == ReleaseType.album
                        ),
                       AppTheme.heightSpace10,
                       buildActionChip(
                         appEnum: ReleaseType.ep,
                         controllerFunction: _.setReleaseType,
-                        isSelected: _.appReleaseItem.type == ReleaseType.ep
+                        isSelected: _.appReleaseItem.value.type == ReleaseType.ep
                       ),
                       AppTheme.heightSpace10,
                       buildActionChip(
                         appEnum: ReleaseType.demo,
                         controllerFunction: _.setReleaseType,
-                        isSelected: _.appReleaseItem.type == ReleaseType.demo
+                        isSelected: _.appReleaseItem.value.type == ReleaseType.demo
                       ),
                     ]
                   ),
                   AppTheme.heightSpace20,
-                  _.showSongsDropDown.value ? SizedBox(
+                  _.showItemsQtyDropDown.value ? SizedBox(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text("${AppTranslationConstants.appReleaseItemsQty.tr}:", style: TextStyle(fontSize: 15),),
+                        Text("${AppTranslationConstants.appReleaseItemsQty.tr}:", style: const TextStyle(fontSize: 15),),
                         AppTheme.widthSpace10,
                         DropdownButton<int>(
                           borderRadius: BorderRadius.circular(10.0),
                           items: AppCommerceConstants.appReleaseItemsQty
-                            .where((itemsQty) => itemsQty >= (_.appReleaseItem.type == ReleaseType.demo ? 1 : 2)
-                              && itemsQty <= (_.appReleaseItem.type == ReleaseType.album ? 15 :
-                              _.appReleaseItem.type == ReleaseType.ep ? 6 : 4)
+                            .where((itemsQty) => itemsQty >= (_.appReleaseItem.value.type == ReleaseType.demo ? 1
+                              : _.appReleaseItem.value.type == ReleaseType.ep ? 2 : 4)
+                              && itemsQty <= (_.appReleaseItem.value.type == ReleaseType.demo ? 4 :
+                              _.appReleaseItem.value.type == ReleaseType.ep ? 6 : 15)
                           ).map((int itemsQty) {
                             return DropdownMenuItem<int>(
                               value: itemsQty,
@@ -89,7 +90,7 @@ class ReleaseUploadType extends StatelessWidget {
                           onChanged: (int? itemsQty) {
                             _.setAppReleaseItemsQty(itemsQty ?? 1);
                           },
-                          value: _.releaseItemsQty,
+                          value: _.releaseItemsQty.value,
                           elevation: 20,
                           dropdownColor: AppColor.getMain(),
                         ),
@@ -101,7 +102,7 @@ class ReleaseUploadType extends StatelessWidget {
             ),
           ),
         ),
-        floatingActionButton: _.releaseItemsQty > 0 ? FloatingActionButton(
+        floatingActionButton: _.releaseItemsQty.value > 0 ? FloatingActionButton(
             tooltip: AppTranslationConstants.next.tr,
             elevation: AppTheme.elevationFAB,
             child: const Icon(Icons.navigate_next),
@@ -109,7 +110,7 @@ class ReleaseUploadType extends StatelessWidget {
               Get.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
             },
           ) : Container(),
-      ),
+      ),),
     );
   }
 }

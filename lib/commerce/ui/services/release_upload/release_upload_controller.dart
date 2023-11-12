@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_maps_webservice/places.dart';
@@ -16,7 +15,6 @@ import 'package:neom_commons/core/domain/model/app_release_item.dart';
 import 'package:neom_commons/core/utils/enums/itemlist_type.dart';
 import 'package:neom_commons/core/utils/enums/release_type.dart';
 import 'package:neom_commons/neom_commons.dart';
-import 'package:neom_instruments/genres/data/implementations/genres_controller.dart';
 import 'package:neom_instruments/instruments/ui/instrument_controller.dart';
 import 'package:neom_posts/neom_posts.dart';
 import 'package:neom_timeline/neom_timeline.dart';
@@ -54,8 +52,8 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   TextEditingController physicalPriceController = TextEditingController();
 
   final Rx<Band> selectedBand = Band().obs;
-  final RxBool showSongsDropDown = false.obs;
-  final RxList<String> requiredInstruments = <String>[].obs;
+  final RxBool showItemsQtyDropDown = false.obs;
+  final RxList<String> instrumentsUsed = <String>[].obs;
   RxList<Genre> genres = <Genre>[].obs;
   RxList<String> selectedGenres = <String>[].obs;
   final RxBool isButtonDisabled = false.obs;
@@ -64,20 +62,14 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   final RxBool isAutoPublished = false.obs;
   final Rx<int> publishedYear = 0.obs;
 
-  final Rx<AppReleaseItem> _appReleaseItem = AppReleaseItem().obs;
-  AppReleaseItem get appReleaseItem => _appReleaseItem.value;
-  set appReleaseItem(AppReleaseItem appReleaseItem) => _appReleaseItem.value = appReleaseItem;
-
-  final RxList<AppReleaseItem> _appReleaseItems = <AppReleaseItem>[].obs;
-  List<AppReleaseItem> get appReleaseItems => _appReleaseItems;
-  set appReleaseItems(List<AppReleaseItem> appReleaseItems) => _appReleaseItems.value = appReleaseItems;
-
+  final Rx<AppReleaseItem> appReleaseItem = AppReleaseItem().obs;
+  final RxList<AppReleaseItem> appReleaseItems = <AppReleaseItem>[].obs;
+  final Rx<int> releaseItemsQty = 0.obs;
   final Rx<int> releaseItemIndex = 0.obs;
-
   final Rx<Place> publisherPlace = Place().obs;
   final Rx<FilePickerResult?> releaseFile = const FilePickerResult([]).obs;
 
-  final Rx<File> iOSFile = File("").obs;
+  ///DEPRECATED final Rx<File> iOSFile = File("").obs;
 
   final RxString releaseFilePreviewURL = "".obs;
   final RxString releaseCoverImgPath = "".obs;
@@ -87,11 +79,12 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   String releaseFilePath = "";
   List<String> releaseFilePaths = [];
 
-  int releaseItemsQty = 0;
   Itemlist releaseItemlist = Itemlist();
 
   bool durationIsSelected = true;
   AudioPlayer audioPlayer = AudioPlayer();
+
+  String previousItemName = '';
 
   @override
   void onInit() async {
@@ -119,12 +112,6 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       );
 
       digitalPriceController.text = AppFlavour.getInitialPrice();
-      appReleaseItem.digitalPrice = Price(currency: AppCurrency.mxn, amount: double.parse(AppFlavour.getInitialPrice()));
-      appReleaseItem.ownerId = profile.id;
-      appReleaseItem.ownerName = profile.name;
-      appReleaseItem.ownerImgUrl = profile.photoUrl;
-      appReleaseItem.genres = [];
-
       mapsController.goToPosition(profile.position!);
     } catch(e) {
       AppUtilities.logger.e(e.toString());
@@ -136,12 +123,23 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   void onReady() async {
 
     try {
+      releaseItemlist.isModifiable = false;
+      releaseItemlist.appReleaseItems = [];
+
+      appReleaseItem.value.digitalPrice = Price(currency: AppCurrency.mxn, amount: double.parse(AppFlavour.getInitialPrice()));
+      appReleaseItem.value.ownerId = profile.id;
+      appReleaseItem.value.ownerName = profile.name;
+      appReleaseItem.value.ownerImgUrl = profile.photoUrl;
+      appReleaseItem.value.genres = [];
+      appReleaseItem.value.instruments = [];
+      appReleaseItem.value.metaOwnerId = userController.user!.id;
+
       genres.value = await CoreUtilities.loadGenres();
-      isLoading.value = false;
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
 
+    isLoading.value = false;
     update([AppPageIdConstants.releaseUpload]);
   }
 
@@ -158,46 +156,52 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     if(releaseUploadDetailsAnimationController.isAnimating) {
       releaseUploadDetailsAnimationController.dispose();
     }
+
+    audioPlayer.dispose();
   }
 
   @override
   Future<void> setReleaseType(ReleaseType releaseType) async {
     AppUtilities.logger.d("Release Type as ${releaseType.name}");
-    appReleaseItem.type = releaseType;
-    appReleaseItem.imgUrl == "";
+    appReleaseItem.value.type = releaseType;
+    appReleaseItem.value.imgUrl == "";
 
     ///DEPRECATED itemsToRelease.clear();///TODO VERIFY IF NEEDED
 
     switch(releaseType) {
       case ReleaseType.single:
+        releaseItemsQty.value = 1;
         releaseItemlist.type = ItemlistType.single;
         break;
       case ReleaseType.ep:
+        releaseItemsQty.value = 2;
         releaseItemlist.type = ItemlistType.ep;
         break;
       case ReleaseType.album:
+        releaseItemsQty.value = 4;
         releaseItemlist.type = ItemlistType.album;
         break;
       case ReleaseType.demo:
+        releaseItemsQty.value = 1;
         releaseItemlist.type = ItemlistType.demo;
         break;
       case ReleaseType.episode:
+        releaseItemsQty.value = 1;
         releaseItemlist.type = ItemlistType.podcast;
         break;
       case ReleaseType.chapter:
+        releaseItemsQty.value = 1;
         releaseItemlist.type = ItemlistType.audiobook;
         break;
     }
 
-    if(AppFlavour.appInUse != AppInUse.g || appReleaseItem.type == ReleaseType.single) {
-      releaseItemsQty = 1;
-      showSongsDropDown.value = false;
-      appReleaseItems.clear();
+    appReleaseItems.clear();
+    if(AppFlavour.appInUse != AppInUse.g || appReleaseItem.value.type == ReleaseType.single) {
+      releaseItemsQty.value = 1;
+      showItemsQtyDropDown.value = false;
       Get.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
     } else {
-      releaseItemsQty = 2;
-      showSongsDropDown.value = true;
-      ///VERIFY IF appReleaseItems.clear(); is not needed here
+      showItemsQtyDropDown.value = true;
     }
 
     update([AppPageIdConstants.releaseUpload]);
@@ -205,32 +209,33 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
   @override
   Future<void> setAppReleaseItemsQty(int itemsQty) async {
-    AppUtilities.logger.v("Settings $itemsQty Items for ${appReleaseItem.type} Release");
-    releaseItemsQty = itemsQty;
+    AppUtilities.logger.t("Settings $itemsQty Items for ${appReleaseItem.value.type} Release");
+    releaseItemsQty.value = itemsQty;
+    appReleaseItems.clear();
     update([AppPageIdConstants.releaseUpload]);
   }
 
   @override
   void addInstrument(int index) {
-    AppUtilities.logger.v("Adding instrument to required ones");
+    AppUtilities.logger.t("Adding instrument to required ones");
     Instrument instrument = instrumentController.instruments.values.elementAt(index);
-    requiredInstruments.add(instrument.name);
+    instrumentsUsed.add(instrument.name);
     update([AppPageIdConstants.releaseUpload]);
   }
 
   @override
   void removeInstrument(int index) {
-    AppUtilities.logger.v("Removing instrument from required ones");
+    AppUtilities.logger.t("Removing instrument from required ones");
     Instrument instrument = instrumentController.instruments.values.elementAt(index);
-    requiredInstruments.remove(instrument.name);
+    instrumentsUsed.remove(instrument.name);
     update([AppPageIdConstants.releaseUpload]);
   }
 
   @override
   Future<void> addInstrumentsToReleaseItem() async {
-    AppUtilities.logger.v("Adding ${requiredInstruments.length} instruments used in release");
+    AppUtilities.logger.t("Adding ${instrumentsUsed.length} instruments used in release");
     try {
-      appReleaseItem.instruments = requiredInstruments;
+      appReleaseItem.value.instruments = instrumentsUsed;
       Get.toNamed(AppRouteConstants.releaseUploadGenres);
     } catch (e) {
       AppUtilities.logger.e(e.toString());
@@ -241,34 +246,25 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
   @override
   Future<void> uploadReleaseItem() async {
+    AppUtilities.logger.d("Initiating Upload for Itemlist ${releaseItemlist.name} "
+        "- Type: ${releaseItemlist.type} with ${appReleaseItems.length} items");
+
+    String releaseItemlistId = "";
+    String releaseCoverImgURL = '';
 
     releaseItemIndex.value = 0;
     isButtonDisabled.value = true;
     isLoading.value = true;
-    String releaseCoverImgURL = '';
     update([AppPageIdConstants.releaseUpload]);
 
     try {
+
+
       if(postUploadController.croppedImageFile.value.path.isNotEmpty) {
         AppUtilities.logger.d("Uploading releaseCoverImg from: ${postUploadController.croppedImageFile.value.path}");
         releaseCoverImgURL = await AppUploadFirestore().uploadImage(releaseItemlist.name,
             postUploadController.croppedImageFile.value, UploadImageType.releaseItem);
-      }
-
-      String releaseItemlistId = "";
-      if(selectedBand.value.id.isEmpty) {
-        releaseItemlist.ownerId = profile.id;
-        releaseItemlist.ownerName = profile.name;
-      } else {
-        releaseItemlist.ownerId = selectedBand.value.id;
-        releaseItemlist.ownerName = selectedBand.value.name;
-        releaseItemlist.ownerType = OwnerType.band;
-      }
-      releaseItemlist.isModifiable = false;
-      releaseItemlist.imgUrl = releaseCoverImgURL;
-
-      if (profile.position?.latitude != 0.0) {
-        releaseItemlist.position = profile.position!;
+        releaseItemlist.imgUrl = releaseCoverImgURL;
       }
 
       ///DEPRECATED
@@ -295,14 +291,13 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       releaseItemlistId = await ItemlistFirestore().insert(releaseItemlist);
       releaseItemlist.id = releaseItemlistId;
-      releaseItemlist.appReleaseItems = [];
 
       for (AppReleaseItem releaseItem in appReleaseItems) {
-        releaseItem.imgUrl = releaseCoverImgURL;
+        releaseItem.imgUrl = releaseItemlist.imgUrl;
         releaseItem.watchingProfiles = [];
         releaseItem.boughtUsers = [];
         releaseItem.createdTime = DateTime.now().millisecondsSinceEpoch;
-        releaseItem.metaId = releaseItemlistId;
+        releaseItem.metaId = releaseItemlist.id;
         releaseItem.state = 5;
 
         if(releaseItem.previewUrl.isNotEmpty) {
@@ -340,11 +335,11 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
           releaseItem.id = releaseItemId;
           AppUtilities.logger.d("ReleaseItem Created with Id $releaseItemId");
 
-          if(await ItemlistFirestore().addReleaseItem(releaseItemlistId, releaseItem)) {
-            AppUtilities.logger.i("ReleaseItem ${releaseItem.name} successfully added to itemlist $releaseItemlistId");
+          if(await ItemlistFirestore().addReleaseItem(releaseItemlist.id, releaseItem)) {
+            AppUtilities.logger.i("ReleaseItem ${releaseItem.name} successfully added to itemlist ${releaseItemlist.id}");
             releaseItemlist.appReleaseItems!.add(releaseItem);
           } else {
-            AppUtilities.logger.e("Something occurred when adding ReleaseItem ${releaseItem.name} adding to itemlist $releaseItemlistId");
+            AppUtilities.logger.e("Something occurred when adding ReleaseItem ${releaseItem.name} adding to itemlist ${releaseItemlist.id}");
           }
         }
 
@@ -354,8 +349,6 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       await createReleasePost();
       await Get.find<TimelineController>().getTimeline();
-      update([AppPageIdConstants.timeline]);
-      Get.offAllNamed(AppRouteConstants.home);
     } catch (e) {
       AppUtilities.logger.e(e.toString());
       AppUtilities.showSnackBar(title: AppTranslationConstants.digitalPositioning, message: e.toString());
@@ -365,12 +358,24 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
     isButtonDisabled.value = false;
     isLoading.value = false;
-    update([AppPageIdConstants.releaseUpload]);
+    Get.offAllNamed(AppRouteConstants.home);
+    update();
   }
 
   @override
   Future<void> createReleasePost() async {
     AppUtilities.logger.d("Creating Post");
+
+    String postCaption = '';
+
+    if(releaseItemlist.ownerType == OwnerType.profile) {
+      postCaption = '${AppTranslationConstants.releaseUploadPostCaptionMsg1.tr} "${releaseItemlist.name}"'
+          ' ${AppTranslationConstants.releaseUploadPostCaptionMsg2.tr}';
+    } else {
+      postCaption = '${AppTranslationConstants.releaseUploadPostCaptionMsg1.tr} "${releaseItemlist.name}",'
+          ' ${AppTranslationConstants.of.tr} ${AppTranslationConstants.myProject.tr} "${selectedBand.value.name}",'
+          ' ${AppTranslationConstants.releaseUploadPostCaptionMsg2.tr}';
+    }
 
     try {
       Post post = Post(
@@ -380,29 +385,29 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         ownerId: profile.id,
         mediaUrl: releaseItemlist.imgUrl,
         referenceId: releaseItemlist.id,
-        position: appReleaseItem.place?.position ?? profile.position,
-        location: await GeoLocatorController().getAddressSimple(appReleaseItem.place?.position ?? profile.position!),
+        position: releaseItemlist.position ?? profile.position,
+        location: await GeoLocatorController().getAddressSimple(releaseItemlist.position ?? profile.position!),
         isCommentEnabled: true,
         createdTime: DateTime.now().millisecondsSinceEpoch,
-        caption: '${AppTranslationConstants.releaseUploadPostCaptionMsg1.tr} "${appReleaseItem.name}" ${AppTranslationConstants.releaseUploadPostCaptionMsg2.tr}',
+        caption: postCaption,
       );
 
       post.id = await PostFirestore().insert(post);
 
       if(post.id.isNotEmpty){
-        if(await UserFirestore().addReleaseItem(userId: userController.user!.id, releaseItemId: appReleaseItem.id)) {
+        if(await UserFirestore().addReleaseItem(userId: userController.user!.id, releaseItemId: appReleaseItem.value.id)) {
           if(userController.user?.releaseItemIds != null) {
-            userController.user!.releaseItemIds!.add(appReleaseItem.id);
+            userController.user!.releaseItemIds!.add(appReleaseItem.value.id);
           } else {
-            userController.user!.releaseItemIds = [appReleaseItem.id];
+            userController.user!.releaseItemIds = [appReleaseItem.value.id];
           }
         }
 
         FirebaseMessagingCalls.sendGlobalPushNotification(
             fromProfile: profile,
             notificationType: PushNotificationType.releaseAppItemAdded,
-            referenceId: appReleaseItem.id,
-            imgUrl: appReleaseItem.imgUrl
+            referenceId: appReleaseItem.value.id,
+            imgUrl: appReleaseItem.value.imgUrl
         );
       }
     } catch (e) {
@@ -414,7 +419,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
   @override
   Future<void> getPublisherPlace(context) async {
-    AppUtilities.logger.v("");
+    AppUtilities.logger.t("");
 
     try {
       Prediction prediction = await mapsController.placeAutoComplete(context, placeController.text);
@@ -461,15 +466,16 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   @override
   void setItemlistName() {
     AppUtilities.logger.t("setItemlistName");
-    itemlistNameController.text = itemlistNameController.text.capitalizeFirst;
+    itemlistNameController.text = itemlistNameController.text.trim().capitalizeFirst;
     releaseItemlist.name = itemlistNameController.text;
+    appReleaseItem.value.metaName = releaseItemlist.name;
     update([AppPageIdConstants.releaseUpload]);
   }
 
   @override
   void setItemlistDesc() {
     AppUtilities.logger.d("setItemlistDesc");
-    itemlistDescController.text = itemlistDescController.text.capitalizeFirst;
+    itemlistDescController.text = itemlistDescController.text.trim().capitalizeFirst;
     releaseItemlist.description = itemlistDescController.text;
     update([AppPageIdConstants.releaseUpload]);
   }
@@ -477,23 +483,24 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   @override
   void setReleaseName() {
     AppUtilities.logger.t("setReleaseName");
-    appReleaseItem.name = nameController.text;
+    appReleaseItems.value.removeWhere((element) => element.name == appReleaseItem.value.name); ///VERIFY IF OK
+    appReleaseItem.value.name = nameController.text.trim().capitalizeFirst;
     update([AppPageIdConstants.releaseUpload]);
   }
 
   @override
   void setReleaseDesc() {
     AppUtilities.logger.t("setReleaseDesc");
-    descController.text =  descController.text.capitalizeFirst;
-    appReleaseItem.description = descController.text;
-    appReleaseItem.lyrics = descController.text;
+    descController.text =  descController.text.trim().capitalizeFirst;
+    appReleaseItem.value.description = descController.text;
+    appReleaseItem.value.lyrics = descController.text;
     update([AppPageIdConstants.releaseUpload]);
   }
 
   void setReleaseDuration() {
     AppUtilities.logger.d("");
     if(durationController.text.isNotEmpty) {
-      appReleaseItem.duration = int.parse(durationController.text);
+      appReleaseItem.value.duration = int.parse(durationController.text);
     }
 
     durationIsSelected = true;
@@ -504,7 +511,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     AppUtilities.logger.d("setDigitalReleasePrice");
     
     if(digitalPriceController.text.isNotEmpty) {
-      appReleaseItem.digitalPrice!.amount = double.parse(digitalPriceController.text);
+      appReleaseItem.value.digitalPrice!.amount = double.parse(digitalPriceController.text);
     }
 
     durationIsSelected = false;
@@ -519,15 +526,15 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
   @override
   bool validateNameDesc() {
-    return nameController.text.isNotEmpty && (descController.text.isNotEmpty || releaseItemsQty > 1)
-        && appReleaseItem.previewUrl.isNotEmpty && durationController.text.isNotEmpty && releaseFilePreviewURL.isNotEmpty;
+    return nameController.text.isNotEmpty && (descController.text.isNotEmpty || releaseItemsQty.value > 1)
+        && appReleaseItem.value.previewUrl.isNotEmpty && durationController.text.isNotEmpty && releaseFilePreviewURL.isNotEmpty;
   }
 
   Future<void> addGenresToReleaseItem() async {
     AppUtilities.logger.d("Adding ${genres.length} to release.");
 
     try {
-      appReleaseItem.genres = selectedGenres;
+      appReleaseItem.value.genres = selectedGenres;
       addReleaseItemToList();
     } catch(e) {
       AppUtilities.logger.e(e.toString());
@@ -537,20 +544,20 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   }
 
   Future<void> addReleaseItemToList() async {
+    AppUtilities.logger.d("Adding ${appReleaseItem.value.name} to itemList ${releaseItemlist.name}.");
 
     try {
-      if(appReleaseItems.length < releaseItemsQty) {
-        AppUtilities.logger.d("Adding ${appReleaseItem.name} to itemList ${releaseItemlist.name}.");
-        appReleaseItems.add(AppReleaseItem.fromJSON(appReleaseItem.toJSON()));
+      appReleaseItems.value.removeWhere((element) => element.name == appReleaseItem.value.name);
+
+      if(appReleaseItems.length < releaseItemsQty.value) {
+        appReleaseItems.add(AppReleaseItem.fromJSON(appReleaseItem.value.toJSON()));
+        releaseFilePaths.add(releaseFilePath);
       }
 
-      if(appReleaseItems.length == releaseItemsQty) {
+      if(appReleaseItems.length == releaseItemsQty.value) {
         Get.toNamed(AppRouteConstants.releaseUploadInfo);
       } else {
-        nameController.clear();
-        descController.clear();
-        releaseFilePreviewURL.value = '';
-        Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
+        gotoNextItemNameDesc();
       }
     } catch(e) {
       AppUtilities.logger.e(e.toString());
@@ -560,10 +567,10 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   }
 
   Future<void> addNameDescToReleaseItem() async {
-    AppUtilities.logger.v("addNameDescToReleaseItem");
+    AppUtilities.logger.t("addNameDescToReleaseItem");
     audioPlayer.stop();
 
-    if(appReleaseItems.where((element) => element.name == nameController.text).isEmpty) {
+    if(appReleaseItems.where((element) => element.name == nameController.text.trim()).isEmpty) {
       setReleaseName();
       setReleaseDesc();
 
@@ -572,7 +579,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         setDigitalReleasePrice();
       }
 
-      if(appReleaseItem.type == ReleaseType.single) {
+      if(appReleaseItem.value.type == ReleaseType.single) {
         setItemlistName();
         setItemlistDesc();
       }
@@ -582,10 +589,11 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       AppUtilities.showSnackBar(title: AppTranslationConstants.releaseUpload, message: AppTranslationConstants.releaseItemNameMsg);
     }
 
+    update([AppPageIdConstants.releaseUpload]);
   }
 
   Future<void> addItemlistNameDesc() async {
-    AppUtilities.logger.v("addItemlistNameDesc");
+    AppUtilities.logger.t("addItemlistNameDesc");
     setItemlistName();
     setItemlistDesc();
     Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
@@ -595,23 +603,24 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     AppUtilities.logger.d("Setting physical release price to ${physicalPriceController.text}");
 
     if(physicalPriceController.text.isNotEmpty) {
-      appReleaseItem.physicalPrice ??= Price(currency: AppCurrency.mxn);
-      appReleaseItem.physicalPrice!.amount = double.parse(physicalPriceController.text);
+      appReleaseItem.value.physicalPrice ??= Price(currency: AppCurrency.mxn);
+      appReleaseItem.value.physicalPrice!.amount = double.parse(physicalPriceController.text);
     }
 
     update([AppPageIdConstants.releaseUpload]);
   }
 
-  Future<void> addCoverToReleaseItem() async {
-    AppUtilities.logger.v("");
-    setReleaseName();
-    setReleaseDesc();
-    Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
-  }
+  ///DEPRECATED
+  // Future<void> addCoverToReleaseItem() async {
+  //   AppUtilities.logger.t("");
+  //   setReleaseName();
+  //   setReleaseDesc();
+  //   Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
+  // }
 
   @override
   Future<void> gotoReleaseSummary() async {
-    AppUtilities.logger.v("Adding final info to release");
+    AppUtilities.logger.t("Adding final info to release");
 
     try {
 
@@ -624,9 +633,9 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         releaseItem.isPhysical = isPhysical.value;
         setPhysicalReleasePrice();
         if(isAutoPublished.value) {
-          appReleaseItem.place = null;
+          appReleaseItem.value.place = null;
         } else {
-          appReleaseItem.place = publisherPlace.value;
+          appReleaseItem.value.place = publisherPlace.value;
         }
 
       }
@@ -731,7 +740,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
     Widget cachedNetworkImage;
     bool containsCroppedImgFile = postUploadController.croppedImageFile.value.path.isNotEmpty;
-    String itemImgUrl = appReleaseItem.imgUrl.isNotEmpty ? appReleaseItem.imgUrl : AppFlavour.getAppLogoUrl();
+    String itemImgUrl = appReleaseItem.value.imgUrl.isNotEmpty ? appReleaseItem.value.imgUrl : AppFlavour.getAppLogoUrl();
 
     try {
       if(containsCroppedImgFile) {
@@ -778,7 +787,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
         releaseFilePath = getReleaseFilePath(releaseFile.value);
 
-        appReleaseItem.previewUrl = releaseFileFirstName;
+        appReleaseItem.value.previewUrl = releaseFileFirstName;
         releaseFilePreviewURL.value = releaseFileFirstName;
         
         if(nameController.text.isEmpty) {
@@ -793,14 +802,13 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
           await audioPlayer.stop();
           audioPlayer.setFilePath(releaseFilePath);
           await audioPlayer.play();
-          appReleaseItem.duration = audioPlayer.duration?.inSeconds ?? 0;
-          durationController.text = appReleaseItem.duration.toString();
-          if(appReleaseItem.duration > 0 && appReleaseItem.duration <= AppConstants.maxAudioDuration) {
-            AppUtilities.logger.i("Audio duration of ${appReleaseItem.duration} seconds");
-            releaseFilePaths.add(releaseFilePath.toString());
+          appReleaseItem.value.duration = audioPlayer.duration?.inSeconds ?? 0;
+          durationController.text = appReleaseItem.value.duration.toString();
+          if(appReleaseItem.value.duration > 0 && appReleaseItem.value.duration <= AppConstants.maxAudioDuration) {
+            AppUtilities.logger.i("Audio duration of ${appReleaseItem.value.duration} seconds");
           } else {
             releaseFilePath = '';
-            appReleaseItem.previewUrl = '';
+            appReleaseItem.value.previewUrl = '';
             AppUtilities.showSnackBar(title: AppTranslationConstants.releaseUpload, message: AppTranslationConstants.releaseItemDurationMsg);
           }
 
@@ -873,15 +881,26 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     update([AppPageIdConstants.releaseUpload]);
   }
 
+  void gotoNextItemNameDesc() {
+    AppUtilities.logger.d('Removing info from textControllers to insert next item info');
+    nameController.clear();
+    descController.clear();
+    appReleaseItem.value.name = '';
+    releaseFilePreviewURL.value = '';
+    Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
+  }
+
   void removeLastReleaseItem() {
+    AppUtilities.logger.d('Removing last item from list to update it and add it again');
     releaseFilePreviewURL.value = appReleaseItems.last.previewUrl;
+    appReleaseItem.value.name = appReleaseItems.last.name;
     nameController.text = appReleaseItems.last.name;
     descController.text = appReleaseItems.last.description;
     appReleaseItems.removeLast();
+    releaseFilePaths.removeLast();
+
     update([AppPageIdConstants.releaseUpload]);
   }
-
-
 
   @override
   void setSelectedBand(Band band) async {
@@ -895,11 +914,20 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
             bandInstruments.add(bandMember.instrument!.name);
           }
         }
-
-        appReleaseItem.instruments = bandInstruments;
+        appReleaseItem.value.instruments = bandInstruments;
       }
 
-      appReleaseItem.bandId = selectedBand.value.id;
+      appReleaseItem.value.ownerId = selectedBand.value.id;
+      appReleaseItem.value.ownerName = selectedBand.value.name;
+      appReleaseItem.value.ownerImgUrl = selectedBand.value.photoUrl;
+      appReleaseItem.value.ownerType = OwnerType.band;
+
+      releaseItemlist.ownerId = selectedBand.value.id;
+      releaseItemlist.ownerName = selectedBand.value.name;
+      releaseItemlist.ownerType = OwnerType.band;
+      if (selectedBand.value.position?.latitude != 0.0) {
+        releaseItemlist.position = selectedBand.value.position!;
+      }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
@@ -911,14 +939,25 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
   @override
   void setAsSolo() async {
-    AppUtilities.logger.d("Going to Upload Release as Solist");
+    AppUtilities.logger.d("Going to Upload Release as Soloist");
 
     try {
       selectedBand.value = Band();
       bandInstruments = [];
-      appReleaseItem.bandId = '';
 
-      Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
+      appReleaseItem.value.ownerId = profile.id;
+      appReleaseItem.value.ownerName = profile.name;
+      appReleaseItem.value.ownerImgUrl = profile.photoUrl;
+      appReleaseItem.value.ownerType = OwnerType.profile;
+
+      releaseItemlist.ownerId = profile.id;
+      releaseItemlist.ownerName = profile.name;
+      releaseItemlist.ownerType = OwnerType.profile;
+
+      if (profile.position?.latitude != 0.0) {
+        releaseItemlist.position = profile.position!;
+      }
+
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
@@ -928,7 +967,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   }
 
   void gotoNameDesc() {
-    if(AppFlavour.appInUse != AppInUse.g || appReleaseItem.type == ReleaseType.single) {
+    if(AppFlavour.appInUse != AppInUse.g || appReleaseItem.value.type == ReleaseType.single) {
       Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
     } else {
       Get.toNamed(AppRouteConstants.releaseUploadItemlistNameDesc);

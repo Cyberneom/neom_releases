@@ -29,7 +29,8 @@ class ReleaseUploadInfoPage extends StatelessWidget {
       builder: (_) {
         return WillPopScope(
           onWillPop: () async {
-            if(_.releaseItemsQty > 1 && _.appReleaseItems.isNotEmpty) {
+            ///DPRECATED
+            if(_.releaseItemsQty.value > 1 && _.appReleaseItems.isNotEmpty) {
               _.removeLastReleaseItem();
             }
             return true; // Return true to allow the back button press to pop the screen

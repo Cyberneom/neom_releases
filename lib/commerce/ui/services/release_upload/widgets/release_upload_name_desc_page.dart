@@ -29,19 +29,18 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
       builder: (_) {
          return WillPopScope(
            onWillPop: () async {
-             if(_.releaseItemsQty > 1 && _.appReleaseItems.isNotEmpty) {
+             if(_.releaseItemsQty.value > 1 && _.appReleaseItems.isNotEmpty) {
                _.removeLastReleaseItem();
              }
-                          
-           AppUtilities.logger.w('Custom logic executed before popping the screen');
-           return true; // Return true to allow the back button press to pop the screen
+
+           return _.appReleaseItems.isEmpty; ///If not empty keeps on loop removing previous added songs
          },
         child: Scaffold(
            extendBodyBehindAppBar: true,
            appBar: AppBarChild(
-             color: _.releaseItemsQty > 1 ? null : Colors.transparent,
-             title: _.releaseItemsQty > 1 ? '${AppTranslationConstants.releaseItem.tr} ${_.appReleaseItems.length+1} '
-                 '${AppTranslationConstants.of.tr} ${_.releaseItemsQty}' : '',
+             color: _.releaseItemsQty.value > 1 ? null : Colors.transparent,
+             title: _.releaseItemsQty.value > 1  && _.appReleaseItems.length < _.releaseItemsQty.value  ? '${AppTranslationConstants.releaseItem.tr} ${_.appReleaseItems.length+1} '
+                 '${AppTranslationConstants.of.tr} ${_.releaseItemsQty.value}' : '',
            ),
            backgroundColor: AppColor.main50,
            body: Container(
@@ -172,7 +171,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                         ),
                     ],),
                   ) : Container(),
-                  if(_.releaseItemsQty == 1) TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20, subtitle: AppTranslationConstants.releasePriceMsg.tr,
+                  if(_.releaseItemsQty.value == 1) TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20, subtitle: AppTranslationConstants.releasePriceMsg.tr,
                   url: AppFlavour.getDigitalPositioningUrl()),
                   AppTheme.heightSpace10,
                   GestureDetector(

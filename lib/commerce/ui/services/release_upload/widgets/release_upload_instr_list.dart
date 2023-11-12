@@ -19,9 +19,9 @@ class ReleaseUploadInstrList extends StatelessWidget{
         itemBuilder: (__, index) {
           Instrument instrument = _.instrumentController.instruments.values.elementAt(index);
           return ListTile(
-            onTap: () => _.requiredInstruments.contains(instrument.name) ? _.removeInstrument(index) : _.addInstrument(index),
+            onTap: () => _.instrumentsUsed.contains(instrument.name) ? _.removeInstrument(index) : _.addInstrument(index),
             title: Center(child: Text(instrument.name.tr.capitalizeFirst, style: const TextStyle(fontSize: AppTheme.chipsFontSize)),),
-            tileColor: _.requiredInstruments.contains(instrument.name) ? AppColor.getMain() : Colors.transparent,
+            tileColor: _.instrumentsUsed.contains(instrument.name) ? AppColor.getMain() : Colors.transparent,
           );
         },
         itemCount: _.instrumentController.instruments.length-1,

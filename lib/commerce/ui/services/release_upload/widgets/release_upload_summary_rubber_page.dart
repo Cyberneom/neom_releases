@@ -76,7 +76,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                           textAlign: TextAlign.center,
                         ),
                         AppTheme.heightSpace10,
-                        ReadMoreContainer(text: _.releaseItemlist.type != ItemlistType.single ? _.releaseItemlist.description : _.appReleaseItem.description),
+                        ReadMoreContainer(text: _.releaseItemlist.type != ItemlistType.single ? _.releaseItemlist.description : _.appReleaseItem.value.description),
                         AppTheme.heightSpace10,
                         CircleAvatar(
                           child: ClipOval(
@@ -97,8 +97,8 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                           textAlign: TextAlign.center, style: const TextStyle(fontSize: 15),
                         ),
                         AppTheme.heightSpace10,
-                        Text(!_.isAutoPublished.value || (_.appReleaseItem.place?.name.isNotEmpty ?? false)
-                            ? (_.appReleaseItem.place?.name ?? "")
+                        Text(!_.isAutoPublished.value || (_.appReleaseItem.value.place?.name.isNotEmpty ?? false)
+                            ? (_.appReleaseItem.value.place?.name ?? "")
                             : AppTranslationConstants.autoPublishing.tr,
                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
@@ -106,28 +106,28 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                         AppTheme.heightSpace10,
                         Column(
                             children: [
-                              (_.isPhysical.value && _.appReleaseItem.physicalPrice!.amount != 0) ?
+                              (_.isPhysical.value && _.appReleaseItem.value.physicalPrice!.amount != 0) ?
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Text("${AppTranslationConstants.physicalReleasePrice.tr}: \$${_.appReleaseItem.physicalPrice!.amount.truncate().toString()} MXN ",
+                                  Text("${AppTranslationConstants.physicalReleasePrice.tr}: \$${_.appReleaseItem.value.physicalPrice!.amount.truncate().toString()} MXN ",
                                     style: const TextStyle(fontSize: 15),
                                   ),
                                 ],
                               ) : Container(),
-                              (_.appReleaseItem.digitalPrice!.amount != 0) ?
+                              (_.appReleaseItem.value.digitalPrice!.amount != 0) ?
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Text("${AppTranslationConstants.digitalReleasePrice.tr}: \$${_.appReleaseItem.digitalPrice!.amount.truncate().toString()} MXN ",
+                                  Text("${AppTranslationConstants.digitalReleasePrice.tr}: \$${_.appReleaseItem.value.digitalPrice!.amount.truncate().toString()} MXN ",
                                     style: const TextStyle(fontSize: 15),
                                   ),
                                 ],
                               ) : Container(),
-                              (_.appReleaseItem.digitalPrice!.amount != 0 &&
-                                  _.appReleaseItem.digitalPrice!.amount != double.parse(AppFlavour.getInitialPrice())
+                              (_.appReleaseItem.value.digitalPrice!.amount != 0 &&
+                                  _.appReleaseItem.value.digitalPrice!.amount != double.parse(AppFlavour.getInitialPrice())
                               ) ? Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -139,15 +139,15 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                               ) : Container()
                             ]
                         ),
-                        GenresGridView(_.appReleaseItem.genres, AppColor.yellow),
-                        (_.appReleaseItem.type == ReleaseType.single || (_.appReleaseItems.isEmpty)) ? Container() : Column(
+                        GenresGridView(_.appReleaseItem.value.genres, AppColor.yellow),
+                        (_.appReleaseItem.value.type == ReleaseType.single || (_.appReleaseItems.isEmpty)) ? Container() : Column(
                           children: <Widget>[
                             Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
                                   const Icon(FontAwesomeIcons.music, size: 12),
                                   AppTheme.widthSpace5,
-                                  Text('${_.appReleaseItem.type.value.tr.toUpperCase()} (${_.appReleaseItems.length})')
+                                  Text('${_.appReleaseItem.value.type.value.tr.toUpperCase()} (${_.appReleaseItems.length})')
                                 ]
                             ),
                             Container(
@@ -162,9 +162,9 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                           child: LinearPercentIndicator(
                             padding: const EdgeInsets.symmetric(horizontal: 20),
                             lineHeight: AppTheme.fullHeight(context) /15,
-                            percent: _.releaseItemIndex/_.releaseItemsQty,
+                            percent: _.releaseItemIndex/_.releaseItemsQty.value,
                             center: Text("${AppTranslationConstants.adding.tr} "
-                                "${_.releaseItemIndex} ${AppTranslationConstants.outOf.tr} ${_.releaseItemsQty}"
+                                "${_.releaseItemIndex} ${AppTranslationConstants.outOf.tr} ${_.releaseItemsQty.value}"
                             ),
                             progressColor: AppColor.bondiBlue,
                           ),

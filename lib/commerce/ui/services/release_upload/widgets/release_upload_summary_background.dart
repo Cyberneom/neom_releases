@@ -29,7 +29,7 @@ class OnlinePositioningSummaryBackground extends StatelessWidget {
             height: AppTheme.fullHeight(context),
             padding: const EdgeInsets.symmetric(horizontal: 10),
             color: Colors.black.withOpacity(0.4),
-            child: _.appReleaseItem.imgUrl.isNotEmpty ? CachedNetworkImage(imageUrl: _.appReleaseItem.imgUrl,
+            child: _.appReleaseItem.value.imgUrl.isNotEmpty ? CachedNetworkImage(imageUrl: _.appReleaseItem.value.imgUrl,
               width: AppTheme.fullWidth(context), height: AppTheme.fullHeight(context),
               fit: BoxFit.fitWidth,
             ) : Image.asset(AppFlavour.getAppLogoPath(),
