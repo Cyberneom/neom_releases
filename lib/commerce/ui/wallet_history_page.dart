@@ -16,7 +16,7 @@ import 'wallet_controller.dart';
 import 'widgets/wallet_widgets.dart';
 
 class WalletHistoryPage extends StatelessWidget {
-  const WalletHistoryPage({Key? key}) : super(key: key);
+  const WalletHistoryPage({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -97,20 +97,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       scrollController = ScrollController();
       rubberAnimationController = RubberAnimationController(vsync: this, duration: const Duration(milliseconds: 20));
-      releaseUploadDetailsAnimationController = RubberAnimationController(
-          vsync: this,
-          //lowerBoundValue: AnimationControllerValue(pixel: MediaQuery.of(context).size.height * 0.75),
-          lowerBoundValue: AnimationControllerValue(pixel: 400),
-          dismissable: false,
-          upperBoundValue: AnimationControllerValue(percentage: 0.9),
-          duration: const Duration(milliseconds: 300),
-          springDescription: SpringDescription.withDampingRatio(
-            mass: 1,
-            stiffness: Stiffness.LOW,
-            ratio: DampingRatio.MEDIUM_BOUNCY,
-          )
-      );
-
+      releaseUploadDetailsAnimationController = getRubberAnimationController();
       digitalPriceController.text = AppFlavour.getInitialPrice();
       mapsController.goToPosition(profile.position!);
     } catch(e) {
@@ -348,7 +335,17 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       }
 
       await createReleasePost();
-      await Get.find<TimelineController>().getTimeline();
+
+      if (Get.isRegistered<TimelineController>()) {
+        await Get.find<TimelineController>().getTimeline();
+      } else {
+        await Get.put(TimelineController()).getTimeline();
+      }
+
+      AppUtilities.showSnackBar(
+          title: AppTranslationConstants.digitalPositioning,
+          message: AppTranslationConstants.digitalPositioningSuccess.tr
+      );
     } catch (e) {
       AppUtilities.logger.e(e.toString());
       AppUtilities.showSnackBar(title: AppTranslationConstants.digitalPositioning, message: e.toString());
@@ -579,11 +576,6 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         setDigitalReleasePrice();
       }
 
-      if(appReleaseItem.value.type == ReleaseType.single) {
-        setItemlistName();
-        setItemlistDesc();
-      }
-
       Get.toNamed(AppRouteConstants.releaseUploadInstr);
     } else {
       AppUtilities.showSnackBar(title: AppTranslationConstants.releaseUpload, message: AppTranslationConstants.releaseItemNameMsg);
@@ -631,7 +623,9 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         }
         releaseItem.publishedYear = publishedYear.value;
         releaseItem.isPhysical = isPhysical.value;
-        setPhysicalReleasePrice();
+
+        if(physicalPriceController.text.isNotEmpty) setPhysicalReleasePrice();
+
         if(isAutoPublished.value) {
           appReleaseItem.value.place = null;
         } else {
@@ -640,18 +634,13 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       }
 
-      releaseUploadDetailsAnimationController = RubberAnimationController(
-          vsync: this,
-          lowerBoundValue: AnimationControllerValue(pixel: 400),
-          dismissable: false,
-          upperBoundValue: AnimationControllerValue(percentage: 0.9),
-          duration: const Duration(milliseconds: 300),
-          springDescription: SpringDescription.withDampingRatio(
-            mass: 1,
-            stiffness: Stiffness.LOW,
-            ratio: DampingRatio.MEDIUM_BOUNCY,
-          )
-      );
+      if(appReleaseItem.value.type == ReleaseType.single) {
+        releaseItemlist.name = appReleaseItem.value.name;
+        releaseItemlist.description = appReleaseItem.value.description;
+        appReleaseItem.value.metaName = appReleaseItem.value.name;
+      }
+
+      releaseUploadDetailsAnimationController = getRubberAnimationController();
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
@@ -660,6 +649,20 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     update([AppPageIdConstants.releaseUpload]);
   }
 
+  RubberAnimationController getRubberAnimationController() {
+    return RubberAnimationController(
+        vsync: this,
+        lowerBoundValue: AnimationControllerValue(pixel: 400),
+        dismissable: false,
+        upperBoundValue: AnimationControllerValue(percentage: 0.9),
+        duration: const Duration(milliseconds: 300),
+        springDescription: SpringDescription.withDampingRatio(
+          mass: 1,
+          stiffness: Stiffness.LOW,
+          ratio: DampingRatio.MEDIUM_BOUNCY,
+        )
+    );
+  }
 
   @override
   Future<void> addReleaseCoverImg() async {

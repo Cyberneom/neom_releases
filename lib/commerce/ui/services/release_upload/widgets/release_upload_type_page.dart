@@ -18,7 +18,7 @@ import '../../../../utils/constants/app_commerce_constants.dart';
 import '../release_upload_controller.dart';
 
 class ReleaseUploadType extends StatelessWidget {
-  const ReleaseUploadType({Key? key}) : super(key: key);
+  const ReleaseUploadType({super.key});
 
   @override
   Widget build(BuildContext context) {

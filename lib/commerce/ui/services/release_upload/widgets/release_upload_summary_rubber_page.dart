@@ -140,7 +140,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                             ]
                         ),
                         GenresGridView(_.appReleaseItem.value.genres, AppColor.yellow),
-                        (_.appReleaseItem.value.type == ReleaseType.single || (_.appReleaseItems.isEmpty)) ? Container() : Column(
+                        (_.appReleaseItems.isEmpty) ? Container() : Column(
                           children: <Widget>[
                             Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -152,9 +152,9 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                             ),
                             Container(
                               constraints: BoxConstraints(
-                                maxHeight: _.appReleaseItems.length <= 2 ? 150 : 200,
+                                maxHeight: _.appReleaseItems.length <= 2 ? 100 : 200,
                               ),
-                              child: Expanded(child: buildReleaseItems(context, _),),
+                              child: buildReleaseItems(context, _),
                             ),
                           ],
                         ),
