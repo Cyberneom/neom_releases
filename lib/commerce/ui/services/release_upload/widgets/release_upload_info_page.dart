@@ -19,7 +19,7 @@ import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 import '../release_upload_controller.dart';
 
 class ReleaseUploadInfoPage extends StatelessWidget {
-  const ReleaseUploadInfoPage({Key? key}) : super(key: key);
+  const ReleaseUploadInfoPage({super.key});
 
   @override
   Widget build(BuildContext context) {

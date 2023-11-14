@@ -783,7 +783,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
           AppUtilities.showSnackBar(
               title: AppTranslationConstants.releaseUpload,
               message: AppTranslationConstants.releaseItemFileMsg,
-              duration: Duration(seconds: 5)
+              duration: const Duration(seconds: 5)
           );
           return;
         }

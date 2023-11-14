@@ -45,7 +45,7 @@ class ReleaseUploadType extends StatelessWidget {
                       buildActionChip(
                         appEnum: ReleaseType.single,
                         controllerFunction: _.setReleaseType,
-                          isSelected: _.appReleaseItem.value.type == ReleaseType.single && _.releaseItemsQty == 1
+                          isSelected: _.appReleaseItem.value.type == ReleaseType.single && _.releaseItemsQty.value == 1
                       ),
                       AppTheme.heightSpace10,
                        buildActionChip(

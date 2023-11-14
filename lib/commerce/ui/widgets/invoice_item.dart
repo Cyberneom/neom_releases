@@ -7,9 +7,9 @@ class InvoiceItem extends StatelessWidget {
 
   final Invoice invoice;
   const InvoiceItem({
-    Key? key,
+    super.key,
     required this.invoice,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

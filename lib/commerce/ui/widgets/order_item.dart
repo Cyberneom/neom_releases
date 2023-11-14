@@ -13,9 +13,9 @@ import '../../domain/models/purchase_order.dart';
 class OrderItem extends StatelessWidget {
   final PurchaseOrder order;
   const OrderItem({
-    Key? key,
+    super.key,
     required this.order,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

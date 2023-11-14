@@ -17,15 +17,13 @@ import 'package:neom_commons/core/utils/constants/app_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/itemlist_type.dart';
-import 'package:neom_commons/core/utils/enums/release_type.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
-import 'package:readmore/readmore.dart';
 import 'package:rubber/rubber.dart';
 
 import '../release_upload_controller.dart';
 
 class ReleaseUploadSummaryRubberPage extends StatelessWidget {
-  const ReleaseUploadSummaryRubberPage({Key? key}) : super(key: key);
+  const ReleaseUploadSummaryRubberPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +68,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                       controller: _.scrollController,
                       children: [
                         Text(_.releaseItemlist.name.capitalize,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 25,
                             fontWeight: FontWeight.bold,),
                           textAlign: TextAlign.center,
@@ -79,6 +77,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                         ReadMoreContainer(text: _.releaseItemlist.type != ItemlistType.single ? _.releaseItemlist.description : _.appReleaseItem.value.description),
                         AppTheme.heightSpace10,
                         CircleAvatar(
+                          radius: AppTheme.fullWidth(context)/6,
                           child: ClipOval(
                             child: CachedNetworkImage(
                               imageUrl: _.profile.photoUrl.isNotEmpty
@@ -89,7 +88,6 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                               fit: BoxFit.cover, /// You can adjust the fit mode as needed
                             ),
                           ),
-                          radius: AppTheme.fullWidth(context)/6,
                         ),
                         AppTheme.heightSpace5,
                         Text(
@@ -158,21 +156,19 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                             ),
                           ],
                         ),
-                        _.releaseItemIndex > 0 ? Obx(()=> Container(
-                          child: LinearPercentIndicator(
-                            padding: const EdgeInsets.symmetric(horizontal: 20),
-                            lineHeight: AppTheme.fullHeight(context) /15,
-                            percent: _.releaseItemIndex/_.releaseItemsQty.value,
-                            center: Text("${AppTranslationConstants.adding.tr} "
-                                "${_.releaseItemIndex} ${AppTranslationConstants.outOf.tr} ${_.releaseItemsQty.value}"
-                            ),
-                            progressColor: AppColor.bondiBlue,
+                        _.releaseItemIndex > 0 ? Obx(()=> LinearPercentIndicator(
+                          padding: const EdgeInsets.symmetric(horizontal: 20),
+                          lineHeight: AppTheme.fullHeight(context) /15,
+                          percent: _.releaseItemIndex/_.releaseItemsQty.value,
+                          center: Text("${AppTranslationConstants.adding.tr} "
+                              "${_.releaseItemIndex} ${AppTranslationConstants.outOf.tr} ${_.releaseItemsQty.value}"
                           ),
+                          progressColor: AppColor.bondiBlue,
                         ),) : SubmitButton(context, text: AppTranslationConstants.submitRelease.tr,
                           isLoading: _.isLoading.value, isEnabled: !_.isButtonDisabled.value,
                           onPressed: _.uploadReleaseItem,
                         ),
-                        if(_.releaseItemIndex == 0) TitleSubtitleRow("", showDivider: false, subtitle: AppTranslationConstants.submitReleaseMsg.tr),
+                        if(_.releaseItemIndex.value == 0) TitleSubtitleRow("", showDivider: false, subtitle: AppTranslationConstants.submitReleaseMsg.tr),
                       ],
                     ),
                   ),

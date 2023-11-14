@@ -108,11 +108,11 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
             child: ElevatedButton.icon(
               style: ButtonStyle(
                 backgroundColor: MaterialStateProperty.all<Color>(AppColor.bondiBlue75),
-                padding: MaterialStateProperty.all<EdgeInsetsGeometry>(EdgeInsets.symmetric(vertical: 15.0)), // Adjust the padding as needed
+                padding: MaterialStateProperty.all<EdgeInsetsGeometry>(const EdgeInsets.symmetric(vertical: 15.0)), // Adjust the padding as needed
 
           ),
               icon: const Icon(CupertinoIcons.music_mic),
-              label: Text(AppTranslationConstants.publishAsSoloist.tr, style: TextStyle(fontSize: 18),),
+              label: Text(AppTranslationConstants.publishAsSoloist.tr, style: const TextStyle(fontSize: 18),),
               onPressed: () => _.setAsSolo(),
             ),
           ),
