@@ -5,7 +5,7 @@ import '../release_upload_controller.dart';
 import 'release_upload_instr_list.dart';
 
 class ReleaseUploadInstrPage extends StatelessWidget {
-  const ReleaseUploadInstrPage({Key? key}) : super(key: key);
+  const ReleaseUploadInstrPage({super.key});
 
   @override
   Widget build(BuildContext context) {

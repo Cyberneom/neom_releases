@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:get/get.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
+// ignore: implementation_imports
 import 'package:in_app_purchase_android/src/types/google_play_purchase_details.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 import 'package:neom_commons/core/domain/model/app_release_item.dart';

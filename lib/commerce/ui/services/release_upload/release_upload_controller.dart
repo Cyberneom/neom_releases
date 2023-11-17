@@ -463,8 +463,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   @override
   void setItemlistName() {
     AppUtilities.logger.t("setItemlistName");
-    itemlistNameController.text = itemlistNameController.text.trim().capitalizeFirst;
-    releaseItemlist.name = itemlistNameController.text;
+    releaseItemlist.name = itemlistNameController.text.trim().capitalizeFirst;
     appReleaseItem.value.metaName = releaseItemlist.name;
     update([AppPageIdConstants.releaseUpload]);
   }
@@ -472,8 +471,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   @override
   void setItemlistDesc() {
     AppUtilities.logger.d("setItemlistDesc");
-    itemlistDescController.text = itemlistDescController.text.trim().capitalizeFirst;
-    releaseItemlist.description = itemlistDescController.text;
+    releaseItemlist.description = itemlistDescController.text.trim().capitalizeFirst;
     update([AppPageIdConstants.releaseUpload]);
   }
 
@@ -488,7 +486,6 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   @override
   void setReleaseDesc() {
     AppUtilities.logger.t("setReleaseDesc");
-    descController.text =  descController.text.trim().capitalizeFirst;
     appReleaseItem.value.description = descController.text;
     appReleaseItem.value.lyrics = descController.text;
     update([AppPageIdConstants.releaseUpload]);
@@ -750,17 +747,17 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         String croppedImgFilePath = postUploadController.croppedImageFile.value.path;
         cachedNetworkImage = Image.file(
             File(croppedImgFilePath),
-            width: AppTheme.fullWidth(context)/2
+            width: AppTheme.fullWidth(context)*0.45
         );
       } else {
         cachedNetworkImage = CachedNetworkImage(
             imageUrl: itemImgUrl,
-            width: AppTheme.fullWidth(context)/2);
+            width: AppTheme.fullWidth(context)*0.45);
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
       cachedNetworkImage = CachedNetworkImage(imageUrl: itemImgUrl,
-          width: AppTheme.fullWidth(context)/2);
+          width: AppTheme.fullWidth(context)*0.45);
     }
 
     return cachedNetworkImage;

@@ -77,14 +77,14 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                         ReadMoreContainer(text: _.releaseItemlist.type != ItemlistType.single ? _.releaseItemlist.description : _.appReleaseItem.value.description),
                         AppTheme.heightSpace10,
                         CircleAvatar(
-                          radius: AppTheme.fullWidth(context)/6,
+                          radius: AppTheme.fullWidth(context)/7,
                           child: ClipOval(
                             child: CachedNetworkImage(
                               imageUrl: _.profile.photoUrl.isNotEmpty
                                   ? _.profile.photoUrl
                                   : AppFlavour.getNoImageUrl(),
-                              width: (AppTheme.fullWidth(context)/6)*2, /// Set the width to twice the radius
-                              height: (AppTheme.fullWidth(context)/6)*2, /// Set the height to twice the radius
+                              width: (AppTheme.fullWidth(context)/7)*2, /// Set the width to twice the radius
+                              height: (AppTheme.fullWidth(context)/7)*2, /// Set the height to twice the radius
                               fit: BoxFit.cover, /// You can adjust the fit mode as needed
                             ),
                           ),
@@ -150,7 +150,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                             ),
                             Container(
                               constraints: BoxConstraints(
-                                maxHeight: _.appReleaseItems.length <= 2 ? 100 : 200,
+                                maxHeight: _.appReleaseItems.length == 1 ? 90 : _.appReleaseItems.length == 2 ? 160 : 250,
                               ),
                               child: buildReleaseItems(context, _),
                             ),

@@ -1,4 +1,5 @@
 
+import 'package:neom_commons/core/domain/model/band.dart';
 import 'package:neom_commons/core/domain/model/genre.dart';
 import 'package:neom_commons/core/utils/enums/release_type.dart';
 
@@ -23,6 +24,11 @@ abstract class ReleaseUploadService {
   void addGenre(Genre genre);
   void removeGenre(Genre genre);
   Future<void> addReleaseFile();
-
+  Future<void> setAppReleaseItemsQty(int itemsQty);
+  void setItemlistName();
+  void setItemlistDesc();
+  bool validateItemlistNameDesc();
+  void setSelectedBand(Band band);
+  void setAsSolo();
 
 }

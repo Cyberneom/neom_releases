@@ -18,7 +18,7 @@ import 'package:neom_commons/core/utils/enums/sale_type.dart';
 import 'order_confirmation_controller.dart';
 
 class OrderConfirmationPage extends StatelessWidget {
-  const OrderConfirmationPage({Key? key}) : super(key: key);
+  const OrderConfirmationPage({super.key});
 
   @override
   Widget build(BuildContext context) {

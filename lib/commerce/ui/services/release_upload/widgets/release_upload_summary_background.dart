@@ -9,7 +9,7 @@ import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import '../release_upload_controller.dart';
 
 class OnlinePositioningSummaryBackground extends StatelessWidget {
-  const OnlinePositioningSummaryBackground({Key? key}) : super(key: key);
+  const OnlinePositioningSummaryBackground({super.key});
 
   @override
   Widget build(BuildContext context) {

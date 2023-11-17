@@ -11,7 +11,7 @@ import 'commerce_services_controller.dart';
 
 class CommerceServicesPage extends StatelessWidget {
 
-  const CommerceServicesPage({Key? key}) : super(key: key);
+  const CommerceServicesPage({super.key});
 
   @override
   Widget build(BuildContext context) {

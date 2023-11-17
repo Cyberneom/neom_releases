@@ -22,7 +22,7 @@ import 'payment_gateway_controller.dart';
 
 class PaymentGatewayPage extends StatelessWidget {
 
-  const PaymentGatewayPage({Key? key}) : super(key: key);
+  const PaymentGatewayPage({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -8,7 +8,7 @@ import 'release_upload_summary_rubber_page.dart';
 
 
 class ReleaseUploadSummaryPage extends StatelessWidget {
-  const ReleaseUploadSummaryPage({Key? key}) : super(key: key);
+  const ReleaseUploadSummaryPage({super.key});
 
   @override
   Widget build(BuildContext context) {

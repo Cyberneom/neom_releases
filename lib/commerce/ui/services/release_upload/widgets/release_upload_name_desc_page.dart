@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -20,7 +19,7 @@ import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 import '../release_upload_controller.dart';
 
 class ReleaseUploadNameDescPage extends StatelessWidget {
-  const ReleaseUploadNameDescPage({Key? key}) : super(key: key);
+  const ReleaseUploadNameDescPage({super.key});
   
   @override
   Widget build(BuildContext context) {
@@ -72,7 +71,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                     child: TextFormField(
-                      minLines: 4,
+                      minLines: 2,
                       maxLines: 8,
                       controller: _.descController,
                       onChanged:(text) => _.setReleaseDesc(),

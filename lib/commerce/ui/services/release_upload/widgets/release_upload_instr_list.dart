@@ -8,7 +8,7 @@ import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import '../release_upload_controller.dart';
 
 class ReleaseUploadInstrList extends StatelessWidget{
-  const ReleaseUploadInstrList({Key? key}) : super(key: key);
+  const ReleaseUploadInstrList({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -19,7 +19,7 @@ import 'quotation_controller.dart';
 
 class QuotationPage extends StatelessWidget {
 
-  const QuotationPage({Key? key}) : super(key: key);
+  const QuotationPage({super.key});
 
 
   @override

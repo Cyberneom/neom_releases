@@ -13,7 +13,7 @@ import 'package:neom_commons/core/utils/enums/sale_type.dart';
 import 'order_details_controller.dart';
 
 class OrderDetailsPage extends StatelessWidget {
-  const OrderDetailsPage({Key? key}) : super(key: key);
+  const OrderDetailsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
