@@ -36,7 +36,7 @@ class ReleaseUploadType extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                HeaderIntro(subtitle: AppTranslationConstants.releaseUploadType.tr,showLogo: AppFlavour.appInUse == AppInUse.g),
+                HeaderIntro(subtitle: AppTranslationConstants.releaseUploadType.tr, showLogo: AppFlavour.appInUse == AppInUse.g),
                 AppTheme.heightSpace10,
                 Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -107,7 +107,15 @@ class ReleaseUploadType extends StatelessWidget {
             elevation: AppTheme.elevationFAB,
             child: const Icon(Icons.navigate_next),
             onPressed: () {
-              Get.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
+              if(AppFlavour.appInUse == AppInUse.g) {
+                if(_.bandController.bands.isNotEmpty) {
+                  Get.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
+                } else {
+                  _.setAsSolo();
+                }
+              } else {
+                _.setAsSolo();
+              }
             },
           ) : Container(),
       ),),

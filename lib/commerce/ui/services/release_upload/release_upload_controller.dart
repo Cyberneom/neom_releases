@@ -183,13 +183,23 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     }
 
     appReleaseItems.clear();
-    if(AppFlavour.appInUse != AppInUse.g || appReleaseItem.value.type == ReleaseType.single) {
-      releaseItemsQty.value = 1;
-      showItemsQtyDropDown.value = false;
-      Get.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
+    if(AppFlavour.appInUse == AppInUse.g) {
+      if(appReleaseItem.value.type == ReleaseType.single) {
+        releaseItemsQty.value = 1;
+        showItemsQtyDropDown.value = false;
+        if(bandController.bands.isNotEmpty) {
+          Get.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
+        } else {
+          setAsSolo();
+        }
+      } else {
+        showItemsQtyDropDown.value = true;
+      }
     } else {
-      showItemsQtyDropDown.value = true;
+      releaseItemsQty.value = 1;
+      setAsSolo();
     }
+
 
     update([AppPageIdConstants.releaseUpload]);
   }
@@ -412,7 +422,6 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     }
 
   }
-
 
   @override
   Future<void> getPublisherPlace(context) async {

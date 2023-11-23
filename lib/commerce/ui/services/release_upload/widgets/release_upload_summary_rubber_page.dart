@@ -16,6 +16,7 @@ import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
+import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 import 'package:neom_commons/core/utils/enums/itemlist_type.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:rubber/rubber.dart';
@@ -138,24 +139,25 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                             ]
                         ),
                         GenresGridView(_.appReleaseItem.value.genres, AppColor.yellow),
-                        (_.appReleaseItems.isEmpty) ? Container() : Column(
-                          children: <Widget>[
-                            Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(FontAwesomeIcons.music, size: 12),
-                                  AppTheme.widthSpace5,
-                                  Text('${_.appReleaseItem.value.type.value.tr.toUpperCase()} (${_.appReleaseItems.length})')
-                                ]
-                            ),
-                            Container(
-                              constraints: BoxConstraints(
-                                maxHeight: _.appReleaseItems.length == 1 ? 90 : _.appReleaseItems.length == 2 ? 160 : 250,
+                        if(AppFlavour.appInUse == AppInUse.g && _.appReleaseItems.isNotEmpty)
+                          Column(
+                            children: <Widget>[
+                              Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(FontAwesomeIcons.music, size: 12),
+                                    AppTheme.widthSpace5,
+                                    Text('${_.appReleaseItem.value.type.value.tr.toUpperCase()} (${_.appReleaseItems.length})')
+                                  ]
                               ),
-                              child: buildReleaseItems(context, _),
-                            ),
-                          ],
-                        ),
+                              Container(
+                                constraints: BoxConstraints(
+                                  maxHeight: _.appReleaseItems.length == 1 ? 90 : _.appReleaseItems.length == 2 ? 160 : 250,
+                                ),
+                                child: buildReleaseItems(context, _),
+                              ),
+                            ],
+                          ),
                         _.releaseItemIndex > 0 ? Obx(()=> LinearPercentIndicator(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           lineHeight: AppTheme.fullHeight(context) /15,
@@ -168,7 +170,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                           isLoading: _.isLoading.value, isEnabled: !_.isButtonDisabled.value,
                           onPressed: _.uploadReleaseItem,
                         ),
-                        if(_.releaseItemIndex.value == 0) TitleSubtitleRow("", showDivider: false, subtitle: AppTranslationConstants.submitReleaseMsg.tr),
+                        if(_.releaseItemIndex.value == 0) TitleSubtitleRow("", showDivider: false, subtitle: AppTranslationConstants.submitReleaseMsg.tr, titleFontSize: 14, subTitleFontSize: 12,),
                       ],
                     ),
                   ),

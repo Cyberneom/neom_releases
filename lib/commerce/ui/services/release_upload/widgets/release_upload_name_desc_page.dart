@@ -28,6 +28,8 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
       builder: (_) {
          return WillPopScope(
            onWillPop: () async {
+             if(AppFlavour.appInUse != AppInUse.g) return true;
+
              if(_.releaseItemsQty.value > 1 && _.appReleaseItems.isNotEmpty) {
                _.removeLastReleaseItem();
              }
@@ -48,10 +50,10 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
              child: SingleChildScrollView(
                child: Column(
                 children: <Widget>[
-                  AppFlavour.appInUse == AppInUse.g ? AppTheme.heightSpace100 : Container(),
+                  AppTheme.heightSpace100,
                   HeaderIntro(
                     subtitle: AppTranslationConstants.releaseUploadNameDesc.tr,
-                    showLogo: AppFlavour.appInUse == AppInUse.g,
+                    showPreLogo: false,
                   ),
                   AppTheme.heightSpace10,
                   Container(
@@ -170,7 +172,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                         ),
                     ],),
                   ) : Container(),
-                  if(_.releaseItemsQty.value == 1) TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20, subtitle: AppTranslationConstants.releasePriceMsg.tr,
+                  if(_.releaseItemsQty.value == 1) TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20, subtitle: AppTranslationConstants.releasePriceMsg.tr, titleFontSize: 14, subTitleFontSize: 12,
                   url: AppFlavour.getDigitalPositioningUrl()),
                   AppTheme.heightSpace10,
                   GestureDetector(

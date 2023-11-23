@@ -5,6 +5,7 @@ import 'package:neom_commons/core/app_flavour.dart';
 
 import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
+import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 
 import '../release_upload_controller.dart';
 
@@ -32,7 +33,7 @@ class OnlinePositioningSummaryBackground extends StatelessWidget {
             child: _.appReleaseItem.value.imgUrl.isNotEmpty ? CachedNetworkImage(imageUrl: _.appReleaseItem.value.imgUrl,
               width: AppTheme.fullWidth(context), height: AppTheme.fullHeight(context),
               fit: BoxFit.fitWidth,
-            ) : Image.asset(AppFlavour.getAppLogoPath(),
+            ) : Image.asset(AppFlavour.appInUse == AppInUse.g ? AppFlavour.getAppLogoPath() : AppFlavour.getAppPreLogoPath(),
               width: AppTheme.fullWidth(context), height: AppTheme.fullHeight(context),
               fit: BoxFit.fitWidth,
             ),

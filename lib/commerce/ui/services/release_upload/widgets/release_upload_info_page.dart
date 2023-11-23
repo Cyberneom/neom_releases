@@ -47,8 +47,8 @@ class ReleaseUploadInfoPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
-                  AppFlavour.appInUse == AppInUse.g ? AppTheme.heightSpace100 : Container(),
-                  HeaderIntro(subtitle: AppTranslationConstants.releaseUploadPLaceDate.tr, showLogo: AppFlavour.appInUse == AppInUse.g,),
+                  AppTheme.heightSpace100,
+                  HeaderIntro(subtitle: AppTranslationConstants.releaseUploadPLaceDate.tr, showPreLogo: false,),
                   AppTheme.heightSpace10,
                   AppFlavour.appInUse == AppInUse.e ? Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
