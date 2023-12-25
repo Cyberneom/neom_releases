@@ -36,7 +36,8 @@ class ReleaseUploadPage extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    HeaderIntro(subtitle: AppTranslationConstants.releaseUpload.tr, showLogo: AppFlavour.appInUse == AppInUse.g),
+                    AppTheme.heightSpace30,
+                    HeaderIntro(subtitle: AppTranslationConstants.releaseUpload.tr, showPreLogo: AppFlavour.appInUse != AppInUse.e),
                     AppTheme.heightSpace10,
                     TitleSubtitleRow(AppTranslationConstants.digitalPositioning.tr,
                       subtitle: AppTranslationConstants.releaseUploadIntro.tr,
@@ -70,7 +71,7 @@ class ReleaseUploadPage extends StatelessWidget {
                         ],
                       ),
                     SummaryButton(AppTranslationConstants.toStart.tr, onPressed: ()=>Get.toNamed(AppRouteConstants.releaseUploadType)),
-                    AppTheme.heightSpace10,
+                    AppTheme.heightSpace30,
                   ],
                 ),
               ),

@@ -5,7 +5,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:google_maps_webservice/places.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:neom_bands/bands/ui/band_controller.dart';
 import 'package:neom_commons/core/data/firestore/app_release_item_firestore.dart';
@@ -16,6 +15,7 @@ import 'package:neom_commons/core/utils/enums/itemlist_type.dart';
 import 'package:neom_commons/core/utils/enums/release_type.dart';
 import 'package:neom_commons/neom_commons.dart';
 import 'package:neom_instruments/instruments/ui/instrument_controller.dart';
+import 'package:neom_maps_services/places.dart';
 import 'package:neom_posts/neom_posts.dart';
 import 'package:neom_timeline/neom_timeline.dart';
 import 'package:rubber/rubber.dart';
@@ -397,6 +397,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         isCommentEnabled: true,
         createdTime: DateTime.now().millisecondsSinceEpoch,
         caption: postCaption,
+        isVerified: profile.isVerified
       );
 
       post.id = await PostFirestore().insert(post);

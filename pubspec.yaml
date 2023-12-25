@@ -1,6 +1,6 @@
 name: neom_commerce
 description: Commerce Details for Cyberneom.
-version: 1.1.0
+version: 1.1.1
 homepage: https://github.com/emmanuel-montoya/neom_commerce
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -25,7 +25,6 @@ dependencies:
     git:
       url: https://github.com/Cyberneom/neom_posts.git
 
-
   #not working for products
 #  woosignal: ^3.8.0
   in_app_purchase: ^3.1.11
@@ -47,10 +46,10 @@ dependency_overrides:
     path: ../neom_music_player
   neom_posts:
     path: ../neom_posts
-  http: 1.1.0
   uuid: 4.1.0
   logger: 2.0.2+1
-  google_api_headers: 2.0.3
+#  http: 1.1.0
+#  google_api_headers: 2.0.3
 
 # The following section is specific to Flutter packages.
 flutter:
