@@ -2,7 +2,7 @@ import 'package:enum_to_string/enum_to_string.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:intl_phone_field/countries.dart';
-import 'package:neom_commons/core/domain/model/app_phyisical_item.dart';
+import 'package:neom_commons/core/domain/model/app_physical_item.dart';
 import 'package:neom_commons/core/utils/enums/app_item_size.dart';
 import 'package:neom_commons/neom_commons.dart';
 
