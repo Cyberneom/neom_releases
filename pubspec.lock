@@ -582,6 +582,30 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.3.1"
+  flutter_custom_tabs:
+    dependency: transitive
+    description:
+      name: flutter_custom_tabs
+      sha256: bebb9552438eb3aea8f8511d48e41abdd0d05ff3e9a74622a4d1acd2bffd242c
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.4"
+  flutter_custom_tabs_platform_interface:
+    dependency: transitive
+    description:
+      name: flutter_custom_tabs_platform_interface
+      sha256: "1d6b9eb6c5671b21511fdb47babf18aa65982784373986c003aaf67ca78798ad"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.0"
+  flutter_custom_tabs_web:
+    dependency: transitive
+    description:
+      name: flutter_custom_tabs_web
+      sha256: dbb5689a97c2398aa5dbcfc9cd59cffea5518ec815e9d23def448dc143cb02be
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.1.0"
   flutter_image_compress:
     dependency: transitive
     description:
@@ -1237,6 +1261,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.2.0"
+  lucide_icons_flutter:
+    dependency: transitive
+    description:
+      name: lucide_icons_flutter
+      sha256: "1fa24cb65b7c6ffb1f7e0f6fa157854e0606d542dc829569b8422dbc4134eb77"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.2"
   matcher:
     dependency: transitive
     description:
@@ -1292,7 +1324,7 @@ packages:
       path: "../neom_bands"
       relative: true
     source: path
-    version: "1.0.5"
+    version: "1.0.6"
   neom_booking:
     dependency: transitive
     description:
@@ -1308,7 +1340,7 @@ packages:
       path: "../neom_commons"
       relative: true
     source: path
-    version: "1.1.0"
+    version: "1.1.1"
   neom_events:
     dependency: transitive
     description:
@@ -1327,6 +1359,15 @@ packages:
       url: "https://github.com/Cyberneom/neom_frequencies.git"
     source: git
     version: "1.0.0"
+  neom_generator:
+    dependency: transitive
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "106564dbd7a3e0c5cb248fb9ec1ef3bd34b716e8"
+      url: "https://github.com/Cyberneom/neom_generator.git"
+    source: git
+    version: "1.1.1"
   neom_google_places:
     dependency: transitive
     description:
@@ -1394,14 +1435,14 @@ packages:
       path: "../neom_music_player"
       relative: true
     source: path
-    version: "1.1.0"
+    version: "1.1.1"
   neom_posts:
     dependency: "direct main"
     description:
       path: "../neom_posts"
       relative: true
     source: path
-    version: "1.1.0"
+    version: "1.1.1"
   neom_profile:
     dependency: transitive
     description:
@@ -1841,6 +1882,14 @@ packages:
     description: flutter
     source: sdk
     version: "0.0.99"
+  sleek_circular_slider:
+    dependency: transitive
+    description:
+      name: sleek_circular_slider
+      sha256: "8844d036269a13e60dda4e16534d30d27cacaff8d2f10d042d9d61d111468b13"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.1"
   sliding_up_panel:
     dependency: transitive
     description:
@@ -1953,6 +2002,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "9.6.0"
+  surround_frequency_generator:
+    dependency: transitive
+    description:
+      name: surround_frequency_generator
+      sha256: a16a918d338ae5635ce8d286e7db46560cb6d8ea3a2441a9308942f37807620c
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.0.0"
   synchronized:
     dependency: transitive
     description:

@@ -13,6 +13,7 @@ import 'package:neom_commons/core/data/firestore/itemlist_firestore.dart';
 import 'package:neom_commons/core/domain/model/app_release_item.dart';
 import 'package:neom_commons/core/utils/enums/itemlist_type.dart';
 import 'package:neom_commons/core/utils/enums/release_type.dart';
+import 'package:neom_commons/core/utils/enums/verification_level.dart';
 import 'package:neom_commons/neom_commons.dart';
 import 'package:neom_instruments/instruments/ui/instrument_controller.dart';
 import 'package:neom_maps_services/places.dart';
@@ -397,7 +398,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         isCommentEnabled: true,
         createdTime: DateTime.now().millisecondsSinceEpoch,
         caption: postCaption,
-        isVerified: profile.isVerified
+        isVerified: profile.verificationLevel != VerificationLevel.none
       );
 
       post.id = await PostFirestore().insert(post);
