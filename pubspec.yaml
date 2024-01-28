@@ -1,6 +1,6 @@
 name: neom_commerce
 description: Commerce Details for Cyberneom.
-version: 1.1.1
+version: 1.1.2
 homepage: https://github.com/emmanuel-montoya/neom_commerce
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -14,23 +14,28 @@ dependencies:
 
   neom_commons:
     git:
-      url: https://github.com/Cyberneom/neom_commons.git
+      url: git@github.com:Cyberneom/neom_commons.git
+      ref: main
   neom_bands:
     git:
-      url: https://github.com/emmanuel-montoya/neom_bands.git
+      url: git@github.com:emmanuel-montoya/neom_bands.git
+      ref: main
+  neom_posts:
+    git:
+      url: git@github.com:Cyberneom/neom_posts.git
+      ref: main
+
   neom_music_player:
     git:
       url: https://github.com/Cyberneom/neom_music_player.git
-  neom_posts:
-    git:
-      url: https://github.com/Cyberneom/neom_posts.git
+
+  in_app_purchase: ^3.1.11
+  in_app_purchase_storekit: ^0.3.6+7
+  percent_indicator: ^4.2.3
 
   #not working for products
 #  woosignal: ^3.8.0
-  in_app_purchase: ^3.1.11
-  in_app_purchase_storekit: ^0.3.6+7
 #  just_audio: 0.9.35
-  percent_indicator: ^4.2.3
 
 dev_dependencies:
   flutter_test:
@@ -38,18 +43,15 @@ dev_dependencies:
   flutter_lints: ^3.0.0
 
 dependency_overrides:
-  neom_commons:
-    path: ../neom_commons
-  neom_bands:
-    path: ../neom_bands
-  neom_music_player:
-    path: ../neom_music_player
-  neom_posts:
-    path: ../neom_posts
+#  neom_commons:
+#    path: ../neom_commons
+#  neom_bands:
+#    path: ../neom_bands
+#  neom_music_player:
+#    path: ../neom_music_player
+#  neom_posts:
+#    path: ../neom_posts
   uuid: 4.1.0
   logger: 2.0.2+1
-#  http: 1.1.0
-#  google_api_headers: 2.0.3
 
-# The following section is specific to Flutter packages.
 flutter:

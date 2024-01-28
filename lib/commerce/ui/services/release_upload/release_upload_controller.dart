@@ -257,35 +257,12 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
     try {
 
-
       if(postUploadController.croppedImageFile.value.path.isNotEmpty) {
         AppUtilities.logger.d("Uploading releaseCoverImg from: ${postUploadController.croppedImageFile.value.path}");
         releaseCoverImgURL = await AppUploadFirestore().uploadImage(releaseItemlist.name,
             postUploadController.croppedImageFile.value, UploadImageType.releaseItem);
         releaseItemlist.imgUrl = releaseCoverImgURL;
       }
-
-      ///DEPRECATED
-      // switch(appReleaseItems.first.type) {
-      //   case ReleaseType.single:
-      //     releaseItemList.type = ItemlistType.single;
-      //     break;
-      //   case ReleaseType.ep:
-      //     releaseItemList.type = ItemlistType.ep;
-      //     break;
-      //   case ReleaseType.album:
-      //     releaseItemList.type = ItemlistType.album;
-      //     break;
-      //   case ReleaseType.demo:
-      //     releaseItemList.type = ItemlistType.demo;
-      //     break;
-      //   case ReleaseType.episode:
-      //     releaseItemList.type = ItemlistType.podcast;
-      //     break;
-      //   case ReleaseType.chapter:
-      //     releaseItemList.type = ItemlistType.audiobook;
-      //     break;
-      // }
 
       releaseItemlistId = await ItemlistFirestore().insert(releaseItemlist);
       releaseItemlist.id = releaseItemlistId;
