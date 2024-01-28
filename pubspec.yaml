@@ -15,15 +15,12 @@ dependencies:
   neom_commons:
     git:
       url: git@github.com:Cyberneom/neom_commons.git
-      ref: main
   neom_bands:
     git:
       url: git@github.com:emmanuel-montoya/neom_bands.git
-      ref: main
   neom_posts:
     git:
       url: git@github.com:Cyberneom/neom_posts.git
-      ref: main
 
   neom_music_player:
     git:
