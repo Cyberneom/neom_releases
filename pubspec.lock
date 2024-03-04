@@ -329,6 +329,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.0"
+  csv:
+    dependency: transitive
+    description:
+      name: csv
+      sha256: "63ed2871dd6471193dffc52c0e6c76fb86269c00244d244297abbb355c84a86e"
+      url: "https://pub.dev"
+    source: hosted
+    version: "5.1.1"
   cupertino_icons:
     dependency: transitive
     description:
@@ -1314,60 +1322,62 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "4c3ad994aaac3d717b8c5e50f459983e04204d45"
-      url: "https://github.com/Cyberneom/neom_admin.git"
+      resolved-ref: "844dac932088cbb5b6df0a9592169fbca46f5ed6"
+      url: "git@github.com:Cyberneom/neom_admin.git"
     source: git
-    version: "1.1.0"
+    version: "1.1.2"
   neom_bands:
     dependency: "direct main"
     description:
-      path: "../neom_bands"
-      relative: true
-    source: path
-    version: "1.0.6"
+      path: "."
+      ref: HEAD
+      resolved-ref: "3ab4de0340a0e734e6ebaa474480d74bf922064e"
+      url: "git@github.com:emmanuel-montoya/neom_bands.git"
+    source: git
+    version: "1.0.7"
   neom_booking:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: e1dd8a1d7ae2857d9c75f3f66bb9715a9cc77e8d
-      url: "https://github.com/emmanuel-montoya/neom_booking.git"
+      resolved-ref: a29d399f6b972a1ff8eb7ca4eca32bcbb25b8b29
+      url: "git@github.com:emmanuel-montoya/neom_booking.git"
     source: git
-    version: "1.1.0"
+    version: "1.1.2"
   neom_commons:
     dependency: "direct main"
     description:
       path: "../neom_commons"
       relative: true
     source: path
-    version: "1.1.1"
+    version: "1.1.2"
   neom_events:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "3afa47e401270f225a6d702b8ef11e484aaf8606"
-      url: "https://github.com/Cyberneom/neom_events.git"
+      resolved-ref: b0e168bb254cdf16864121fc433ad73f89a37e5f
+      url: "git@github.com:Cyberneom/neom_events.git"
     source: git
-    version: "1.1.0"
+    version: "1.1.2"
   neom_frequencies:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "7a523fc885c4971489bf2b9cbb8b85e72a98d048"
+      resolved-ref: d8bb054274cf61ba9c01eaeead3f58afcade4286
       url: "https://github.com/Cyberneom/neom_frequencies.git"
     source: git
-    version: "1.0.0"
+    version: "1.0.2"
   neom_generator:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "106564dbd7a3e0c5cb248fb9ec1ef3bd34b716e8"
+      resolved-ref: "3907c85ed0afabb3a7b41ea15b1efbc5f84da90f"
       url: "https://github.com/Cyberneom/neom_generator.git"
     source: git
-    version: "1.1.1"
+    version: "1.1.2"
   neom_google_places:
     dependency: transitive
     description:
@@ -1381,46 +1391,46 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "01b6b621e70c4c19285fcd429afe03583893ee67"
-      url: "https://github.com/emmanuel-montoya/neom_home.git"
+      resolved-ref: "437ecbd36172e37d760b9d2c7594bd8b0934d8d8"
+      url: "git@github.com:Cyberneom/neom_home.git"
     source: git
-    version: "1.1.1"
+    version: "1.1.2"
   neom_inbox:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "55f458654ec046df60d1c350341d6dbd024994fc"
-      url: "https://github.com/Cyberneom/neom_inbox.git"
+      resolved-ref: a67fafff5b5a7a401f2322e60ce5a55f19f08322
+      url: "git@github.com:Cyberneom/neom_inbox.git"
     source: git
-    version: "1.1.0"
+    version: "1.1.2"
   neom_instruments:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: bdb9bee6c457f549507d4f788775302dad44766a
-      url: "https://github.com/Cyberneom/neom_instruments.git"
+      resolved-ref: "70b5b7ef4a922d4c936f178fa65c888de216b6f9"
+      url: "git@github.com:Cyberneom/neom_instruments.git"
     source: git
-    version: "1.1.0"
+    version: "1.1.3"
   neom_itemlists:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: b49047cee2c98e7d8fcb27ee99e28de202e6c38a
-      url: "https://github.com/Cyberneom/neom_itemlists.git"
+      resolved-ref: bcea6355f9cc4b08a5aa7a4cf81f68cc9e8a4b95
+      url: "git@github.com:Cyberneom/neom_itemlists.git"
     source: git
-    version: "1.1.0"
+    version: "1.1.2"
   neom_jobs:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: d204703ccc28341b039fdf8018a03968f31b834b
+      resolved-ref: "8cb9a4f49aefdcdd7cac8d3dffa39d68cec61ab0"
       url: "https://github.com/emmanuel-montoya/neom_jobs.git"
     source: git
-    version: "1.0.2"
+    version: "1.0.4"
   neom_maps_services:
     dependency: transitive
     description:
@@ -1432,35 +1442,39 @@ packages:
   neom_music_player:
     dependency: "direct main"
     description:
-      path: "../neom_music_player"
-      relative: true
-    source: path
-    version: "1.1.1"
+      path: "."
+      ref: HEAD
+      resolved-ref: e690f892edef1148d36ba675c3eddc3e33e099e1
+      url: "https://github.com/Cyberneom/neom_music_player.git"
+    source: git
+    version: "1.1.2"
   neom_posts:
     dependency: "direct main"
     description:
-      path: "../neom_posts"
-      relative: true
-    source: path
-    version: "1.1.1"
+      path: "."
+      ref: HEAD
+      resolved-ref: "6abe325542999cd6381ad9a7e629b73fd05b0875"
+      url: "git@github.com:Cyberneom/neom_posts.git"
+    source: git
+    version: "1.1.2"
   neom_profile:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: "40c227a39d2fc1745c9f6045897cabb4c74c93db"
-      url: "https://github.com/Cyberneom/neom_profile.git"
+      resolved-ref: c83a655baa2b9403212fc0484e8c8924210bbd99
+      url: "git@github.com:Cyberneom/neom_profile.git"
     source: git
-    version: "1.1.0"
+    version: "1.1.2"
   neom_timeline:
     dependency: transitive
     description:
       path: "."
       ref: HEAD
-      resolved-ref: b2c8bcff9ebd6f9fe9d41e7e565c056855656d3e
-      url: "https://github.com/Cyberneom/neom_timeline.git"
+      resolved-ref: "743d10469c64ae1bcd2878f88adc284b86e629a1"
+      url: "git@github.com:Cyberneom/neom_timeline.git"
     source: git
-    version: "1.1.0"
+    version: "1.1.2"
   oauth2:
     dependency: transitive
     description:

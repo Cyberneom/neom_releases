@@ -1,6 +1,6 @@
 name: neom_commerce
 description: Commerce Details for Cyberneom.
-version: 1.1.2
+version: 1.1.4
 homepage: https://github.com/emmanuel-montoya/neom_commerce
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -40,8 +40,8 @@ dev_dependencies:
   flutter_lints: ^3.0.0
 
 dependency_overrides:
-#  neom_commons:
-#    path: ../neom_commons
+  neom_commons:
+    path: ../neom_commons
 #  neom_bands:
 #    path: ../neom_bands
 #  neom_music_player:

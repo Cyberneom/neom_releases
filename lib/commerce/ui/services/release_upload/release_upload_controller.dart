@@ -156,6 +156,22 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
     ///DEPRECATED itemsToRelease.clear();///TODO VERIFY IF NEEDED
 
+    if(profile.verificationLevel == VerificationLevel.none) {
+      if(releaseType != ReleaseType.single) {
+        AppUtilities.showSnackBar(
+            title: AppTranslationConstants.digitalPositioning,
+            message: AppTranslationConstants.freeSingleReleaseUploadMsg.tr
+        );
+        return;
+      } else if(userController.user?.releaseItemIds?.isNotEmpty ?? false) {
+        AppUtilities.showSnackBar(
+            title: AppTranslationConstants.digitalPositioning,
+            message: AppTranslationConstants.freeSingleReleaseUploadMsg.tr
+        );
+        return;
+      }
+    }
+
     switch(releaseType) {
       case ReleaseType.single:
         releaseItemsQty.value = 1;
@@ -274,6 +290,10 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         releaseItem.createdTime = DateTime.now().millisecondsSinceEpoch;
         releaseItem.metaId = releaseItemlist.id;
         releaseItem.state = 5;
+
+        if(userController.user?.releaseItemIds?.isEmpty ?? true) {
+          releaseItem.isAvailable = true;
+        }
 
         if(releaseItem.previewUrl.isNotEmpty) {
           AppUtilities.logger.i("Uploading file: ${releaseItem.previewUrl}");
