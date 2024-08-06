@@ -12,6 +12,7 @@ import 'package:neom_commons/core/data/firestore/app_upload_firestore.dart';
 import 'package:neom_commons/core/data/firestore/itemlist_firestore.dart';
 import 'package:neom_commons/core/domain/model/app_release_item.dart';
 import 'package:neom_commons/core/utils/enums/itemlist_type.dart';
+import 'package:neom_commons/core/utils/enums/release_status.dart';
 import 'package:neom_commons/core/utils/enums/release_type.dart';
 import 'package:neom_commons/core/utils/enums/verification_level.dart';
 import 'package:neom_commons/neom_commons.dart';
@@ -117,10 +118,10 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       appReleaseItem.value.digitalPrice = Price(currency: AppCurrency.mxn, amount: double.parse(AppFlavour.getInitialPrice()));
       appReleaseItem.value.ownerId = profile.id;
       appReleaseItem.value.ownerName = profile.name;
-      appReleaseItem.value.ownerImgUrl = profile.photoUrl;
-      appReleaseItem.value.genres = [];
+      appReleaseItem.value.galleryUrls = [profile.photoUrl];
+      appReleaseItem.value.categories = [];
       appReleaseItem.value.instruments = [];
-      appReleaseItem.value.metaOwnerId = userController.user!.id;
+      appReleaseItem.value.metaOwnerId = userController.user!.email;
 
       genres.value = await CoreUtilities.loadGenres();
     } catch (e) {
@@ -285,14 +286,14 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       for (AppReleaseItem releaseItem in appReleaseItems) {
         releaseItem.imgUrl = releaseItemlist.imgUrl;
-        releaseItem.watchingProfiles = [];
+        releaseItem.categories = [];
         releaseItem.boughtUsers = [];
         releaseItem.createdTime = DateTime.now().millisecondsSinceEpoch;
         releaseItem.metaId = releaseItemlist.id;
         releaseItem.state = 5;
 
         if(userController.user?.releaseItemIds?.isEmpty ?? true) {
-          releaseItem.isAvailable = true;
+          releaseItem.status = ReleaseStatus.publish;
         }
 
         if(releaseItem.previewUrl.isNotEmpty) {
@@ -307,16 +308,6 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
           }
 
           String filePath = releaseFilePaths.elementAt(releaseItemIndex.value);
-
-          ///DEPRECATED
-          // if(Platform.isIOS) {
-          //   iOSFile.value = await AppUtilities.getFileFromPath(filePath);
-          //   releaseItem.previewUrl = await AppUploadFirestore()
-          //       .uploadReleaseItem(releaseItem.name, iOSFile.value!.absolute, mediaType);
-          // } else {
-          //   releaseItem.previewUrl = await AppUploadFirestore()
-          //       .uploadReleaseItem(releaseItem.name, await AppUtilities.getFileFromPath(filePath), mediaType);
-          // }
 
           File fileToUpload = await AppUtilities.getFileFromPath(filePath);
           releaseItem.previewUrl = await AppUploadFirestore().uploadReleaseItem(releaseItem.name, fileToUpload, mediaType);
@@ -395,7 +386,8 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         isCommentEnabled: true,
         createdTime: DateTime.now().millisecondsSinceEpoch,
         caption: postCaption,
-        isVerified: profile.verificationLevel != VerificationLevel.none
+        isVerified: profile.verificationLevel != VerificationLevel.none,
+        lastInteraction: DateTime.now().millisecondsSinceEpoch,
       );
 
       post.id = await PostFirestore().insert(post);
@@ -536,7 +528,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     AppUtilities.logger.d("Adding ${genres.length} to release.");
 
     try {
-      appReleaseItem.value.genres = selectedGenres;
+      appReleaseItem.value.categories = selectedGenres;
       addReleaseItemToList();
     } catch(e) {
       AppUtilities.logger.e(e.toString());
@@ -627,7 +619,6 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
           releaseItem.imgUrl = releaseCoverImgPath.isNotEmpty ? releaseCoverImgPath.value : AppFlavour.getAppLogoUrl();
         }
         releaseItem.publishedYear = publishedYear.value;
-        releaseItem.isPhysical = isPhysical.value;
 
         if(physicalPriceController.text.isNotEmpty) setPhysicalReleasePrice();
 
@@ -642,7 +633,6 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       if(appReleaseItem.value.type == ReleaseType.single) {
         releaseItemlist.name = appReleaseItem.value.name;
         releaseItemlist.description = appReleaseItem.value.description;
-        appReleaseItem.value.metaName = appReleaseItem.value.name;
       }
 
       releaseUploadDetailsAnimationController = getRubberAnimationController();
@@ -927,7 +917,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       appReleaseItem.value.ownerId = selectedBand.value.id;
       appReleaseItem.value.ownerName = selectedBand.value.name;
-      appReleaseItem.value.ownerImgUrl = selectedBand.value.photoUrl;
+      appReleaseItem.value.galleryUrls = [selectedBand.value.photoUrl];
       appReleaseItem.value.ownerType = OwnerType.band;
 
       releaseItemlist.ownerId = selectedBand.value.id;
@@ -955,7 +945,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       appReleaseItem.value.ownerId = profile.id;
       appReleaseItem.value.ownerName = profile.name;
-      appReleaseItem.value.ownerImgUrl = profile.photoUrl;
+      appReleaseItem.value.galleryUrls = [profile.photoUrl];
       appReleaseItem.value.ownerType = OwnerType.profile;
 
       releaseItemlist.ownerId = profile.id;

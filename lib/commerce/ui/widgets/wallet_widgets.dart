@@ -21,7 +21,7 @@ Widget buildOrderList(BuildContext context, WalletController _){
 }
 
 Widget buildAppCoinComingSoon(BuildContext context, WalletController _){
-  return Container(
+  return Padding(
     padding: const EdgeInsets.only(left: 15, right: 15),
     child: Column(
       mainAxisAlignment: MainAxisAlignment.center,

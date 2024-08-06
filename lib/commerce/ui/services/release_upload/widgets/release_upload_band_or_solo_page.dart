@@ -76,14 +76,14 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
                                     color: AppColor.white80),
                                 onPressed: () {
                                 },
-                              ) : Container()
+                              ) : const SizedBox.shrink()
                           ]
                         ),
                       ),
                       onTap: () async {
                         _.setSelectedBand(band);
                       },
-                    ) : Container();
+                    ) : const SizedBox.shrink();
                   },
                 ),),
               ),],

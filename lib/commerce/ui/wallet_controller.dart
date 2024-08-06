@@ -8,6 +8,7 @@ import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_payment_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
+import 'package:neom_commons/core/utils/enums/product_type.dart';
 
 import '../data/firestore/order_firestore.dart';
 import '../data/firestore/product_firestore.dart';
@@ -16,7 +17,6 @@ import '../domain/models/payment.dart';
 import '../domain/models/purchase_order.dart';
 import '../domain/use_cases/wallet_service.dart';
 import '../utils/enums/payment_type.dart';
-import '../utils/enums/product_type.dart';
 
 class WalletController extends GetxController with GetTickerProviderStateMixin implements WalletService  {
 

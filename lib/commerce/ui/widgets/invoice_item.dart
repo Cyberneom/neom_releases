@@ -20,7 +20,7 @@ class InvoiceItem extends StatelessWidget {
       child: Card(
         clipBehavior: Clip.antiAlias,
         elevation: 2.0,
-        child: Container(
+        child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.end,

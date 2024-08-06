@@ -8,7 +8,7 @@ class Payment {
   String id;
   String orderId;
   String from;
-  String to;
+  String? to;
   Price price = Price();
   double tax = 0;
   double facilitatorAmount = 0;
@@ -25,7 +25,7 @@ class Payment {
     this.id = "",
     this.orderId = "",
     this.from = "",
-    this.to = "",
+    this.to,
     this.tax = 0,
     this.facilitatorAmount = 0,
     this.couponCode = "",

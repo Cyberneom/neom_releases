@@ -102,7 +102,7 @@ class OrderConfirmationPage extends StatelessWidget {
                                    ),
                                  ),
                                ],
-                             ) : Container(),
+                             ) : const SizedBox.shrink(),
                            ],
                          ),),
                        ],
@@ -173,7 +173,7 @@ class OrderConfirmationPage extends StatelessWidget {
                     ],
                   ),
                   AppTheme.heightSpace10,
-                   _.payment.discountAmount == 0.0 ? Container() :
+                   _.payment.discountAmount == 0.0 ? const SizedBox.shrink() :
                    Row(
                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                      children: <Widget>[
@@ -259,7 +259,7 @@ class OrderConfirmationPage extends StatelessWidget {
                         style: const TextStyle(color: AppColor.white, decoration: TextDecoration.underline),
                       ),
                     ),
-                  ) : Container()
+                  ) : const SizedBox.shrink()
              ]
             ),),
           ),

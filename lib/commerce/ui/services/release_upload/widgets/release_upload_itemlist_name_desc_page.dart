@@ -32,14 +32,14 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
              child: SingleChildScrollView(
                child: Column(
                 children: <Widget>[
-                  AppFlavour.appInUse == AppInUse.g ? AppTheme.heightSpace100 : Container(),
+                  AppFlavour.appInUse == AppInUse.g ? AppTheme.heightSpace100 : const SizedBox.shrink(),
                   HeaderIntro(
                     subtitle: '${AppTranslationConstants.releaseUploadItemlistNameDesc1.tr} ${_.appReleaseItem.value.type.value.tr.toUpperCase()}? '
                         '${AppTranslationConstants.releaseUploadItemlistNameDesc2.tr}',
                     showLogo: AppFlavour.appInUse == AppInUse.g,
                   ),
                   AppTheme.heightSpace10,
-                  Container(
+                  Padding(
                     padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                     child: TextFormField(
                       controller: _.itemlistNameController,
@@ -53,11 +53,10 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Container(
+                  Padding(
                     padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                     child: TextFormField(
-                      minLines: 3,
-                      maxLines: 6,
+                      minLines: 3, maxLines: 6,
                       controller: _.itemlistDescController,
                       onChanged:(text) => _.setItemlistDesc() ,
                       decoration: InputDecoration(
@@ -85,7 +84,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
              onPressed: ()=>{
                _.addItemlistNameDesc()
              },
-           ) : Container(),
+           ) : const SizedBox.shrink(),
          );
       }
     );

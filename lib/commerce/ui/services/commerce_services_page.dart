@@ -35,7 +35,8 @@ class CommerceServicesPage extends StatelessWidget {
             HeaderWidget(AppTranslationConstants.publishingHouse.tr, secondHeader: true,),
             TitleSubtitleRow(AppTranslationConstants.copyright.tr, url: AppFlavour.getCopyrightUrl()),
             TitleSubtitleRow(AppTranslationConstants.coverDesign.tr, url: AppFlavour.getCoverDesignUrl()),
-            TitleSubtitleRow(AppTranslationConstants.startCampaignUrl.tr, url: AppFlavour.getStartCampaignUrl()),
+            //TODO Activate once crowdfunding is active again
+            // TitleSubtitleRow(AppTranslationConstants.startCampaignUrl.tr, url: AppFlavour.getStartCampaignUrl()),
             TitleSubtitleRow("", showDivider: false, vPadding: 10, subtitle: AppTranslationConstants.offeredServicesMsg.tr),
           ],
         ),

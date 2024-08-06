@@ -21,14 +21,13 @@ dependencies:
   neom_posts:
     git:
       url: git@github.com:Cyberneom/neom_posts.git
-
   neom_music_player:
     git:
       url: https://github.com/Cyberneom/neom_music_player.git
 
-  in_app_purchase: ^3.1.11
+#  in_app_purchase: ^3.1.11
   in_app_purchase_storekit: ^0.3.6+7
-  percent_indicator: ^4.2.3
+#  percent_indicator: ^4.2.3
 
   #not working for products
 #  woosignal: ^3.8.0
@@ -37,18 +36,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
-
-dependency_overrides:
-  neom_commons:
-    path: ../neom_commons
-#  neom_bands:
-#    path: ../neom_bands
-#  neom_music_player:
-#    path: ../neom_music_player
-#  neom_posts:
-#    path: ../neom_posts
-  uuid: 4.1.0
-  logger: 2.0.2+1
+  flutter_lints: ^4.0.0
 
 flutter:

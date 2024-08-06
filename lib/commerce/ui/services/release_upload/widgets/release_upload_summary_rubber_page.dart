@@ -114,7 +114,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                                     style: const TextStyle(fontSize: 15),
                                   ),
                                 ],
-                              ) : Container(),
+                              ) : const SizedBox.shrink(),
                               (_.appReleaseItem.value.digitalPrice!.amount != 0) ?
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -124,7 +124,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                                     style: const TextStyle(fontSize: 15),
                                   ),
                                 ],
-                              ) : Container(),
+                              ) : const SizedBox.shrink(),
                               (_.appReleaseItem.value.digitalPrice!.amount != 0 &&
                                   _.appReleaseItem.value.digitalPrice!.amount != double.parse(AppFlavour.getInitialPrice())
                               ) ? Row(
@@ -135,10 +135,10 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                                     style: const TextStyle(fontSize: 15, decoration: TextDecoration.underline),
                                   ),
                                 ],
-                              ) : Container()
+                              ) : const SizedBox.shrink()
                             ]
                         ),
-                        GenresGridView(_.appReleaseItem.value.genres, AppColor.yellow),
+                        GenresGridView(_.appReleaseItem.value.categories, AppColor.yellow),
                         if(AppFlavour.appInUse == AppInUse.g && _.appReleaseItems.isNotEmpty)
                           Column(
                             children: <Widget>[
@@ -188,6 +188,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
       itemCount: _.appReleaseItems.length,
       itemBuilder: (context, index) {
         AppReleaseItem releaseItem = _.appReleaseItems.elementAt(index);
+        String ownerName = releaseItem.ownerName ?? '';
 
         return ListTile(
           leading: Image.file(
@@ -196,8 +197,8 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
           ),
           title: Text(releaseItem.name.isEmpty ? ""
               : releaseItem.name.length > AppConstants.maxAppItemNameLength ? "${releaseItem.name.substring(0,AppConstants.maxAppItemNameLength)}...": releaseItem.name),
-          subtitle: Row(children: [Text(releaseItem.ownerName.isEmpty ? ""
-              : releaseItem.ownerName.length > AppConstants.maxArtistNameLength ? "${releaseItem.ownerName.substring(0,AppConstants.maxArtistNameLength)}...": releaseItem.ownerName), const SizedBox(width:5,),
+          subtitle: Row(children: [Text(ownerName.isEmpty ? ""
+              : ownerName.length > AppConstants.maxArtistNameLength ? "${ownerName.substring(0,AppConstants.maxArtistNameLength)}...": ownerName), const SizedBox(width:5,),
               ]),
           trailing: Text(AppUtilities.secondsToMinutes(releaseItem.duration,)),
           ///FEATURE

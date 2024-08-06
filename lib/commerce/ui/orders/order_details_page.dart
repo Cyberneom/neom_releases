@@ -96,7 +96,7 @@ class OrderDetailsPage extends StatelessWidget {
                                      ),
                                    ),
                                  ],
-                               ) : Container(),
+                               ) : const SizedBox.shrink(),
                            ],
                          ),
                        ],
@@ -166,7 +166,7 @@ class OrderDetailsPage extends StatelessWidget {
                     ],
                   ),
                   AppTheme.heightSpace10,
-                   _.payment.discountAmount == 0.0 ? Container() :
+                   _.payment.discountAmount == 0.0 ? const SizedBox.shrink() :
                    Row(
                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                      children: <Widget>[

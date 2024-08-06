@@ -39,7 +39,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
           extendBodyBehindAppBar: true,
           appBar: AppBarChild(color: Colors.transparent),
           backgroundColor: AppColor.main50,
-          body:  Container(
+          body: Container(
             height: MediaQuery.of(context).size.height,
             padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
             decoration: AppTheme.appBoxDecoration,
@@ -54,7 +54,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
-                        width: AppTheme.fullWidth(context) / 2.3,
+                        width: AppTheme.fullWidth(context)/2,
                         child: GestureDetector(
                           child: Row(
                             children: <Widget>[
@@ -71,7 +71,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                         ),
                       ),
                       SizedBox(
-                        width: AppTheme.fullWidth(context) / 2.5,
+                        width: AppTheme.fullWidth(context)/3,
                         child: TextFormField(
                           controller: _.physicalPriceController,
                           enabled: _.isPhysical.value,
@@ -95,13 +95,13 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                         ),
                       ),
                     ],
-                  ) : Container(),
+                  ) : const SizedBox.shrink(),
                   AppTheme.heightSpace10,
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
-                        width: AppTheme.fullWidth(context) / 2.2,
+                        width: AppTheme.fullWidth(context)/2,
                         child: GestureDetector(
                           child: Row(
                             children: <Widget>[
@@ -118,7 +118,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                         ),
                       ),
                       SizedBox(
-                        width: AppTheme.fullWidth(context) / 2.5,
+                        width: AppTheme.fullWidth(context)/2.8,
                         child: DropdownButton<int>(
                           hint: Text(AppTranslationConstants.publishedYear.tr),
                           value: _.publishedYear.value != 0 ? _.publishedYear.value : null,
@@ -135,8 +135,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                             );
                           }).toList(),
                           alignment: Alignment.center,
-                          icon: const Icon(Icons.arrow_downward),
-                          iconSize: 20,
+                          iconSize: 18,
                           elevation: 16,
                           style: const TextStyle(color: Colors.white),
                           dropdownColor: AppColor.getMain(),
@@ -149,13 +148,14 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                     ],
                   ),
                   AppTheme.heightSpace20,
-                  _.isAutoPublished.value ? Container() : TextFormField(
+                  _.isAutoPublished.value ? const SizedBox.shrink() : TextFormField(
                     controller: _.placeController,
                     onTap:() => _.getPublisherPlace(context) ,
                     enabled: !_.isAutoPublished.value,
                     decoration: InputDecoration(
                       filled: true,
                       labelText: AppTranslationConstants.specifyPublishingPlace.tr,
+                      labelStyle: const TextStyle(fontSize: 15),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -165,8 +165,8 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                   _.releaseCoverImgPath.isNotEmpty && AppFlavour.appInUse == AppInUse.e
                       ? Text(AppTranslationConstants.tapCoverToPreviewRelease.tr,
                     style: const TextStyle(decoration: TextDecoration.underline),)
-                      : Container(),
-                  _.releaseCoverImgPath.isNotEmpty ? AppTheme.heightSpace5 : Container(),
+                      : const SizedBox.shrink(),
+                  _.releaseCoverImgPath.isNotEmpty ? AppTheme.heightSpace5 : const SizedBox.shrink(),
                   _.releaseCoverImgPath.isEmpty ?
                   GestureDetector(
                       child: Row(
@@ -211,7 +211,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                   AppTheme.heightSpace20,
                   _.validateInfo() ? SummaryButton(AppTranslationConstants.checkSummary.tr,
                     onPressed: _.gotoReleaseSummary,
-                  ) : Container(),
+                  ) : const SizedBox.shrink(),
                   AppTheme.heightSpace20
                 ],
               ),

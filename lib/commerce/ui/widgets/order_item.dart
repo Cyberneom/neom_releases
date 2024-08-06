@@ -20,7 +20,7 @@ class OrderItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
 
-    Widget leadingImg = Container();
+    Widget leadingImg = const SizedBox.shrink();
     switch(order.saleType) {
 
       case SaleType.product:
@@ -32,11 +32,14 @@ class OrderItem extends StatelessWidget {
       case SaleType.booking:
         // TODO: Handle this case.
         break;
-      case SaleType.releaseItem:
+      case SaleType.digitalItem:
+        leadingImg  = Image.network(order.releaseItem!.imgUrl);
+        break;
+      case SaleType.physicalItem:
         leadingImg  = Image.network(order.releaseItem!.imgUrl);
         break;
     }
-    return Container(
+    return Padding(
       padding: const EdgeInsets.all(10),
       child: ListTile(
         leading: leadingImg,
@@ -74,10 +77,11 @@ String getAmountToDisplay(PurchaseOrder order) {
       break;
     case SaleType.booking:      
       break;      
-    case SaleType.releaseItem:
-      amount = order.releaseItem!.isPhysical
-          ? order.releaseItem!.physicalPrice!.amount
-          : order.releaseItem!.digitalPrice!.amount;
+    case SaleType.digitalItem:
+      amount = order.releaseItem!.digitalPrice!.amount;
+      break;
+    case SaleType.physicalItem:
+      amount = order.releaseItem!.physicalPrice!.amount;
       break;
   }
   
@@ -97,8 +101,11 @@ String getCurrencyToDisplay(PurchaseOrder order) {
     case SaleType.booking:
       // TODO: Handle this case.
       break;
-    case SaleType.releaseItem:
+    case SaleType.digitalItem:
       currency = order.releaseItem!.digitalPrice!.currency;
+      break;
+    case SaleType.physicalItem:
+      currency = order.releaseItem!.physicalPrice!.currency;
       break;
   }
 

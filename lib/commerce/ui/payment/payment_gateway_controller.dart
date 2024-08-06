@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:intl_phone_field/countries.dart';
 import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/data/firestore/app_release_item_firestore.dart';
+import 'package:neom_commons/core/data/firestore/bank_firestore.dart';
 import 'package:neom_commons/core/data/firestore/profile_firestore.dart';
 import 'package:neom_commons/core/data/firestore/user_firestore.dart';
 import 'package:neom_commons/core/data/implementations/user_controller.dart';
@@ -242,27 +243,53 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
     try {
       ///Validate and get coins from user wallet
       if(userController.user!.wallet.amount >= payment.price.amount) {
-        ///Add coins to host wallet
-        if(await ProfileFirestore().addToWallet(payment.to, payment.price.amount)) {
-          ///Remove coins from user wallet
-          if(await ProfileFirestore().subtractFromWallet(payment.from, payment.price.amount)) {
-            paymentStatus = PaymentStatus.completed;
-            userController.subtractFromWallet(payment.price.amount);
-          } else {
-            paymentStatus = PaymentStatus.rolledBack;
-            if(await ProfileFirestore().subtractFromWallet(payment.to, payment.price.amount)) {
-              logger.i("Amount ${payment.price.amount} rolledback from wallet successfully for profile ${payment.to}");
+        if(payment.to != null && (payment.to?.isNotEmpty ?? false) && (payment.to?.contains('@') ?? false)) {
+          ///Add coins to host wallet
+          if(await ProfileFirestore().addToWallet(payment.to!, payment.price.amount)) {
+            ///Remove coins from user wallet
+            if(await ProfileFirestore().subtractFromWallet(payment.from, payment.price.amount)) {
+              paymentStatus = PaymentStatus.completed;
+              userController.subtractFromWallet(payment.price.amount);
             } else {
-              logger.i("Something happened subtracting from wallet for profile ${payment.to}");
+              paymentStatus = PaymentStatus.rolledBack;
+              if(await ProfileFirestore().subtractFromWallet(payment.to!, payment.price.amount)) {
+                logger.i("Amount ${payment.price.amount} rolledback from wallet successfully for profile ${payment.to}");
+              } else {
+                logger.i("Something happened subtracting from wallet for profile ${payment.to}");
+              }
             }
+          } else {
+            paymentStatus = PaymentStatus.failed;
+            logger.w("Something happened: ${MessageTranslationConstants.errorProcessingPaymentMsg.tr}");
+            Get.snackbar(
+                MessageTranslationConstants.errorProcessingPayment.tr,
+                MessageTranslationConstants.errorProcessingPaymentMsg.tr,
+                snackPosition: SnackPosition.bottom);
           }
         } else {
-          paymentStatus = PaymentStatus.failed;
-          logger.w("Something happened: ${MessageTranslationConstants.errorProcessingPaymentMsg.tr}");
-          Get.snackbar(
-              MessageTranslationConstants.errorProcessingPayment.tr,
-              MessageTranslationConstants.errorProcessingPaymentMsg.tr,
-              snackPosition: SnackPosition.bottom);
+          ///Add coins to bank
+          if(await BankFirestore().addAmount(payment.from, payment.price.amount, payment.orderId, reason: 'ProductPurchase')) {
+            ///Remove coins from user wallet
+            if(await ProfileFirestore().subtractFromWallet(payment.from, payment.price.amount)) {
+              paymentStatus = PaymentStatus.completed;
+              userController.subtractFromWallet(payment.price.amount);
+            } else {
+              paymentStatus = PaymentStatus.rolledBack;
+              if(await BankFirestore().subtractAmount(payment.from, payment.price.amount, orderId: payment.orderId, reason: 'Rollback')) {
+                logger.i("Amount ${payment.price.amount} rolledback from wallet successfully for profile ${payment.to}");
+              } else {
+                logger.i("Something happened subtracting from wallet for profile ${payment.to}");
+              }
+            }
+          } else {
+            paymentStatus = PaymentStatus.failed;
+            logger.w("Something happened: ${MessageTranslationConstants.errorProcessingPaymentMsg.tr}");
+            Get.snackbar(
+                MessageTranslationConstants.errorProcessingPayment.tr,
+                MessageTranslationConstants.errorProcessingPaymentMsg.tr,
+                snackPosition: SnackPosition.bottom);
+          }
+
         }
       } else {
         paymentStatus = PaymentStatus.failed;

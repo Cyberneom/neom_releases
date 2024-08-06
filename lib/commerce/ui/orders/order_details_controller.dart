@@ -77,7 +77,10 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
         case SaleType.booking:
           booking = order.booking!;
           break;
-        case SaleType.releaseItem:
+        case SaleType.physicalItem:
+          releaseItem = order.releaseItem;
+          break;
+        case SaleType.digitalItem:
           releaseItem = order.releaseItem;
           break;
       }

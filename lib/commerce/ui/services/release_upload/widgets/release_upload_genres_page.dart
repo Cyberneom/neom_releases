@@ -58,7 +58,7 @@ class ReleaseUploadGenresPage extends StatelessWidget {
                      snackPosition: SnackPosition.bottom);
                }
              },
-           ) : Container(),
+           ) : const SizedBox.shrink(),
          );
       }
     );

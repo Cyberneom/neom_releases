@@ -3,9 +3,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:neom_commons/core/data/firestore/constants/app_firestore_collection_constants.dart';
 import 'package:neom_commons/core/data/firestore/constants/app_firestore_constants.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
+import 'package:neom_commons/core/utils/enums/product_type.dart';
 import '../../domain/models/app_product.dart';
 import '../../domain/repository/product_repository.dart';
-import '../../utils/enums/product_type.dart';
 
 class ProductFirestore implements ProductRepository {
 

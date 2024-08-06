@@ -91,7 +91,10 @@ class SalesFirestore implements SalesRepository {
         case SaleType.booking:
           salesToUpdate = AppFirestoreConstants.bookingSales;
           break;
-        case SaleType.releaseItem:
+        case SaleType.digitalItem:
+          salesToUpdate = AppFirestoreConstants.releaseItemSales;
+          break;
+        case SaleType.physicalItem:
           salesToUpdate = AppFirestoreConstants.releaseItemSales;
           break;
       }
@@ -133,7 +136,10 @@ class SalesFirestore implements SalesRepository {
         case SaleType.booking:
           salesToUpdate = AppFirestoreConstants.bookingSales;
           break;
-        case SaleType.releaseItem:
+        case SaleType.digitalItem:
+          salesToUpdate = AppFirestoreConstants.releaseItemSales;
+          break;
+        case SaleType.physicalItem:
           salesToUpdate = AppFirestoreConstants.releaseItemSales;
           break;
       }
@@ -173,9 +179,13 @@ class SalesFirestore implements SalesRepository {
         case SaleType.booking:
           salesToUpdate = AppFirestoreConstants.bookingSales;
           break;
-        case SaleType.releaseItem:
+        case SaleType.digitalItem:
           salesToUpdate = AppFirestoreConstants.releaseItemSales;
           break;
+        case SaleType.physicalItem:
+          salesToUpdate = AppFirestoreConstants.releaseItemSales;
+          break;
+
       }
 
       DocumentSnapshot documentSnapshot = await salesReference

@@ -1,7 +1,7 @@
 import 'package:enum_to_string/enum_to_string.dart';
 import 'package:neom_commons/core/domain/model/price.dart';
 import 'package:neom_commons/core/domain/model/review.dart';
-import '../../utils/enums/product_type.dart';
+import 'package:neom_commons/core/utils/enums/product_type.dart';
 
 class AppProduct {
 

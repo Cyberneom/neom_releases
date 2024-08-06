@@ -3,6 +3,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:intl_phone_field/countries.dart';
 import 'package:neom_commons/core/domain/model/app_physical_item.dart';
+import 'package:neom_commons/core/utils/constants/intl_countries_list.dart';
 import 'package:neom_commons/core/utils/enums/app_item_size.dart';
 import 'package:neom_commons/neom_commons.dart';
 
@@ -10,8 +11,7 @@ import '../../domain/use_cases/quotation_service.dart';
 import '../../utils/constants/app_commerce_constants.dart';
 
 class QuotationController extends GetxController implements QuotationService {
-
-  var logger = AppUtilities.logger;
+  
   final loginController = Get.find<LoginController>();
   final userController = Get.find<UserController>();
 
@@ -20,7 +20,7 @@ class QuotationController extends GetxController implements QuotationService {
   final RxBool processARequired = true.obs;
   final RxBool processBRequired = true.obs;
   final RxBool coverDesignRequired = true.obs;
-  final Rx<Country> phoneCountry = countries[0].obs;
+  final Rx<Country> phoneCountry = IntlPhoneConstants.availableCountries[0].obs;
 
   AppPhysicalItem itemToQuote = AppPhysicalItem();
   int itemQty = 0;
@@ -44,7 +44,7 @@ class QuotationController extends GetxController implements QuotationService {
     itemQtyController.text = AppCommerceConstants.minQty.toString();
     itemQty = AppCommerceConstants.minQty;
     updateQuotation();
-    logger.d("Settings Controller Init");
+    AppUtilities.logger.d("Settings Controller Init");
 
     for (var country in countries) {
       if(Get.locale!.countryCode == country.code){
@@ -57,14 +57,14 @@ class QuotationController extends GetxController implements QuotationService {
 
   @override
   void setAppItemSize(String selectedSize){
-    logger.d("Setting new locale");
+    AppUtilities.logger.t("Setting new locale");
     try {
       itemToQuote.size = EnumToString.fromString(AppItemSize.values, selectedSize)
           ?? AppItemSize.a4;
 
       setAppItemDuration();
     } catch (e) {
-      logger.toString();
+      AppUtilities.logger.toString();
     }
 
     update([AppPageIdConstants.quotation]);
@@ -72,7 +72,7 @@ class QuotationController extends GetxController implements QuotationService {
 
   @override
   void setAppItemDuration() {
-    logger.d("");
+    AppUtilities.logger.t("setAppItemDuration");
 
     int newDuration = int.parse(itemDurationController.text.trim());
 
@@ -93,7 +93,7 @@ class QuotationController extends GetxController implements QuotationService {
 
   @override
   void setAppItemQty() {
-    logger.d("");
+    AppUtilities.logger.t("setAppItemQty");
 
     int newItemQty = int.parse(itemQtyController.text.trim());
 
@@ -109,7 +109,7 @@ class QuotationController extends GetxController implements QuotationService {
 
   @override
   void setIsPhysical() async {
-    logger.d("");
+    AppUtilities.logger.t("setIsPhysical");
     isPhysical.value = !isPhysical.value;
     updateQuotation();
     update([AppPageIdConstants.quotation]);
@@ -117,7 +117,7 @@ class QuotationController extends GetxController implements QuotationService {
 
   @override
   void setProcessARequired() async {
-    logger.d("");
+    AppUtilities.logger.t("setProcessARequired");
     processARequired.value = !processARequired.value;
     updateQuotation();
     update([AppPageIdConstants.quotation]);
@@ -125,7 +125,7 @@ class QuotationController extends GetxController implements QuotationService {
 
   @override
   void setProcessBRequired() async {
-    logger.d("");
+    AppUtilities.logger.t("setProcessBRequired");
     processBRequired.value = !processBRequired.value;
     updateQuotation();
     update([AppPageIdConstants.quotation]);
@@ -133,7 +133,7 @@ class QuotationController extends GetxController implements QuotationService {
 
   @override
   void setCoverDesignRequired() async {
-    logger.d("");
+    AppUtilities.logger.t("setCoverDesignRequired");
     coverDesignRequired.value = !coverDesignRequired.value;
     updateQuotation();
     update([AppPageIdConstants.quotation]);
@@ -141,12 +141,18 @@ class QuotationController extends GetxController implements QuotationService {
 
   @override
   void updateQuotation() {
+    AppUtilities.logger.t("Updating Quotation");
     pricePerUnit = isPhysical.value ? (itemToQuote.duration * AppCommerceConstants.costPerDurationUnit).roundToDouble() : 0;
+    AppUtilities.logger.i("Price per unit: $pricePerUnit");
     processACost = processARequired.value ? (itemToQuote.duration * AppCommerceConstants.processACost).round() : 0;
+    AppUtilities.logger.i("Price per Process A: $processACost");
     processBCost = processBRequired.value ? (itemToQuote.duration * AppCommerceConstants.processBCost).round() : 0;
+    AppUtilities.logger.i("Price per Process B: $processBCost");
     addRevenuePercentage();
     coverDesignCost = coverDesignRequired.value ? AppCommerceConstants.coverDesignCost : 0;
+    AppUtilities.logger.i("Cover Design Cost: $coverDesignCost");
     totalCost = processACost + processBCost + coverDesignCost + (pricePerUnit*itemQty);
+    AppUtilities.logger.i("Total Cost: $totalCost");
     update([AppPageIdConstants.quotation]);
   }
 
@@ -159,6 +165,7 @@ class QuotationController extends GetxController implements QuotationService {
 
   @override
   Future<void> sendWhatsappQuotation() async {
+    AppUtilities.logger.d("Sending WhatsApp Quotation to phone");
 
     String message = "";
     String phone = "";
@@ -178,7 +185,7 @@ class QuotationController extends GetxController implements QuotationService {
           "${AppTranslationConstants.thanksForYourAttention.tr}\n"
           "${userController.profile.name}";
 
-      if(userController.user!.userRole == UserRole.subscriber) {
+      if(userController.user!.userRole != UserRole.subscriber) {
         phone = AppFlavour.getWhatsappBusinessNumber();
       } else {
         if (controllerPhone.text.isEmpty &&

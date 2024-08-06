@@ -56,7 +56,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                     showPreLogo: false,
                   ),
                   AppTheme.heightSpace10,
-                  Container(
+                  Padding(
                     padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                     child: TextFormField(
                       controller: _.nameController,
@@ -70,7 +70,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Container(
+                  Padding(
                     padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                     child: TextFormField(
                       minLines: 2,
@@ -87,7 +87,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                     ),
                   ),
                   AppFlavour.appInUse == AppInUse.e ?
-                  Container(
+                  Padding(
                    padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                    child: Row(
                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -99,7 +99,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                            keyboardType: TextInputType.number,
                            decoration: InputDecoration(
                                filled: true,
-                               labelText: AppTranslationConstants.releaseDuration.tr,
+                               labelText: AppTranslationConstants.appItemDurationShort.tr,
                                border: OutlineInputBorder(
                                  borderRadius: BorderRadius.circular(10),
                                )
@@ -118,15 +118,11 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                          children: [
                            IconButton(
                              icon: const Icon(Icons.keyboard_arrow_up),
-                             onPressed: () {
-                               _.increase();
-                             },
+                             onPressed: () => _.increase(),
                            ),
                            IconButton(
                              icon: const Icon(Icons.keyboard_arrow_down),
-                             onPressed: () {
-                               _.decrease();
-                             },
+                             onPressed: () => _.decrease(),
                            ),
                          ],
                        ),
@@ -171,7 +167,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                          ),
                         ),
                     ],),
-                  ) : Container(),
+                  ) : const SizedBox.shrink(),
                   if(_.releaseItemsQty.value == 1) TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20, subtitle: AppTranslationConstants.releasePriceMsg.tr, titleFontSize: 14, subTitleFontSize: 12,
                   url: AppFlavour.getDigitalPositioningUrl()),
                   AppTheme.heightSpace10,
@@ -191,7 +187,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                     onTap: () async {_.addReleaseFile();}
                   ),
                   Obx(() => _.releaseFilePreviewURL.isNotEmpty
-                      ? Container(
+                      ? Padding(
                       padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                       child: Text(_.releaseFilePreviewURL.value,
                         style: const TextStyle(color: Colors.white70,),
@@ -199,7 +195,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
                       ),
-                    ) : Container(),
+                    ) : const SizedBox.shrink(),
                   ),
                   AppTheme.heightSpace30
                 ],
@@ -213,7 +209,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
              onPressed: ()=>{
                _.addNameDescToReleaseItem()
              },
-           ) : Container(),
+           ) : const SizedBox.shrink(),
          ),
          );
       }

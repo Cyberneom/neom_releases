@@ -43,7 +43,7 @@ class ReleaseUploadInstrPage extends StatelessWidget {
               );
             }
           },
-        ) : Container(),
+        ) : const SizedBox.shrink(),
       ),
     );
   }

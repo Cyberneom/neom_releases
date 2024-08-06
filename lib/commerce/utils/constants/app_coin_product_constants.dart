@@ -1,8 +1,8 @@
 
 import 'package:neom_commons/core/domain/model/price.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
+import 'package:neom_commons/core/utils/enums/product_type.dart';
 import '../../domain/models/app_product.dart';
-import '../enums/product_type.dart';
 
 class AppCoinProductConstants {
 

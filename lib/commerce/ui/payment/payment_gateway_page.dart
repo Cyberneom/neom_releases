@@ -82,7 +82,7 @@ class PaymentGatewayPage extends StatelessWidget {
                         text: "${AppTranslationConstants.toPay.tr} ${CoreUtilities.getCurrencySymbol(_.payment.price.currency)}"
                             "${_.payment.finalAmount} (${_.payment.price.currency.name.toUpperCase()})",
                         onPressed: _.handleStripePayment,),
-                        _.cardEditController.details.complete ? Container()
+                        _.cardEditController.details.complete ? const SizedBox.shrink()
                         : Column(
                           children: [
                             AppTheme.heightSpace10,

@@ -21,27 +21,16 @@ import '../../../utils/enums/payment_type.dart';
 import 'in_app_payment_queue_delegate.dart';
 
 class OrderConfirmationController extends GetxController with GetTickerProviderStateMixin {
-
-  var logger = AppUtilities.logger;
+  
   final userController = Get.find<UserController>();
 
-  final RxBool _isButtonDisabled = false.obs;
-  bool get isButtonDisabled => _isButtonDisabled.value;
-  set isButtonDisabled(bool isButtonDisabled) => _isButtonDisabled.value = isButtonDisabled;
-
-  final RxBool _isLoading = true.obs;
-  bool get isLoading => _isLoading.value;
-  set isLoading(bool isLoading) => _isLoading.value = isLoading;
+  bool isLoading = true;
+  bool isButtonDisabled = false;
 
   AppProfile profile = AppProfile();
 
-  final Rx<PaymentStatus> _paymentStatus = PaymentStatus.pending.obs;
-  PaymentStatus get paymentStatus => _paymentStatus.value;
-  set paymentStatus(PaymentStatus paymentStatus) => _paymentStatus.value = paymentStatus;
-
-  final Rx<PaymentType> _paymentType = PaymentType.notDefined.obs;
-  PaymentType get paymentType => _paymentType.value;
-  set paymentType(PaymentType paymentType) => _paymentType.value = paymentType;
+  final Rx<PaymentStatus> paymentStatus = PaymentStatus.pending.obs;
+  final Rx<PaymentType> paymentType = PaymentType.notDefined.obs;  
 
   AppProduct product = AppProduct();
   Event event = Event();
@@ -70,7 +59,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
   @override
   void onInit() async {
     super.onInit();
-    logger.d("OrderConfirmation Controller Init");
+    AppUtilities.logger.d("OrderConfirmation Controller Init");
 
     try {
 
@@ -100,16 +89,18 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
           });
         } else if (Get.arguments[0] is AppReleaseItem) {
           releaseItem = Get.arguments[0];
-          order.saleType = SaleType.releaseItem;
           order.description = releaseItem.name;
           order.releaseItem = releaseItem;
           payment.type = PaymentType.releaseItem;
           payment.to = releaseItem.ownerId;
+          if(Get.arguments.length > 1 && Get.arguments[1] is SaleType) {
+            order.saleType = Get.arguments[1];
+          }
         }
       }
 
     } catch (e) {
-      logger.i(e.toString());
+      AppUtilities.logger.i(e.toString());
     }
 
   }
@@ -173,20 +164,13 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
         case SaleType.booking:
           // TODO: Handle this case.
           break;
-        case SaleType.releaseItem:
+        case SaleType.digitalItem:
           if (releaseItem.id.isNotEmpty) {
             displayedName = releaseItem.name;
             displayedDescription = releaseItem.description;
             displayedImgUrl = releaseItem.imgUrl;
-
-            if (releaseItem.isPhysical) {
-              payment.price.amount = releaseItem.physicalPrice!.amount;
-              payment.price.currency = releaseItem.physicalPrice!.currency;
-            } else {
-              payment.price.amount = releaseItem.digitalPrice!.amount;
-              payment.price.currency = releaseItem.digitalPrice!.currency;
-            }
-
+            payment.price.amount = releaseItem.digitalPrice!.amount;
+            payment.price.currency = releaseItem.digitalPrice!.currency;
 
             sales = await SalesFirestore().retrieveReleaseItemSales();
             sales.orderNumber = sales.orderNumber + 1;
@@ -201,11 +185,30 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
             payment.tax = payment.finalAmount * AppPaymentConstants.mexicanTaxesAmount;
           }
           break;
+        case SaleType.physicalItem:
+          displayedName = releaseItem.name;
+          displayedDescription = releaseItem.description;
+          displayedImgUrl = releaseItem.imgUrl;
+          payment.price.amount = releaseItem.physicalPrice!.amount;
+          payment.price.currency = releaseItem.physicalPrice!.currency;
+
+          sales = await SalesFirestore().retrieveReleaseItemSales();
+          sales.orderNumber = sales.orderNumber + 1;
+
+          order.id = "${userController.user!.id
+              .substring(0,5).toUpperCase()}"
+              "${releaseItem.id.substring(0,5).toUpperCase()}"
+              "${profile.name.substring(0,3).toUpperCase()}"
+              "${sales.orderNumber.toString()}";
+
+          payment.finalAmount = payment.price.amount;
+          payment.tax = payment.finalAmount * AppPaymentConstants.mexicanTaxesAmount;
+          break;
       }
 
 
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     await initInAppPurchase();
@@ -225,7 +228,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
   }
 
   Future<void> confirmOrder() async {
-    logger.i("Order was confirmed and would be created");
+    AppUtilities.logger.i("Order was confirmed and would be created");
     // isLoading = true;
     String orderId = "";
     update([AppPageIdConstants.orderConfirmation]);
@@ -243,7 +246,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
           snackPosition: SnackPosition.bottom,);
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
   }
 

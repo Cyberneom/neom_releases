@@ -1,6 +1,6 @@
-import '../../utils/enums/product_type.dart';
-import '../models/app_product.dart';
+import 'package:neom_commons/core/utils/enums/product_type.dart';
 
+import '../models/app_product.dart';
 
 abstract class ProductRepository {
 

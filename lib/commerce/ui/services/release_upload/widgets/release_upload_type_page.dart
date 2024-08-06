@@ -96,7 +96,7 @@ class ReleaseUploadType extends StatelessWidget {
                         ),
                       ],
                     ),
-                  ) : Container(),
+                  ) : const SizedBox.shrink(),
                   if(AppFlavour.appInUse == AppInUse.e) TitleSubtitleRow("", hPadding: 20,subtitle: AppTranslationConstants.salesModelMsg.tr,showDivider: false,),
               ],
             ),
@@ -117,7 +117,7 @@ class ReleaseUploadType extends StatelessWidget {
                 _.setAsSolo();
               }
             },
-          ) : Container(),
+          ) : const SizedBox.shrink(),
       ),),
     );
   }
