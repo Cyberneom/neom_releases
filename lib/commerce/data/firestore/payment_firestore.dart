@@ -133,4 +133,26 @@ class PaymentFirestore implements PaymentRepository {
     return payments;
   }
 
+  @override
+  Future<List<Payment>> retrieveByOrderId(String orderId) async {
+    AppUtilities.logger.d("retrieveByOrderId");
+
+    List<Payment> payments = [];
+
+    try {
+      QuerySnapshot snapshot = await paymentReference.get();
+
+      for(var document in snapshot.docs) {
+        Payment payment = Payment.fromJSON(document.data());
+        if(payment.orderId == orderId) {
+          payment.id = document.id;
+          payments.add(payment);
+        }
+      }
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    return payments;
+  }
 }

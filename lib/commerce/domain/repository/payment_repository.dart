@@ -8,5 +8,6 @@ abstract class PaymentRepository {
   Future<Payment> retrievePayment(String paymentId);
   Future<bool> updatePaymentStatus(String paymentId, PaymentStatus paymentStatus);
   Future<Map<String, Payment>> retrieveFromList(List<String> paymentIds, {PaymentStatus? status});
+  Future<List<Payment>> retrieveByOrderId(String orderId);
 
 }

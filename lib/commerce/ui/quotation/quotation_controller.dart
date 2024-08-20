@@ -173,7 +173,7 @@ class QuotationController extends GetxController implements QuotationService {
 
     try {
 
-      message = "${userController.user!.userRole == UserRole.subscriber
+      message = "${userController.user.userRole == UserRole.subscriber
           ? AppTranslationConstants.subscriberQuotationWhatsappMsg.tr : AppTranslationConstants.adminQuotationWhatsappMsg.tr}\n"
           "${itemToQuote.duration != 0 ? "\n${AppTranslationConstants.appItemDuration.tr}: ${itemToQuote.duration}" : ""}"
           "${(itemQty != 0 && isPhysical.value) ? "\n${AppTranslationConstants.appItemQty.tr}: $itemQty\n" : ""}"
@@ -185,7 +185,7 @@ class QuotationController extends GetxController implements QuotationService {
           "${AppTranslationConstants.thanksForYourAttention.tr}\n"
           "${userController.profile.name}";
 
-      if(userController.user!.userRole != UserRole.subscriber) {
+      if(userController.user.userRole != UserRole.subscriber) {
         phone = AppFlavour.getWhatsappBusinessNumber();
       } else {
         if (controllerPhone.text.isEmpty &&

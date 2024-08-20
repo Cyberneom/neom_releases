@@ -20,6 +20,7 @@ import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 import 'package:neom_commons/core/utils/constants/message_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
+import 'package:neom_commons/core/utils/enums/product_type.dart';
 import 'package:neom_commons/core/utils/enums/user_role.dart';
 import 'package:neom_commons/core/utils/validator.dart';
 import 'package:neom_events/events/ui/event_details_controller.dart';
@@ -31,15 +32,14 @@ import '../../domain/models/invoice.dart';
 import '../../domain/models/payment.dart';
 import '../../domain/models/purchase_order.dart';
 import '../../domain/use_cases/payment_gateway_service.dart';
+import '../../utils/constants/payment_gateway_constants.dart';
 import '../../utils/enums/payment_status.dart';
-import '../../utils/enums/payment_type.dart';
-import '../wallet_controller.dart';
+import '../wallet/wallet_controller.dart';
 
 
 
 class PaymentGatewayController extends GetxController with GetTickerProviderStateMixin implements PaymentGatewayService {
-
-  var logger = AppUtilities.logger;
+  
   final userController = Get.find<UserController>();
 
   final TextEditingController _emailController = TextEditingController();
@@ -47,35 +47,19 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
   TextEditingController phoneController = TextEditingController();
 
-  final Rx<Country> _phoneCountry = countries[0].obs;
-  Country get phoneCountry => _phoneCountry.value;
-  set phoneCountry(Country country) => _phoneCountry.value = country;
-
-  final RxBool _isButtonDisabled = false.obs;
-  bool get isButtonDisabled => _isButtonDisabled.value;
-  set isButtonDisabled(bool isButtonDisabled) => _isButtonDisabled.value = isButtonDisabled;
-
-  final RxBool _isLoading = true.obs;
-  bool get isLoading => _isLoading.value;
-  set isLoading(bool isLoading) => _isLoading.value = isLoading;
-
+  final Rx<Country> phoneCountry = countries[0].obs;
+  final RxBool isButtonDisabled = false.obs;
+  final RxBool isLoading = true.obs;
+  
   AppProfile profile = AppProfile();
 
-  final Rx<PaymentStatus> _paymentStatus = PaymentStatus.pending.obs;
-  PaymentStatus get paymentStatus => _paymentStatus.value;
-  set paymentStatus(PaymentStatus paymentStatus) => _paymentStatus.value = paymentStatus;
-
-  final Rx<PaymentType> _paymentType = PaymentType.notDefined.obs;
-  PaymentType get paymentType => _paymentType.value;
-  set paymentType(PaymentType paymentType) => _paymentType.value = paymentType;
-
-  final RxBool _showWalletAmount = false.obs;
-  bool get showWalletAmount => _showWalletAmount.value;
-  set showWalletAmount(bool showWalletAmount) => _showWalletAmount.value = showWalletAmount;
+  final Rx<PaymentStatus> paymentStatus = PaymentStatus.pending.obs;
+  final RxBool showWalletAmount = false.obs;  
 
   String errorMsg = "";
   String phoneNumber = '';
   String apiBase = 'https://api.stripe.com/v1';
+  
   // If you are using a real device to test the integration replace this url
   // with the endpoint of your test server (it usually should be the IP of your computer)
   String kApiUrl = Platform.isAndroid ? 'http://10.0.2.2:4242' : 'http://localhost:4242';
@@ -90,7 +74,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
   @override
   void onInit() async {
     super.onInit();
-    logger.d("Payment Gateway Controller Init");
+    AppUtilities.logger.d("Payment Gateway Controller Init");
 
     try {
       if(Get.arguments != null && Get.arguments.isNotEmpty) {
@@ -103,17 +87,17 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
         }
       }
 
-      profile = userController.user!.profiles.first;
-      emailController.text = userController.user?.email ?? "";
-      phoneController.text = userController.user?.phoneNumber ?? "";
+      profile = userController.user.profiles.first;
+      emailController.text = userController.user.email;
+      phoneController.text = userController.user.phoneNumber;
 
       for (var country in countries) {
         if(Get.locale!.countryCode == country.code){
-          phoneCountry = country; //Mexico
+          phoneCountry.value = country; //Mexico
         }
       }
     } catch (e) {
-      logger.i(e.toString());
+      AppUtilities.logger.i(e.toString());
     }
 
   }
@@ -130,18 +114,18 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
         OrderFirestore().addPaymentId(orderId: payment.orderId, paymentId: payment.id);
       }
 
-      if(payment.price.currency == AppCurrency.appCoin) {
+      if(payment.price?.currency == AppCurrency.appCoin) {
         update([AppPageIdConstants.paymentGateway]);
         await payWithAppCoins();
       } else if(payment.status == PaymentStatus.completed
           && (order.googlePlayPurchaseDetails != null || order.appStorePurchaseDetails != null)) {
-        paymentStatus = payment.status;
+        paymentStatus.value = payment.status;
         await handleProcessedPayment();
       } else {
-        isLoading = false;
+        isLoading.value = false;
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     update([AppPageIdConstants.paymentGateway]);
@@ -155,21 +139,21 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
   @override
   Future<void> handleStripePayment() async {
-    logger.d("Starting handlePayment Process");
+    AppUtilities.logger.d("Starting handlePayment Process");
 
     try {
 
-      paymentStatus = PaymentStatus.processing;
+      paymentStatus.value = PaymentStatus.processing;
       errorMsg = Validator.validateEmail(emailController.text);
 
       if(errorMsg.isEmpty) {
         if (phoneController.text.isEmpty ||
-            (phoneController.text.length < phoneCountry.minLength
-                || phoneController.text.length > phoneCountry.maxLength)
+            (phoneController.text.length < phoneCountry.value.minLength
+                || phoneController.text.length > phoneCountry.value.maxLength)
         ) {
           errorMsg = MessageTranslationConstants.pleaseEnterPhone;
           phoneNumber = "";
-        } else if (phoneCountry.code.isEmpty) {
+        } else if (phoneCountry.value.code.isEmpty) {
           errorMsg = MessageTranslationConstants.pleaseEnterCountryCode;
           phoneNumber = "";
         } else {
@@ -182,17 +166,17 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
       }
 
       if(errorMsg.isEmpty) {
-        isLoading = true;
-        isButtonDisabled = true;
+        isLoading.value = true;
+        isButtonDisabled.value = true;
         update([AppPageIdConstants.paymentGateway, AppPageIdConstants.eventDetails]);
 
         stripe.BillingDetails billingDetails = stripe.BillingDetails(
-          name: userController.user?.name ?? "",
+          name: userController.user.name,
           email: emailController.text,
           phone: phoneNumber,
           address: stripe.Address(
             city: '',
-            country: phoneCountry.name,
+            country: phoneCountry.value.name,
             line1: '',
             line2: '',
             state: '',
@@ -200,19 +184,19 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
           ),
         );
 
-        if(userController.user!.userRole == UserRole.superAdmin) {
-          paymentStatus = PaymentStatus.completed;
+        if(userController.user.userRole == UserRole.superAdmin) {
+          paymentStatus.value = PaymentStatus.completed;
         } else {
           await handlePaymentMethod(billingDetails);
         }
 
-        await PaymentFirestore().updatePaymentStatus(payment.id, paymentStatus);
+        await PaymentFirestore().updatePaymentStatus(payment.id, paymentStatus.value);
 
         if(errorMsg.isEmpty) {
           await handleProcessedPayment();
         } else {
-          isButtonDisabled = false;
-          isLoading = false;
+          isButtonDisabled.value = false;
+          isLoading.value = false;
           Get.snackbar(
             MessageTranslationConstants.errorCapturingPayment.tr,
             errorMsg.tr,
@@ -227,7 +211,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
         );
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     update([AppPageIdConstants.paymentGateway, AppPageIdConstants.eventDetails]);
@@ -236,31 +220,31 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
   @override
   Future<void> payWithAppCoins() async {
-    logger.d("Entering payWithGigCoins Method");
+    AppUtilities.logger.d("Entering payWithGigCoins Method");
 
-    paymentStatus = PaymentStatus.processing;
+    paymentStatus.value = PaymentStatus.processing;
 
     try {
       ///Validate and get coins from user wallet
-      if(userController.user!.wallet.amount >= payment.price.amount) {
+      if((payment.price != null) && (userController.user.wallet.amount >= (payment.price?.amount ?? 0))) {
         if(payment.to != null && (payment.to?.isNotEmpty ?? false) && (payment.to?.contains('@') ?? false)) {
           ///Add coins to host wallet
-          if(await ProfileFirestore().addToWallet(payment.to!, payment.price.amount)) {
+          if(await ProfileFirestore().addToWallet(payment.to!, payment.price!.amount)) {
             ///Remove coins from user wallet
-            if(await ProfileFirestore().subtractFromWallet(payment.from, payment.price.amount)) {
-              paymentStatus = PaymentStatus.completed;
-              userController.subtractFromWallet(payment.price.amount);
+            if(await ProfileFirestore().subtractFromWallet(payment.from, payment.price!.amount)) {
+              paymentStatus.value = PaymentStatus.completed;
+              userController.subtractFromWallet(payment.price!.amount);
             } else {
-              paymentStatus = PaymentStatus.rolledBack;
-              if(await ProfileFirestore().subtractFromWallet(payment.to!, payment.price.amount)) {
-                logger.i("Amount ${payment.price.amount} rolledback from wallet successfully for profile ${payment.to}");
+              paymentStatus.value = PaymentStatus.rolledBack;
+              if(await ProfileFirestore().subtractFromWallet(payment.to!, payment.price!.amount)) {
+                AppUtilities.logger.i("Amount ${payment.price!.amount} rolledback from wallet successfully for profile ${payment.to}");
               } else {
-                logger.i("Something happened subtracting from wallet for profile ${payment.to}");
+                AppUtilities.logger.i("Something happened subtracting from wallet for profile ${payment.to}");
               }
             }
           } else {
-            paymentStatus = PaymentStatus.failed;
-            logger.w("Something happened: ${MessageTranslationConstants.errorProcessingPaymentMsg.tr}");
+            paymentStatus.value = PaymentStatus.failed;
+            AppUtilities.logger.w("Something happened: ${MessageTranslationConstants.errorProcessingPaymentMsg.tr}");
             Get.snackbar(
                 MessageTranslationConstants.errorProcessingPayment.tr,
                 MessageTranslationConstants.errorProcessingPaymentMsg.tr,
@@ -268,22 +252,22 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
           }
         } else {
           ///Add coins to bank
-          if(await BankFirestore().addAmount(payment.from, payment.price.amount, payment.orderId, reason: 'ProductPurchase')) {
+          if(await BankFirestore().addAmount(payment.from, payment.price!.amount, payment.orderId, reason: 'ProductPurchase')) {
             ///Remove coins from user wallet
-            if(await ProfileFirestore().subtractFromWallet(payment.from, payment.price.amount)) {
-              paymentStatus = PaymentStatus.completed;
-              userController.subtractFromWallet(payment.price.amount);
+            if(await ProfileFirestore().subtractFromWallet(payment.from, payment.price!.amount)) {
+              paymentStatus.value = PaymentStatus.completed;
+              userController.subtractFromWallet(payment.price!.amount);
             } else {
-              paymentStatus = PaymentStatus.rolledBack;
-              if(await BankFirestore().subtractAmount(payment.from, payment.price.amount, orderId: payment.orderId, reason: 'Rollback')) {
-                logger.i("Amount ${payment.price.amount} rolledback from wallet successfully for profile ${payment.to}");
+              paymentStatus.value = PaymentStatus.rolledBack;
+              if(await BankFirestore().subtractAmount(payment.from, payment.price!.amount, orderId: payment.orderId, reason: 'Rollback')) {
+                AppUtilities.logger.i("Amount ${payment.price!.amount} rolledback from wallet successfully for profile ${payment.to}");
               } else {
-                logger.i("Something happened subtracting from wallet for profile ${payment.to}");
+                AppUtilities.logger.i("Something happened subtracting from wallet for profile ${payment.to}");
               }
             }
           } else {
-            paymentStatus = PaymentStatus.failed;
-            logger.w("Something happened: ${MessageTranslationConstants.errorProcessingPaymentMsg.tr}");
+            paymentStatus.value = PaymentStatus.failed;
+            AppUtilities.logger.w("Something happened: ${MessageTranslationConstants.errorProcessingPaymentMsg.tr}");
             Get.snackbar(
                 MessageTranslationConstants.errorProcessingPayment.tr,
                 MessageTranslationConstants.errorProcessingPaymentMsg.tr,
@@ -292,12 +276,12 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
         }
       } else {
-        paymentStatus = PaymentStatus.failed;
+        paymentStatus.value = PaymentStatus.failed;
         errorMsg = MessageTranslationConstants.notEnoughFundsMsg.tr;
-        logger.i(MessageTranslationConstants.notEnoughFundsMsg.tr);
+        AppUtilities.logger.i(MessageTranslationConstants.notEnoughFundsMsg.tr);
       }
 
-      await PaymentFirestore().updatePaymentStatus(payment.id, paymentStatus);
+      await PaymentFirestore().updatePaymentStatus(payment.id, paymentStatus.value);
 
       if(errorMsg.isEmpty) {
         await handleProcessedPayment();
@@ -309,7 +293,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
         );
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     update([AppPageIdConstants.paymentGateway]);
@@ -320,14 +304,14 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
   Future<void> handleProcessedPayment() async {
 
     try {
-      if(paymentStatus == PaymentStatus.completed) {
+      if(paymentStatus.value == PaymentStatus.completed) {
         Invoice invoice = Invoice(
           description: order.description,
           orderId: payment.orderId,
           createdTime: DateTime.now().millisecondsSinceEpoch,
           payment: payment,
         );
-        invoice.toUser = userController.user!;
+        invoice.toUser = userController.user;
 
         invoice.id = await InvoiceFirestore().insert(invoice);
 
@@ -335,14 +319,14 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
           await OrderFirestore().addInvoiceId(orderId: payment.orderId, invoiceId: invoice.id);
         }
 
-        if(await UserFirestore().addOrderId(userId: userController.user!.id, orderId: payment.orderId)) {
-          userController.user!.orderIds.add(payment.orderId);
+        if(await UserFirestore().addOrderId(userId: userController.user.id, orderId: payment.orderId)) {
+          userController.user.orderIds.add(payment.orderId);
         } else {
-          logger.w("Something occurred while adding order to User ${userController.user!.id}");
+          AppUtilities.logger.w("Something occurred while adding order to User ${userController.user.id}");
         }
 
-        switch(payment.type) {
-          case PaymentType.event:
+        switch(order.product?.type) {
+          case ProductType.event:
             EventDetailsController eventDetailsController;
             if (Get.isRegistered<EventDetailsController>()) {
               eventDetailsController = Get.find<EventDetailsController>();
@@ -350,14 +334,14 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
             } else {
               eventDetailsController = EventDetailsController();
               Get.put(eventDetailsController);
-              eventDetailsController.event = order.event!;
+              await eventDetailsController.getEvent(order.product!.id);
               eventDetailsController.goingToEvent();
             }
 
             Get.toNamed(AppRouteConstants.splashScreen,
                 arguments: [AppRouteConstants.paymentGateway, AppRouteConstants.home]);
             break;
-          case PaymentType.product:
+          case ProductType.coin:
             int coinsQty = 0;
             try {
               coinsQty = Get.find<WalletController>().appCoinProduct.qty;
@@ -373,27 +357,29 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
                 arguments: [AppRouteConstants.paymentGateway,
                   AppRouteConstants.wallet]);
             break;
-          case PaymentType.booking:
-            break;
-          case PaymentType.contribution:
-            break;
-          case PaymentType.sponsor:
-            break;
-          case PaymentType.tip:
-            break;
-          case PaymentType.notDefined:
-            break;
-          case PaymentType.releaseItem:
-            if(await ProfileFirestore().addBoughtItem(userId: userController.user!.id, boughtItem: order.releaseItem?.id ?? "")) {
-              userController.user!.boughtItems ??= [];
-              userController.user!.boughtItems!.add(order.releaseItem!.id);
+          case ProductType.digital:
+          case ProductType.physical:
+            if(await ProfileFirestore().addBoughtItem(userId: userController.user.id, boughtItem: order.product?.id ?? "")) {
+              userController.user.boughtItems ??= [];
+              userController.user.boughtItems!.add(order.product!.id);
             }
 
-            AppReleaseItemFirestore().addBoughtUser(releaseItemId: order.releaseItem!.id, userId: userController.user!.id);
+            AppReleaseItemFirestore().addBoughtUser(releaseItemId: order.product!.id, userId: userController.user.id);
             Get.toNamed(AppRouteConstants.splashScreen,
                 arguments: [AppRouteConstants.paymentGateway,
                   AppRouteConstants.lists]);
             break;
+          case ProductType.subscription:
+          // TODO: Handle this case.
+          // CHANGE USER TO PREMIUM
+          case ProductType.service:
+          case ProductType.external:
+          case ProductType.booking:
+          case ProductType.crowdfunding:
+          case ProductType.notDefined:
+          default:
+            break;
+
         }
       }
     } catch (e) {
@@ -421,23 +407,21 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
             )
         );
 
-        logger.i("Valid payment method added successfully");
-        logger.i(paymentMethod.toString());
+        AppUtilities.logger.i("Valid payment method added successfully");
+        AppUtilities.logger.i(paymentMethod.toString());
 
         // 2. call API to create PaymentIntent
-        int amountToPayInCents = (payment.price.amount * 100).toInt();
+        int amountToPayInCents = (payment.price!.amount * 100).toInt();
         paymentIntentResponse = await createPaymentIntent(
             amountToPayInCents.toString(),
-            payment.price.currency.name
+            payment.price!.currency.name
         );
 
-        if (paymentIntentResponse['client_secret'] != null
-            && paymentMethod.id.isNotEmpty
-        ) {
-          logger.i("Payment intent created successfully");
+        if (paymentIntentResponse[PaymentGatewayConstants.clientSecret] != null && paymentMethod.id.isNotEmpty) {
+          AppUtilities.logger.i("Payment intent created successfully");
 
           stripe.PaymentIntent paymentIntent = await stripe.Stripe.instance.confirmPayment(
-              paymentIntentClientSecret: paymentIntentResponse['client_secret'],
+              paymentIntentClientSecret: paymentIntentResponse[PaymentGatewayConstants.clientSecret],
               data: stripe.PaymentMethodParams.cardFromMethodId(
                 paymentMethodData: stripe.PaymentMethodDataCardFromMethod(
                     paymentMethodId: paymentMethod.id
@@ -445,9 +429,9 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
               )
           );
 
-          if (paymentIntentResponse['requires_action'] == true) {
+          if (paymentIntentResponse[PaymentGatewayConstants.requiresAction] == true) {
             // 3. if payment requires action calling handleCardAction
-            logger.w("Payment requires an action...");
+            AppUtilities.logger.w("Payment requires an action...");
             paymentIntent = await stripe.Stripe.instance
               .handleNextAction(paymentIntent.clientSecret);
             //TODO handle error
@@ -455,32 +439,32 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
             if (paymentIntent.status == stripe.PaymentIntentsStatus.RequiresConfirmation) {
               // 4. Call API to confirm intent
-              logger.w("Payment Intent requires confirmation");
+              AppUtilities.logger.w("Payment Intent requires confirmation");
               await confirmIntent(paymentIntent.id);
             } else {
               // Payment succedeed
-              errorMsg = 'Error: ${paymentIntentResponse['error']} - Emma -> I believe we dont have an error here';
+              errorMsg = 'Error: ${paymentIntentResponse[PaymentGatewayConstants.error]} - I believe there is no error here';
             }
-          } else if(paymentIntentResponse['requires_action'] == null) {
+          } else if(paymentIntentResponse[PaymentGatewayConstants.requiresAction] == null) {
             // Payment succedeed
-            logger.i("Payment Intent and Confirmation were created successfully");
-            paymentStatus = PaymentStatus.completed;
+            AppUtilities.logger.i("Payment Intent and Confirmation were created successfully");
+            paymentStatus.value = PaymentStatus.completed;
           }
         }
 
-        if (paymentIntentResponse['error'] != null) {
+        if (paymentIntentResponse[PaymentGatewayConstants.error] != null) {
           // Error during creating or confirming Intent
-          paymentStatus = PaymentStatus.failed;
-          errorMsg = 'Error: ${paymentIntentResponse['error']}';
+          paymentStatus.value = PaymentStatus.failed;
+          errorMsg = 'Error: ${paymentIntentResponse[PaymentGatewayConstants.error]}';
         }
 
     } on stripe.StripeException catch (e) {
       errorMsg = e.error.localizedMessage ?? "";
-      paymentStatus = PaymentStatus.declined;
-      logger.e(errorMsg);
+      paymentStatus.value = PaymentStatus.declined;
+      AppUtilities.logger.e(errorMsg);
     } catch (e) {
-      paymentStatus = PaymentStatus.unknown;
-      logger.e(e.toString());
+      paymentStatus.value = PaymentStatus.unknown;
+      AppUtilities.logger.e(e.toString());
     }
 
   }
@@ -490,10 +474,11 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
       String amount, String currency) async {
     try {
       Map<String, dynamic> body = {
-        'amount': amount,
-        'currency': currency,
-        'payment_method_types[]': 'card'
+        PaymentGatewayConstants.amount: amount,
+        PaymentGatewayConstants.currency: currency,
+        PaymentGatewayConstants.paymentMethodTypes: [PaymentGatewayConstants.card]
       };
+
       final response = await http.post(
           Uri.parse('${AppFlavour.getPaymentGatewayBaseURL()}/payment_intents'),
           body: body,

@@ -1,10 +1,9 @@
 enum PaymentType {
-  event,
-  product,
-  booking,
-  sponsor,
-  contribution,
-  tip,
-  releaseItem,
-  notDefined
+  appCoins,
+  stripe,
+  paypal,
+  apple,
+  google,
+  wooStripe,
+  wooPaypal
 }

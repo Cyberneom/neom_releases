@@ -16,6 +16,7 @@ import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/constants/message_translation_constants.dart';
 import 'package:neom_commons/core/utils/core_utilities.dart';
+import 'package:neom_commons/core/utils/enums/app_currency.dart';
 import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 import 'payment_gateway_controller.dart';
 
@@ -41,13 +42,13 @@ class PaymentGatewayPage extends StatelessWidget {
               direction: Axis.vertical,
               children: [
                 Expanded(
-                child: Obx(()=> _.isLoading ? const Center(child: CircularProgressIndicator())
+                child: Obx(()=> _.isLoading.value ? const Center(child: CircularProgressIndicator())
                 : Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text("${AppTranslationConstants.toPay.tr} ${CoreUtilities.getCurrencySymbol(_.payment.price.currency)}"
-                        "${_.payment.finalAmount} (${_.payment.price.currency.name.toUpperCase()}) ${AppTranslationConstants.using.tr}",
+                    Text("${AppTranslationConstants.toPay.tr} ${CoreUtilities.getCurrencySymbol(_.payment.price?.currency ?? AppCurrency.appCoin)}"
+                        "${_.payment.price?.amount} (${_.payment.price?.currency.name.toUpperCase()}) ${AppTranslationConstants.using.tr}",
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)
                     ),
                     AppTheme.heightSpace10,
@@ -78,9 +79,9 @@ class PaymentGatewayPage extends StatelessWidget {
                     AppTheme.heightSpace10,
                     Column(
                       children: [
-                        SubmitButton(context, isEnabled: !_.isButtonDisabled, isLoading: _.isLoading,
-                        text: "${AppTranslationConstants.toPay.tr} ${CoreUtilities.getCurrencySymbol(_.payment.price.currency)}"
-                            "${_.payment.finalAmount} (${_.payment.price.currency.name.toUpperCase()})",
+                        SubmitButton(context, isEnabled: !_.isButtonDisabled.value, isLoading: _.isLoading.value,
+                        text: "${AppTranslationConstants.toPay.tr} ${CoreUtilities.getCurrencySymbol(_.payment.price?.currency ?? AppCurrency.appCoin)}"
+                            "${_.payment.price?.amount} (${_.payment.price?.currency.name.toUpperCase()})",
                         onPressed: _.handleStripePayment,),
                         _.cardEditController.details.complete ? const SizedBox.shrink()
                         : Column(
@@ -127,7 +128,7 @@ Widget buildPhoneField({required PaymentGatewayController paymentGatewayControll
         paymentGatewayController.phoneController.text = phone.number;
       },
       onCountryChanged: (country) {
-        paymentGatewayController.phoneCountry = country;
+        paymentGatewayController.phoneCountry.value = country;
       },
       //TODO Verify if invalidNumberMessage is needed
       invalidNumberMessage: ""

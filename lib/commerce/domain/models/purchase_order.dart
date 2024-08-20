@@ -5,40 +5,44 @@ import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:in_app_purchase_android/src/types/google_play_purchase_details.dart';
 // ignore: implementation_imports
 import 'package:in_app_purchase_storekit/src/types/app_store_purchase_details.dart';
-import 'package:neom_commons/core/domain/model/app_release_item.dart';
-import 'package:neom_commons/core/domain/model/booking.dart';
-import 'package:neom_commons/core/domain/model/event.dart';
-import 'package:neom_commons/core/utils/enums/sale_type.dart';
-
 import 'app_product.dart';
 
 class PurchaseOrder {
 
   String id;
   String description;
-  SaleType saleType;
+  /// SaleType saleType;
   int createdTime;
-  List<String>? paymentIds;
+  String customerEmail;
+  String couponId;
+  ///DEPRECATED List<String>? paymentIds;
   List<String>? invoiceIds;
 
   AppProduct? product;
-  Booking? booking;
-  Event? event;
-  AppReleaseItem? releaseItem;
+
+  ///DEPRECATED
+  /// Booking? booking;
+  /// Event? event;
+  /// AppReleaseItem? releaseItem;
+
   GooglePlayPurchaseDetails? googlePlayPurchaseDetails;
   AppStorePurchaseDetails? appStorePurchaseDetails;
+
 
 
   PurchaseOrder({
     this.id = "",
     this.description = "",
-    this.saleType = SaleType.product,
+    /// this.saleType = SaleType.notDefined,
     this.createdTime = 0,
-    this.paymentIds,
+    this.customerEmail = '',
+    this.couponId = '',
+    /// this.paymentIds,
     this.invoiceIds,
     this.product,
-    this.booking,
-    this.event,
+    /// this.booking,
+    /// this.releaseItem,
+    /// this.event,
     this.googlePlayPurchaseDetails,
     this.appStorePurchaseDetails
   });
@@ -47,14 +51,15 @@ class PurchaseOrder {
     return <String, dynamic>{
       //'id': id
       'description': description,
-      'saleType': saleType.name,
+      /// 'saleType': saleType.name,
       'createdTime': createdTime,
-      'paymentIds': paymentIds,
+      'customerEmail': customerEmail,
+      'couponId': couponId,
       'invoiceIds': invoiceIds,
       'product': product?.toJSON(),
-      'booking': booking?.toJSON(),
-      'releaseItem': releaseItem?.toJSON(),
-      'event': event?.toJSON(),
+      /// 'booking': booking?.toJSON(),
+      /// 'releaseItem': releaseItem?.toJSON(),
+      /// 'event': event?.toJSON(),
       'googlePlayPurchaseDetails': googlePlayPurchaseDetails != null ? googlePlayPurchaseDetailsJSON(googlePlayPurchaseDetails) : {},
       'appStorePurchaseDetails': appStorePurchaseDetails != null ? appStorePurchaseDetailsJSON(appStorePurchaseDetails) : {},
     };
@@ -63,14 +68,16 @@ class PurchaseOrder {
   PurchaseOrder.fromJSON(data) :
     id = data["id"] ?? "",
     description = data["description"] ?? "",
-    saleType = EnumToString.fromString(SaleType.values, data["saleType"]) ?? SaleType.product,
+    /// saleType = EnumToString.fromString(SaleType.values, data["saleType"]) ?? SaleType.product,
     createdTime = data["createdTime"] ?? 0,
-    paymentIds = data["paymentIds"]?.cast<String>() ?? [],
+    customerEmail = data["customerEmail"] ?? "",
+    couponId = data["couponId"] ?? "",
+    /// paymentIds = data["paymentIds"]?.cast<String>() ?? [],
     invoiceIds = data["invoiceIds"]?.cast<String>() ?? [],
     product = AppProduct.fromJSON(data["product"] ?? {}),
-    booking = Booking.fromJSON(data["booking"] ?? {}),
-    event = Event.fromJSON(data["event"] ?? {}),
-    releaseItem = AppReleaseItem.fromJSON(data["releaseItem"] ?? {}),
+    /// booking = Booking.fromJSON(data["booking"] ?? {}),
+    /// event = Event.fromJSON(data["event"] ?? {}),
+    /// releaseItem = AppReleaseItem.fromJSON(data["releaseItem"] ?? {}),
     googlePlayPurchaseDetails = googlePlayPurchaseDetailsFromJSON(data["googlePlayPurchaseDetails"] ?? {}),
     appStorePurchaseDetails = appStorePurchaseDetailsFromJSON(data["appStorePurchaseDetails"] ?? {});
 

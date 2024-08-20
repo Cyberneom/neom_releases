@@ -121,7 +121,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       appReleaseItem.value.galleryUrls = [profile.photoUrl];
       appReleaseItem.value.categories = [];
       appReleaseItem.value.instruments = [];
-      appReleaseItem.value.metaOwnerId = userController.user!.email;
+      appReleaseItem.value.metaOwnerId = userController.user.email;
 
       genres.value = await CoreUtilities.loadGenres();
     } catch (e) {
@@ -164,7 +164,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
             message: AppTranslationConstants.freeSingleReleaseUploadMsg.tr
         );
         return;
-      } else if(userController.user?.releaseItemIds?.isNotEmpty ?? false) {
+      } else if(userController.user.releaseItemIds?.isNotEmpty ?? false) {
         AppUtilities.showSnackBar(
             title: AppTranslationConstants.digitalPositioning,
             message: AppTranslationConstants.freeSingleReleaseUploadMsg.tr
@@ -292,7 +292,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         releaseItem.metaId = releaseItemlist.id;
         releaseItem.state = 5;
 
-        if(userController.user?.releaseItemIds?.isEmpty ?? true) {
+        if(userController.user.releaseItemIds?.isEmpty ?? true) {
           releaseItem.status = ReleaseStatus.publish;
         }
 
@@ -393,11 +393,11 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       post.id = await PostFirestore().insert(post);
 
       if(post.id.isNotEmpty){
-        if(await UserFirestore().addReleaseItem(userId: userController.user!.id, releaseItemId: appReleaseItem.value.id)) {
-          if(userController.user?.releaseItemIds != null) {
-            userController.user!.releaseItemIds!.add(appReleaseItem.value.id);
+        if(await UserFirestore().addReleaseItem(userId: userController.user.id, releaseItemId: appReleaseItem.value.id)) {
+          if(userController.user.releaseItemIds != null) {
+            userController.user.releaseItemIds!.add(appReleaseItem.value.id);
           } else {
-            userController.user!.releaseItemIds = [appReleaseItem.value.id];
+            userController.user.releaseItemIds = [appReleaseItem.value.id];
           }
         }
 

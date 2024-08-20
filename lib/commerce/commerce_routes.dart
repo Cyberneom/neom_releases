@@ -15,7 +15,7 @@ import 'ui/services/release_upload/widgets/release_upload_itemlist_name_desc_pag
 import 'ui/services/release_upload/widgets/release_upload_name_desc_page.dart';
 import 'ui/services/release_upload/widgets/release_upload_summary_page.dart';
 import 'ui/services/release_upload/widgets/release_upload_type_page.dart';
-import 'ui/wallet_history_page.dart';
+import 'ui/wallet/wallet_history_page.dart';
 
 class CommerceRoutes {
 

@@ -9,7 +9,7 @@ import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_assets.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
-import 'package:neom_commons/core/utils/enums/sale_type.dart';
+import 'package:neom_commons/core/utils/enums/product_type.dart';
 import 'order_details_controller.dart';
 
 class OrderDetailsPage extends StatelessWidget {
@@ -39,7 +39,7 @@ class OrderDetailsPage extends StatelessWidget {
                          SizedBox(
                            width: AppTheme.fullWidth(context)/4,
                            height: AppTheme.fullWidth(context)/4,
-                           child: _.order.saleType == SaleType.product
+                           child: _.order.product?.type == ProductType.coin
                                ? Image.asset(AppAssets.appCoins13)
                                : Image.network(_.displayedImgUrl.isNotEmpty ? _.displayedImgUrl
                                : AppFlavour.getNoImageUrl()
@@ -49,7 +49,7 @@ class OrderDetailsPage extends StatelessWidget {
                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                            crossAxisAlignment: CrossAxisAlignment.start,
                            children: <Widget>[
-                               Text(_.order.saleType.name.tr,
+                               Text(_.order.product?.type.name.tr ?? '',
                                  style: const TextStyle(
                                      fontSize: 15,
                                      fontWeight: FontWeight.bold
@@ -78,7 +78,7 @@ class OrderDetailsPage extends StatelessWidget {
                                ),
                              ),
                              AppTheme.heightSpace10,
-                             _.product?.reviewIds.isNotEmpty ?? false ? Row(
+                             _.product?.reviewIds?.isNotEmpty ?? false ? Row(
                                  children: <Widget>[
                                    Container(
                                        margin: const EdgeInsets.only(right: 5),
@@ -87,7 +87,7 @@ class OrderDetailsPage extends StatelessWidget {
                                      margin: const EdgeInsets.only(right: 5),
                                      child: Align(
                                        alignment: Alignment.topLeft,
-                                       child:  Text("${_.product!.reviewStars.toString()} (${_.product!.reviewIds.length.toString()})",
+                                       child:  Text("${_.product!.reviewStars.toString()} (${_.product!.reviewIds?.length.toString()})",
                                            style: const TextStyle(
                                                fontSize: 12,
                                                fontWeight: FontWeight.bold
@@ -158,7 +158,7 @@ class OrderDetailsPage extends StatelessWidget {
                              color: Colors.grey,
                              fontSize: 16)
                       ),
-                      Text("${_.payment.price.amount} ${_.payment.price.currency.name.tr.toUpperCase()}",
+                      Text("${_.payment.price?.amount} ${_.payment.price?.currency.name.tr.toUpperCase()}",
                          style: const TextStyle(
                              color: Colors.grey,
                              fontSize: 16)
@@ -166,7 +166,7 @@ class OrderDetailsPage extends StatelessWidget {
                     ],
                   ),
                   AppTheme.heightSpace10,
-                   _.payment.discountAmount == 0.0 ? const SizedBox.shrink() :
+                   _.payment.price?.amount == 0.0 ? const SizedBox.shrink() :
                    Row(
                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                      children: <Widget>[
@@ -176,7 +176,7 @@ class OrderDetailsPage extends StatelessWidget {
                                fontSize: 16
                            )
                        ),
-                       Text("${_.payment.discountAmount} ${_.payment.price.currency.name.tr.toUpperCase()}",
+                       Text("${_.payment.price?.amount} ${_.payment.price?.currency.name.tr.toUpperCase()}",
                            style: const TextStyle(
                                color: Colors.grey,
                                fontSize: 16)
@@ -193,7 +193,7 @@ class OrderDetailsPage extends StatelessWidget {
                                color: AppColor.white80,
                                fontSize: 16, fontWeight: FontWeight.w600)
                        ),
-                       Text("${_.payment.finalAmount} ${_.payment.price.currency.name.tr.toUpperCase()}",
+                       Text("${_.payment.price?.amount} ${_.payment.price?.currency.name.tr.toUpperCase()}",
                            style: TextStyle(
                                color: AppColor.white80,
                                fontSize: 16)
@@ -208,4 +208,5 @@ class OrderDetailsPage extends StatelessWidget {
       ),
     );
   }
+
 }

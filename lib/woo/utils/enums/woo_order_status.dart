@@ -1,0 +1,15 @@
+enum WooOrderStatus {
+  pending('pending'),
+  processing('processing'),
+  onHold('on-hold'),
+  completed('completed'),
+  cancelled('cancelled'),
+  refunded('refunded'),
+  failed('failed'),
+  autoDraft('auto-draft'),
+  checkoutDraft('checkout-draft');
+
+  final String value;
+  const WooOrderStatus(this.value);
+
+}

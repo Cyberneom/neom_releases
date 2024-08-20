@@ -5,7 +5,7 @@ import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_assets.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import '../../domain/models/purchase_order.dart';
-import '../wallet_controller.dart';
+import '../wallet/wallet_controller.dart';
 import 'order_item.dart';
 
 Widget buildOrderList(BuildContext context, WalletController _){

@@ -1,6 +1,6 @@
 name: neom_commerce
 description: Commerce Details for Cyberneom.
-version: 1.1.4
+version: 1.2.0
 homepage: https://github.com/emmanuel-montoya/neom_commerce
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
@@ -21,9 +21,9 @@ dependencies:
   neom_posts:
     git:
       url: git@github.com:Cyberneom/neom_posts.git
-  neom_music_player:
+  neom_audio_player:
     git:
-      url: https://github.com/Cyberneom/neom_music_player.git
+      url: https://github.com/Cyberneom/neom_audio_player.git
 
 #  in_app_purchase: ^3.1.11
   in_app_purchase_storekit: ^0.3.6+7

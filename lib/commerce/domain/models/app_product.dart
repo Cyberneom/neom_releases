@@ -1,4 +1,6 @@
 import 'package:enum_to_string/enum_to_string.dart';
+import 'package:neom_commons/core/domain/model/app_release_item.dart';
+import 'package:neom_commons/core/domain/model/event.dart';
 import 'package:neom_commons/core/domain/model/price.dart';
 import 'package:neom_commons/core/domain/model/review.dart';
 import 'package:neom_commons/core/utils/enums/product_type.dart';
@@ -9,19 +11,22 @@ class AppProduct {
   String name;
   String description;
   ProductType type;
-  Price? regularPrice = Price();
-  Price? salePrice = Price();
+  Price? regularPrice;
+  Price? salePrice;
   int qty;
   String imgUrl;
   bool isAvailable;  
   int numberOfSales;
   
   double reviewStars =  10.0;
-  List<String> reviewIds;
+  List<String>? reviewIds;
   Review? lastReview;
 
   int createdTime;
   int updatedTime;
+
+  String? ownerId;
+
 
   AppProduct({
     this.id = "",
@@ -36,7 +41,7 @@ class AppProduct {
     this.numberOfSales = 0,
     this.reviewStars = 10.0,
     this.lastReview,
-    this.reviewIds = const [],
+    this.reviewIds,
     this.createdTime = 0,
     this.updatedTime = 0
   });
@@ -67,14 +72,14 @@ class AppProduct {
     description = data["description"] ?? "",
     type = EnumToString.fromString(ProductType.values, data["type"] ?? ProductType.service.name) ?? ProductType.service,
     regularPrice = Price.fromJSON(data["regularPrice"] ?? {}),
-    salePrice = Price.fromJSON(data["salePrice"] ?? {}),
+    salePrice = Price.fromJSON(data["salePrice"] ?? data["regularPrice"] ?? {}),
     qty = data["qty"] ?? 0,
     imgUrl = data["imgUrl"] ?? "",
     isAvailable = data["isAvailable"] ?? true,    
     numberOfSales = data["numberOfSales"] ?? 0,
     reviewStars = (data["reviewStars"] ?? 10).toDouble(),
     lastReview = Review.fromJSON(data["lastReview"] ?? {}),
-    reviewIds = data["reviewIds"]?.cast<String>() ?? [],
+    reviewIds = data["reviewIds"]?.cast<String>(),
     createdTime = data["createdTime"] ?? 0,
     updatedTime = data["updatedTime"] ?? 0;
 
@@ -94,5 +99,36 @@ class AppProduct {
         reviewIds = product.reviewIds,
         createdTime = product.createdTime,
         updatedTime = product.updatedTime;
+
+  AppProduct.fromReleaseItem(AppReleaseItem releaseItem) :
+        id = releaseItem.id,
+        name = releaseItem.name,
+        description = releaseItem.description,
+        type =  releaseItem.physicalPrice != null ? ProductType.physical : ProductType.digital,
+        regularPrice = releaseItem.physicalPrice ?? releaseItem.digitalPrice,
+        salePrice = releaseItem.physicalPrice ?? releaseItem.digitalPrice,
+        qty = 1,
+        imgUrl = releaseItem.imgUrl,
+        ownerId = releaseItem.ownerId,
+        numberOfSales = 0,
+        createdTime = releaseItem.createdTime,
+        isAvailable = true,
+        updatedTime = 0;
+
+  AppProduct.fromEvent(Event event) :
+        id = event.id,
+        name = event.name,
+        description = event.description,
+        type =  ProductType.event,
+        regularPrice = event.coverPrice,
+        salePrice = event.coverPrice,
+        qty = 1,
+        imgUrl = event.imgUrl,
+        ownerId = event.owner?.id,
+        numberOfSales = 0,
+        createdTime = event.createdTime,
+        isAvailable = true,
+        updatedTime = 0;
+
 
 }

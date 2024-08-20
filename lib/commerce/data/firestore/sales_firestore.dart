@@ -5,107 +5,127 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:neom_commons/core/data/firestore/constants/app_firestore_collection_constants.dart';
 import 'package:neom_commons/core/data/firestore/constants/app_firestore_constants.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
-import 'package:neom_commons/core/utils/enums/sale_type.dart';
+import 'package:neom_commons/core/utils/enums/product_type.dart';
 import '../../domain/models/app_sale.dart';
 import '../../domain/repository/sales_repository.dart';
 
 class SalesFirestore implements SalesRepository {
 
-  final logger = AppUtilities.logger;
   final salesReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.sales);
 
   @override
-  Future<AppSale> retrieveProductSales() async {
-    logger.i("Retrieving Sales Info");
+  Future<AppSale> retrieveSales(ProductType productType) async {
+    AppUtilities.logger.i("Retrieving Sales Info for ${productType.name}");
     AppSale sales = AppSale();
 
     try {
       DocumentSnapshot documentSnapshot = await salesReference
-          .doc(AppFirestoreConstants.productSales).get();
+          .doc(productType.name).get();
       if (documentSnapshot.exists) {
         sales = AppSale.fromJSON(documentSnapshot.data());
-        logger.i("Sales found with orderNumber ${sales.orderNumber}");
+        AppUtilities.logger.i("Sales found with orderNumber ${sales.orderNumber}");
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    logger.d("");
+    AppUtilities.logger.d("");
     return sales;
   }
 
+  // @override
+  // Future<AppSale> retrieveProductSales() async {
+  //   AppUtilities.logger.i("Retrieving Sales Info");
+  //   AppSale sales = AppSale();
+  //
+  //   try {
+  //     DocumentSnapshot documentSnapshot = await salesReference
+  //         .doc(AppFirestoreConstants.productSales).get();
+  //     if (documentSnapshot.exists) {
+  //       sales = AppSale.fromJSON(documentSnapshot.data());
+  //       AppUtilities.logger.i("Sales found with orderNumber ${sales.orderNumber}");
+  //     }
+  //   } catch (e) {
+  //     AppUtilities.logger.e(e.toString());
+  //   }
+  //
+  //   AppUtilities.logger.d("");
+  //   return sales;
+  // }
+
+
+  // @override
+  // Future<AppSale> retrieveEventSales() async {
+  //   AppUtilities.logger.i("Retrieving Sales Info");
+  //   AppSale sales = AppSale();
+  //
+  //   try {
+  //     DocumentSnapshot documentSnapshot = await salesReference
+  //         .doc(AppFirestoreConstants.eventSales).get();
+  //     if (documentSnapshot.exists) {
+  //       sales = AppSale.fromJSON(documentSnapshot.data());
+  //       AppUtilities.logger.i("Sales found with orderNumber ${sales.orderNumber}");
+  //     }
+  //   } catch (e) {
+  //     AppUtilities.logger.e(e.toString());
+  //   }
+  //
+  //   return sales;
+  // }
+
+  // @override
+  // Future<AppSale> retrieveReleaseItemSales() async {
+  //   AppUtilities.logger.i("Retrieving Sales Info");
+  //   AppSale sales = AppSale();
+  //
+  //   try {
+  //     DocumentSnapshot documentSnapshot = await salesReference
+  //         .doc(AppFirestoreConstants.releaseItemSales).get();
+  //     if (documentSnapshot.exists) {
+  //       sales = AppSale.fromJSON(documentSnapshot.data());
+  //       AppUtilities.logger.i("Sales found with orderNumber ${sales.orderNumber}");
+  //     }
+  //   } catch (e) {
+  //     AppUtilities.logger.e(e.toString());
+  //   }
+  //
+  //   AppUtilities.logger.d("");
+  //   return sales;
+  // }
+
 
   @override
-  Future<AppSale> retrieveEventSales() async {
-    logger.i("Retrieving Sales Info");
-    AppSale sales = AppSale();
+  Future<bool> updateOrderNumber(int newOrderNumber, ProductType productType) async {
+    AppUtilities.logger.d("updateOrderNumber for Sales Type ${productType.name} to $newOrderNumber");
 
     try {
-      DocumentSnapshot documentSnapshot = await salesReference
-          .doc(AppFirestoreConstants.eventSales).get();
-      if (documentSnapshot.exists) {
-        sales = AppSale.fromJSON(documentSnapshot.data());
-        logger.i("Sales found with orderNumber ${sales.orderNumber}");
-      }
-    } catch (e) {
-      logger.e(e.toString());
-    }
-
-    return sales;
-  }
-
-  @override
-  Future<AppSale> retrieveReleaseItemSales() async {
-    logger.i("Retrieving Sales Info");
-    AppSale sales = AppSale();
-
-    try {
-      DocumentSnapshot documentSnapshot = await salesReference
-          .doc(AppFirestoreConstants.releaseItemSales).get();
-      if (documentSnapshot.exists) {
-        sales = AppSale.fromJSON(documentSnapshot.data());
-        logger.i("Sales found with orderNumber ${sales.orderNumber}");
-      }
-    } catch (e) {
-      logger.e(e.toString());
-    }
-
-    logger.d("");
-    return sales;
-  }
-
-
-  @override
-  Future<bool> updateOrderNumber(int newOrderNumber, SaleType salesType) async {
-    logger.d("updateOrderNumber for Sales Type ${salesType.name} to $newOrderNumber");
-
-    try {
-      String salesToUpdate = "";
-      switch(salesType) {
-        case SaleType.product:
-          salesToUpdate = AppFirestoreConstants.productSales;
-          break;
-        case SaleType.event:
-          salesToUpdate = AppFirestoreConstants.eventSales;
-          break;
-        case SaleType.booking:
-          salesToUpdate = AppFirestoreConstants.bookingSales;
-          break;
-        case SaleType.digitalItem:
-          salesToUpdate = AppFirestoreConstants.releaseItemSales;
-          break;
-        case SaleType.physicalItem:
-          salesToUpdate = AppFirestoreConstants.releaseItemSales;
-          break;
-      }
+      ///DEPRECATED
+      // String salesToUpdate = "";
+      // switch(salesType) {
+      //   case SaleType.product:
+      //     salesToUpdate = AppFirestoreConstants.productSales;
+      //     break;
+      //   case SaleType.event:
+      //     salesToUpdate = AppFirestoreConstants.eventSales;
+      //     break;
+      //   case SaleType.booking:
+      //     salesToUpdate = AppFirestoreConstants.bookingSales;
+      //     break;
+      //   case SaleType.digitalItem:
+      //     salesToUpdate = AppFirestoreConstants.releaseItemSales;
+      //     break;
+      //   case SaleType.physicalItem:
+      //     salesToUpdate = AppFirestoreConstants.releaseItemSales;
+      //     break;
+      // }
 
       DocumentSnapshot documentSnapshot = await salesReference
-          .doc(salesToUpdate).get();
+          .doc(productType.name).get();
 
       await documentSnapshot.reference.update({AppFirestoreConstants.orderNumber: newOrderNumber});
 
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
       return false;
     }
 
@@ -113,49 +133,42 @@ class SalesFirestore implements SalesRepository {
   }
 
   @override
-  Future<AppSale> retrieveBookingSales() async {
-    // TODO: implement retrieveBookingSales
-    throw UnimplementedError();
-  }
-
-
-  @override
   Future<bool> addOrderId({
-    required String orderId, required SaleType saleType}) async {
-    logger.d("Order $orderId would be added to Sales for ${saleType.name}");
+    required String orderId, required ProductType productType}) async {
+    AppUtilities.logger.d("Order $orderId would be added to Sales for ${productType.name}");
 
     try {
-      String salesToUpdate = "";
-      switch(saleType) {
-        case SaleType.product:
-          salesToUpdate = AppFirestoreConstants.productSales;
-          break;
-        case SaleType.event:
-          salesToUpdate = AppFirestoreConstants.eventSales;
-          break;
-        case SaleType.booking:
-          salesToUpdate = AppFirestoreConstants.bookingSales;
-          break;
-        case SaleType.digitalItem:
-          salesToUpdate = AppFirestoreConstants.releaseItemSales;
-          break;
-        case SaleType.physicalItem:
-          salesToUpdate = AppFirestoreConstants.releaseItemSales;
-          break;
-      }
+      // String salesToUpdate = "";
+      // switch(saleType) {
+      //   case SaleType.product:
+      //     salesToUpdate = AppFirestoreConstants.productSales;
+      //     break;
+      //   case SaleType.event:
+      //     salesToUpdate = AppFirestoreConstants.eventSales;
+      //     break;
+      //   case SaleType.booking:
+      //     salesToUpdate = AppFirestoreConstants.bookingSales;
+      //     break;
+      //   case SaleType.digitalItem:
+      //     salesToUpdate = AppFirestoreConstants.releaseItemSales;
+      //     break;
+      //   case SaleType.physicalItem:
+      //     salesToUpdate = AppFirestoreConstants.releaseItemSales;
+      //     break;
+      // }
 
       DocumentSnapshot documentSnapshot = await salesReference
-          .doc(salesToUpdate).get();
+          .doc(productType.name).get();
 
 
       await documentSnapshot.reference.update({
         AppFirestoreConstants.orderIds: FieldValue.arrayUnion([orderId])
       });
 
-      logger.d("$orderId is now at $salesToUpdate");
+      AppUtilities.logger.d("$orderId is now at ${productType.name}");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
     return false;
   }
@@ -164,40 +177,40 @@ class SalesFirestore implements SalesRepository {
   @override
   Future<bool> removeOrderId({
     required String orderId,
-    required SaleType saleType}) async {
-    logger.d("Order $orderId would be removed from Sales of ${saleType.name}");
+    required ProductType productType}) async {
+    AppUtilities.logger.d("Order $orderId would be removed from Sales of ${productType.name}");
 
     try {
-      String salesToUpdate = "";
-      switch(saleType) {
-        case SaleType.product:
-          salesToUpdate = AppFirestoreConstants.productSales;
-          break;
-        case SaleType.event:
-          salesToUpdate = AppFirestoreConstants.eventSales;
-          break;
-        case SaleType.booking:
-          salesToUpdate = AppFirestoreConstants.bookingSales;
-          break;
-        case SaleType.digitalItem:
-          salesToUpdate = AppFirestoreConstants.releaseItemSales;
-          break;
-        case SaleType.physicalItem:
-          salesToUpdate = AppFirestoreConstants.releaseItemSales;
-          break;
-
-      }
+      // String salesToUpdate = "";
+      // switch(saleType) {
+      //   case SaleType.product:
+      //     salesToUpdate = AppFirestoreConstants.productSales;
+      //     break;
+      //   case SaleType.event:
+      //     salesToUpdate = AppFirestoreConstants.eventSales;
+      //     break;
+      //   case SaleType.booking:
+      //     salesToUpdate = AppFirestoreConstants.bookingSales;
+      //     break;
+      //   case SaleType.digitalItem:
+      //     salesToUpdate = AppFirestoreConstants.releaseItemSales;
+      //     break;
+      //   case SaleType.physicalItem:
+      //     salesToUpdate = AppFirestoreConstants.releaseItemSales;
+      //     break;
+      // }
 
       DocumentSnapshot documentSnapshot = await salesReference
-          .doc(salesToUpdate).get();
+          .doc(productType.name).get();
 
       await documentSnapshot.reference.update({
         AppFirestoreConstants.orderIds: FieldValue.arrayRemove([orderId])
       });
-      logger.d("$orderId was removed from $salesToUpdate");
+
+      AppUtilities.logger.d("$orderId was removed from ${productType.name}");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
     return false;
   }

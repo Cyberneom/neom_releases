@@ -33,7 +33,7 @@ class InvoiceItem extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   Text(
-                    '${invoice.payment!.price.currency.name}${invoice.payment!.finalAmount}',
+                    '${invoice.payment!.price!.amount} ${invoice.payment!.price!.currency.name}',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],
@@ -57,12 +57,14 @@ class InvoiceItem extends StatelessWidget {
                   Text.rich(
                     TextSpan(
                       children: [
+                        //TODO VERIFY IF THIS VIEW IS NECESSARY
+                        // AND IF SHOWING PRODUCT TYPE IS NECESSARRY
                         TextSpan(
                           text: 'Services type: ',
                           style: Theme.of(context).textTheme.titleLarge,
                         ),
                         TextSpan(
-                          text: invoice.payment!.type.name,
+                          text: invoice.orderId,
                           style: Theme.of(context)
                               .textTheme
                               .titleLarge!

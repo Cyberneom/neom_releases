@@ -10,13 +10,12 @@ import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
 import 'package:neom_commons/core/utils/enums/product_type.dart';
 
-import '../data/firestore/order_firestore.dart';
-import '../data/firestore/product_firestore.dart';
-import '../domain/models/app_product.dart';
-import '../domain/models/payment.dart';
-import '../domain/models/purchase_order.dart';
-import '../domain/use_cases/wallet_service.dart';
-import '../utils/enums/payment_type.dart';
+import '../../data/firestore/order_firestore.dart';
+import '../../data/firestore/product_firestore.dart';
+import '../../domain/models/app_product.dart';
+import '../../domain/models/payment.dart';
+import '../../domain/models/purchase_order.dart';
+import '../../domain/use_cases/wallet_service.dart';
 
 class WalletController extends GetxController with GetTickerProviderStateMixin implements WalletService  {
 
@@ -74,13 +73,12 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
     logger.d("Wallet Controller");
     try {
       profile = userController.profile;
-      wallet = userController.user!.wallet;
+      wallet = userController.user.wallet;
       tabController = TabController(
         length: 3,
         vsync: this,
       );
       tabController.addListener(_tabChanged);
-      payment.type = PaymentType.product;
       payment.from = profile.id;
     } catch (e) {
       logger.e(e);
@@ -94,11 +92,11 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
 
     try {
       appCoinProducts = await ProductFirestore().retrieveProductsByType(
-          type: ProductType.coins
+          type: ProductType.coin
       );
 
       appCoinStaticProducts =  await ProductFirestore().retrieveProductsByType(
-          type: ProductType.coins
+          type: ProductType.coin
       );
       
       if(appCoinProducts.isNotEmpty) {
@@ -110,7 +108,7 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
       }
 
 
-      orders = await OrderFirestore().retrieveFromList(userController.user!.orderIds);
+      orders = await OrderFirestore().retrieveFromList(userController.user.orderIds);
       List<PurchaseOrder> ordersToSort = orders.values.toList();
       ordersToSort.sort((a, b) => a.createdTime.compareTo(b.createdTime));
       orders.clear();

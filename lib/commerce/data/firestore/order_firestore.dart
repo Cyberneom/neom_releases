@@ -9,47 +9,42 @@ import '../../domain/repository/order_repository.dart';
 
 class OrderFirestore implements OrderRepository {
 
-  var logger = AppUtilities.logger;
   final orderReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.orders);
 
   @override
   Future<String> insert(PurchaseOrder order) async {
-    logger.d("Inserting order ${order.id}");
-    String orderId = "";
+    AppUtilities.logger.d("Inserting order ${order.id}");
 
     try {
 
       if(order.id.isNotEmpty) {
         await orderReference.doc(order.id).set(order.toJSON());
-        orderId = order.id;
       } else {
-        DocumentReference documentReference = await orderReference
-            .add(order.toJSON());
-        orderId = documentReference.id;
-        order.id = orderId;
+        DocumentReference documentReference = await orderReference.add(order.toJSON());
+        order.id = documentReference.id;
 
       }
-      logger.d("Order for ${order.description} was added with id ${order.id}");
+      AppUtilities.logger.d("Order for ${order.description} was added with id ${order.id}");
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
-    return orderId;
+    return order.id;
 
   }
 
 
   @override
   Future<bool> remove(PurchaseOrder order) async {
-    logger.d("Removing product ${order.id}");
+    AppUtilities.logger.d("Removing product ${order.id}");
 
     try {
       await orderReference.doc(order.id).delete();
-      logger.d("Order ${order.id} was removed");
+      AppUtilities.logger.d("Order ${order.id} was removed");
       return true;
 
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
     return false;
   }
@@ -57,7 +52,7 @@ class OrderFirestore implements OrderRepository {
 
   @override
   Future<PurchaseOrder> retrieveOrder(String orderId) async {
-    logger.d("Retrieving Order for id $orderId");
+    AppUtilities.logger.d("Retrieving Order for id $orderId");
     PurchaseOrder order = PurchaseOrder();
 
     try {
@@ -65,17 +60,17 @@ class OrderFirestore implements OrderRepository {
       DocumentSnapshot documentSnapshot = await orderReference.doc(orderId).get();
 
       if (documentSnapshot.exists) {
-        logger.d("Snapshot is not empty");
+        AppUtilities.logger.d("Snapshot is not empty");
           order = PurchaseOrder.fromJSON(documentSnapshot.data());
           order.id = documentSnapshot.id;
-          logger.d(order.toString());
-        logger.d("Order ${order.id} was retrieved");
+          AppUtilities.logger.d(order.toString());
+        AppUtilities.logger.d("Order ${order.id} was retrieved");
       } else {
-        logger.w("Order ${order.id} was not found");
+        AppUtilities.logger.w("Order ${order.id} was not found");
       }
 
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
     return order;
   }
@@ -83,7 +78,7 @@ class OrderFirestore implements OrderRepository {
 
   @override
   Future<Map<String, PurchaseOrder>> retrieveFromList(List<String> orderIds) async {
-    logger.d("Getting orders from list");
+    AppUtilities.logger.d("Getting orders from list");
 
     Map<String, PurchaseOrder> orders = {};
 
@@ -91,20 +86,20 @@ class OrderFirestore implements OrderRepository {
       QuerySnapshot querySnapshot = await orderReference.get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("QuerySnapshot is not empty");
+        AppUtilities.logger.d("QuerySnapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
           if(orderIds.contains(documentSnapshot.id)){
             PurchaseOrder order = PurchaseOrder.fromJSON(documentSnapshot.data());
             order.id = documentSnapshot.id;
-            logger.d("Order ${order.id} was retrieved with details");
+            AppUtilities.logger.d("Order ${order.id} was retrieved with details");
             orders[order.id] = order;
           }
         }
       }
 
-      logger.d("${orders.length} Orders were retrieved");
+      AppUtilities.logger.d("${orders.length} Orders were retrieved");
     } catch (e) {
-      logger.e(e);
+      AppUtilities.logger.e(e);
     }
     return orders;
   }
@@ -113,7 +108,7 @@ class OrderFirestore implements OrderRepository {
 
   @override
   Future<bool> addInvoiceId({required String orderId, required String invoiceId}) async {
-    logger.d("Invoice $invoiceId would be added to order $orderId");
+    AppUtilities.logger.d("Invoice $invoiceId would be added to order $orderId");
 
     try {
       DocumentSnapshot documentSnapshot = await orderReference
@@ -122,10 +117,10 @@ class OrderFirestore implements OrderRepository {
       await documentSnapshot.reference.update({
         AppFirestoreConstants.invoiceIds: FieldValue.arrayUnion([invoiceId])
       });
-      logger.d("Invoice $invoiceId is now at Order $orderId");
+      AppUtilities.logger.d("Invoice $invoiceId is now at Order $orderId");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return false;
@@ -134,7 +129,7 @@ class OrderFirestore implements OrderRepository {
 
   @override
   Future<bool> removeInvoiceId({required String orderId, required String invoiceId}) async {
-    logger.d("Invoice $invoiceId would be removed from order $orderId");
+    AppUtilities.logger.d("Invoice $invoiceId would be removed from order $orderId");
 
     try {
       DocumentSnapshot documentSnapshot = await orderReference
@@ -143,10 +138,10 @@ class OrderFirestore implements OrderRepository {
       await documentSnapshot.reference.update({
         AppFirestoreConstants.invoiceIds: FieldValue.arrayRemove([invoiceId])
       });
-      logger.d("Invoice $invoiceId was removed from Order $orderId");
+      AppUtilities.logger.d("Invoice $invoiceId was removed from Order $orderId");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return false;
@@ -155,7 +150,7 @@ class OrderFirestore implements OrderRepository {
 
   @override
   Future<bool> addPaymentId({required String orderId, required String paymentId}) async {
-    logger.d("Payment $paymentId would be added to order $orderId");
+    AppUtilities.logger.d("Payment $paymentId would be added to order $orderId");
 
     try {
       DocumentSnapshot documentSnapshot = await orderReference
@@ -164,10 +159,10 @@ class OrderFirestore implements OrderRepository {
       await documentSnapshot.reference.update({
         AppFirestoreConstants.paymentIds: FieldValue.arrayUnion([paymentId])
       });
-      logger.d("Payment $paymentId is now at Order $orderId");
+      AppUtilities.logger.d("Payment $paymentId is now at Order $orderId");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return false;
@@ -176,7 +171,7 @@ class OrderFirestore implements OrderRepository {
 
   @override
   Future<bool> removePaymentId({required String orderId, required String paymentId}) async {
-    logger.d("Payment $paymentId would be removed from order $orderId");
+    AppUtilities.logger.d("Payment $paymentId would be removed from order $orderId");
 
     try {
       DocumentSnapshot documentSnapshot = await orderReference
@@ -185,10 +180,10 @@ class OrderFirestore implements OrderRepository {
       await documentSnapshot.reference.update({
         AppFirestoreConstants.paymentIds: FieldValue.arrayRemove([paymentId])
       });
-      logger.d("Payment $paymentId was removed from Order $orderId");
+      AppUtilities.logger.d("Payment $paymentId was removed from Order $orderId");
       return true;
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return false;

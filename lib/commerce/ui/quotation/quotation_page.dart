@@ -206,7 +206,7 @@ class QuotationPage extends StatelessWidget {
                           fontWeight: FontWeight.w400),
                     ) : const SizedBox.shrink(),
                     const Divider(),
-                    AppFlavour.appInUse == AppInUse.e && _.userController.user!.userRole != UserRole.subscriber ?
+                    AppFlavour.appInUse == AppInUse.e && _.userController.user.userRole != UserRole.subscriber ?
                     Column(
                       children: [
                         buildPhoneField(quotationController: _),
@@ -219,7 +219,7 @@ class QuotationPage extends StatelessWidget {
                           color: AppColor.bondiBlue
                       ),
                       child: InkWell(
-                        child: Text(_.userController.user!.userRole == UserRole.subscriber ?
+                        child: Text(_.userController.user.userRole == UserRole.subscriber ?
                         AppTranslationConstants.contactUsViaWhatsapp.tr : "${AppTranslationConstants.send.tr} ${AppTranslationConstants.whatsappQuotation.tr}",
                           style: const TextStyle(color: Colors.white),),
                         onTap: () {
