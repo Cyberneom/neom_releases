@@ -3,31 +3,35 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:neom_commons/core/app_flavour.dart';
+import 'package:neom_commons/core/domain/model/app_release_item.dart';
+import 'package:neom_commons/core/domain/model/app_user.dart';
+import 'package:neom_commons/core/domain/model/woo/woo_product.dart';
+import 'package:neom_commons/core/domain/model/woo/woo_product_attribute.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
 
 import '../../domain/model/order/woo_billing.dart';
 import '../../domain/model/order/woo_order.dart';
 import '../../domain/model/order/woo_order_line_item.dart';
 import '../../domain/model/order/woo_shipping.dart';
+import '../../utils/constants/woo_attribute_constants.dart';
+import '../../utils/constants/woo_constants.dart';
 import '../../utils/enums/woo_order_status.dart';
 import '../../utils/enums/woo_payment_method.dart';
 import 'woo_products_api.dart';
 
 class WooOrdersApi {
 
-  static Future<void> createOrder(String email, List<WooOrderLineItem> orderLineItems,
-      {String? customerId, WooBilling? billingAddress, WooShipping? shippingAddress}) async {
+  static Future<String> createOrder(String email, List<WooOrderLineItem> orderLineItems, {
+    String? customerId, WooBilling? billingAddress, WooShipping? shippingAddress, WooOrderStatus orderStatus = WooOrderStatus.processing}) async {
 
     String url = '${AppFlavour.getWooUrl()}/orders';
     String credentials = base64Encode(utf8.encode('${AppFlavour.getWooClientKey()}:${AppFlavour.getWooClientSecret()}'));
 
 
     WooOrder newOrder = WooOrder(
-      // customerId: customerId,
-      // customerEmail: email,
-      paymentMethod: WooPaymentMethod.bacs.toString(),
-      paymentMethodTitle: WooPaymentMethod.bacs.toString(),
-      status: WooOrderStatus.processing.toString(),
+      paymentMethod: WooPaymentMethod.bacs.name,
+      paymentMethodTitle: WooPaymentMethod.bacs.name,
+      status: orderStatus.value,
       lineItems: orderLineItems,
       billing: billingAddress,
       shipping: shippingAddress,
@@ -42,12 +46,20 @@ class WooOrdersApi {
       body: jsonEncode(newOrder.toJson()),
     );
 
+    String orderId = '';
+
     if (response.statusCode == 201) {
       AppUtilities.logger.i('Order created successfully!');
+      // Decodifica la respuesta JSON
+      final responseData = jsonDecode(response.body);
+      // Obtén el orderId de la respuesta
+      orderId = responseData['id'].toString();
     } else {
-      AppUtilities.logger.i('Failed to create order: ${response.statusCode}');
-      AppUtilities.logger.i('Response: ${response.body}');
+      AppUtilities.logger.e('Failed to create order: ${response.statusCode}');
+      AppUtilities.logger.e('Response: ${response.body}');
     }
+
+    return orderId;
   }
 
   static Future<List<WooOrder>> getOrders({perPage = 25, page = 1, WooOrderStatus? status}) async {
@@ -87,15 +99,36 @@ class WooOrdersApi {
     return wooOrders;
   }
 
-  static Future<void> processNupaleOrder(int productId, String monthYear, int itemId, int quantity) async {
-    String variationId = await WooProductsApi.getVariationId(productId, monthYear, optionId: itemId);
+  static Future<String> createNupaleOrder(AppUser user, String itemName, int quantity) async {
+    AppUtilities.logger.d('Processing Nupale Session Order of $quantity for $itemName');
 
-    if (variationId.isEmpty) {
-      // Variación no existe, crear variación y luego orden
-      variationId = await WooProductsApi.createVariation(productId, monthYear, [itemId.toString()]);
+    String orderId = '';
+    String variationId = await WooProductsApi.getNupaleVariationId(itemName);
+
+    if(variationId.isNotEmpty) {
+      List<WooOrderLineItem> lineItems = [
+        WooOrderLineItem(
+          productId: WooConstants.nupaleProductId,
+          variationId: int.parse(variationId),
+          quantity: quantity,
+        )
+      ];
+
+      WooBilling billingAddress = WooBilling(
+          firstName: user.name,
+          lastName: user.lastName,
+          address1: '',
+          city: user.homeTown,
+          postcode: '',
+          country: user.countryCode,
+          email: user.email,
+          phone: user.phoneNumber);
+
+      orderId = await createOrder(user.email, lineItems, billingAddress: billingAddress, orderStatus: WooOrderStatus.nupaleSession);
+
     }
-    List<WooOrderLineItem> lineItems = [WooOrderLineItem(productId: productId, variationId: itemId, quantity: quantity,)];
-    await createOrder('escritoresmxi@gmail.com', lineItems);
+
+    return orderId;
   }
 
 }

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:neom_commons/core/data/implementations/user_controller.dart';
-import 'package:neom_commons/core/domain/model/app_profile.dart';
 import 'package:neom_commons/core/domain/model/wallet.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
@@ -19,69 +18,39 @@ import '../../domain/use_cases/wallet_service.dart';
 
 class WalletController extends GetxController with GetTickerProviderStateMixin implements WalletService  {
 
-  final logger = AppUtilities.logger;
   final userController = Get.find<UserController>();
 
-  final RxBool _isLoading = true.obs;
-  bool get isLoading => _isLoading.value;
-  set isLoading(bool isLoading) => _isLoading.value = isLoading;
-
-  final Rx<AppProfile> _profile = AppProfile().obs;
-  AppProfile get profile => _profile.value;
-  set profile(AppProfile profile) => _profile.value = profile;
-
-  final Rx<Wallet> _wallet = Wallet().obs;
-  Wallet get wallet => _wallet.value;
-  set wallet(Wallet wallet) => _wallet.value = wallet;
-
-  final RxMap<String, PurchaseOrder> _orders = <String, PurchaseOrder>{}.obs;
-  Map<String, PurchaseOrder> get orders => _orders;
-  set orders(Map<String, PurchaseOrder> orders) => _orders.value = orders;
+  bool isLoading = true;
+  Wallet wallet = Wallet();
+  Map<String, PurchaseOrder> orders = {};
 
   late TabController tabController;
 
-  final Rx<AppProduct> _appCoinProduct = AppProduct().obs;
-  AppProduct get appCoinProduct => _appCoinProduct.value;
-  set appCoinProduct(AppProduct appCoinProduct) => _appCoinProduct.value = appCoinProduct;
+  AppProduct appCoinProduct = AppProduct();
+  List<AppProduct> appCoinProducts = [];
+  List<AppProduct> appCoinStaticProducts = [];
+  double paymentAmount = 0.0;
 
-  final RxList<AppProduct> _appCoinProducts = <AppProduct>[].obs;
-  List<AppProduct> get appCoinProducts =>  _appCoinProducts;
-  set appCoinProducts(List<AppProduct> appCoinProducts) => _appCoinProducts.value = appCoinProducts;
+  Rx<AppCurrency> paymentCurrency = AppCurrency.mxn.obs;
 
-  final RxList<AppProduct> _appCoinStaticProducts = <AppProduct>[].obs;
-  List<AppProduct> get appCoinStaticProducts =>  _appCoinStaticProducts;
-  set appCoinStaticProducts(List<AppProduct> appCoinStaticProducts) => _appCoinStaticProducts.value = appCoinStaticProducts;
+  bool isButtonDisabled = false;
   
-  final RxDouble _paymentAmount = 0.0.obs;
-  double get paymentAmount => _paymentAmount.value;
-  set paymentAmount(double paymentAmount) => _paymentAmount.value = paymentAmount;
-
-  final Rx<AppCurrency> _paymentCurrency = AppCurrency.mxn.obs;
-  AppCurrency get paymentCurrency => _paymentCurrency.value;
-  set paymentCurrency(AppCurrency paymentCurrency) => _paymentCurrency.value = paymentCurrency;
-
-  final RxBool _isButtonDisabled = false.obs;
-  bool get isButtonDisabled => _isButtonDisabled.value;
-  set isButtonDisabled(bool isButtonDisabled) => _isButtonDisabled.value = isButtonDisabled;
-
   Payment payment = Payment();
-
 
   @override
   void onInit() async {
     super.onInit();
-    logger.d("Wallet Controller");
+    AppUtilities.logger.d("Wallet Controller");
     try {
-      profile = userController.profile;
       wallet = userController.user.wallet;
       tabController = TabController(
         length: 3,
         vsync: this,
       );
       tabController.addListener(_tabChanged);
-      payment.from = profile.id;
+      payment.from = userController.user.email;
     } catch (e) {
-      logger.e(e);
+      AppUtilities.logger.e(e);
     }
 
   }
@@ -103,7 +72,7 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
         appCoinProducts.sort((a, b) => a.qty.compareTo(b.qty));
         appCoinProduct = appCoinProducts.first;
 
-        paymentCurrency = appCoinProduct.salePrice?.currency ?? AppCurrency.mxn;
+        paymentCurrency.value = appCoinProduct.salePrice?.currency ?? AppCurrency.mxn;
         paymentAmount = appCoinProduct.salePrice?.amount ?? 0;
       }
 
@@ -117,7 +86,7 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
       }
 
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     isLoading = false;
@@ -134,20 +103,20 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
 
   void _tabChanged() {
     if (tabController.indexIsChanging) {
-      logger.d('tabChanged: ${tabController.index}');
+      AppUtilities.logger.d('tabChanged: ${tabController.index}');
     }
   }
 
   @override
   void changeAppCoinProduct(AppProduct selectedProduct) {
-    logger.d("Changing appCoin Qty to acquire to ${selectedProduct.qty}");
+    AppUtilities.logger.d("Changing appCoin Qty to acquire to ${selectedProduct.qty}");
 
     // newGigCoinProduct = gigCoinProducts.where(
     //         (product) => product.id == newGigCoinProduct.id).first;
     
     try {
       appCoinProduct = selectedProduct;
-      if(appCoinProduct.regularPrice!.currency != paymentCurrency) {
+      if(appCoinProduct.regularPrice!.currency != paymentCurrency.value) {
         // selectedProduct = gigCoinStaticProducts.where(
         //         (product) => product.id == selectedProduct.id).first;
         setActualCurrency(productCurrency: appCoinProduct.regularPrice!.currency);
@@ -161,7 +130,7 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
       appCoinProducts.add(appCoinProduct);
       appCoinProducts.sort((a, b) => a.qty.compareTo(b.qty));
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     update([AppPageIdConstants.walletHistory]);
@@ -172,16 +141,16 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
 
     try {
 
-      if(productCurrency != paymentCurrency) {
-        logger.d("Changing currency of product from ${productCurrency.name} to $paymentCurrency");
-        appCoinProduct.regularPrice!.currency = paymentCurrency;
-        appCoinProduct.salePrice!.currency = paymentCurrency;
+      if(productCurrency != paymentCurrency.value) {
+        AppUtilities.logger.d("Changing currency of product from ${productCurrency.name} to $paymentCurrency");
+        appCoinProduct.regularPrice!.currency = paymentCurrency.value;
+        appCoinProduct.salePrice!.currency = paymentCurrency.value;
         changePaymentAmount();
       } else {
-        logger.d("Product Currency is the same one as actual: $paymentCurrency");
+        AppUtilities.logger.d("Product Currency is the same one as actual: $paymentCurrency");
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     update([AppPageIdConstants.walletHistory]);
@@ -192,17 +161,17 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
 
     try {
 
-      if(newCurrency != paymentCurrency) {
-        logger.d("Changing currency from $paymentCurrency to ${newCurrency.name}");
-        paymentCurrency = newCurrency;
-        appCoinProduct.regularPrice!.currency = paymentCurrency;
-        appCoinProduct.salePrice!.currency = paymentCurrency;
+      if(newCurrency != paymentCurrency.value) {
+        AppUtilities.logger.d("Changing currency from $paymentCurrency to ${newCurrency.name}");
+        paymentCurrency.value = newCurrency;
+        appCoinProduct.regularPrice!.currency = paymentCurrency.value;
+        appCoinProduct.salePrice!.currency = paymentCurrency.value;
         changePaymentAmount();
       } else {
-        logger.d("Payment Currency is the same one: $paymentCurrency");
+        AppUtilities.logger.d("Payment Currency is the same one: $paymentCurrency");
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     update([AppPageIdConstants.walletHistory]);
@@ -218,13 +187,13 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
 
     try {
       if(paymentAmount != newAmount) {
-        logger.d("Changing paymentAmount from $paymentAmount");
+        AppUtilities.logger.d("Changing paymentAmount from $paymentAmount");
         double originalRegularAmount = appCoinStaticProducts.where(
                 (product) => product.id == appCoinProduct.id).first.regularPrice!.amount;
         double originalSaleAmount = appCoinStaticProducts.where(
                 (product) => product.id == appCoinProduct.id).first.salePrice!.amount;
-        logger.d("Original regular amount $originalRegularAmount & Original sale amount $originalSaleAmount");
-        switch(paymentCurrency) {
+        AppUtilities.logger.d("Original regular amount $originalRegularAmount & Original sale amount $originalSaleAmount");
+        switch(paymentCurrency.value) {
           case (AppCurrency.usd):
             newRegularAmount = originalRegularAmount
                 * AppPaymentConstants.mxnToUsd;
@@ -259,17 +228,17 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
           newSaleAmount = newSaleAmount.ceilToDouble();
           newRegularAmount = newRegularAmount.ceilToDouble();
           paymentAmount = newSaleAmount;
-          logger.d("Actual regular amount ${appCoinProduct.regularPrice!.amount}"
+          AppUtilities.logger.d("Actual regular amount ${appCoinProduct.regularPrice!.amount}"
               " & Actual sale amount ${appCoinProduct.salePrice!.amount}");
-          logger.d("New regular amount $newRegularAmount & New sale amount $newSaleAmount");
+          AppUtilities.logger.d("New regular amount $newRegularAmount & New sale amount $newSaleAmount");
           appCoinProduct.regularPrice!.amount = newRegularAmount;
           appCoinProduct.salePrice!.amount = newSaleAmount;
         }
       } else {
-        logger.d("Payment amount is the same one: $paymentAmount");
+        AppUtilities.logger.d("Payment amount is the same one: $paymentAmount");
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     update([AppPageIdConstants.walletHistory]);
@@ -278,14 +247,14 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
 
   @override
   Future<void> payAppProduct(BuildContext context) async {
-    logger.d("Entering payAppProduct Method");
+    AppUtilities.logger.d("Entering payAppProduct Method");
 
     try {
       appCoinProduct.salePrice!.amount = paymentAmount;
-      appCoinProduct.salePrice!.currency = paymentCurrency;
+      appCoinProduct.salePrice!.currency = paymentCurrency.value;
       Get.toNamed(AppRouteConstants.orderConfirmation, arguments: [appCoinProduct]);
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     update([AppPageIdConstants.walletHistory]);

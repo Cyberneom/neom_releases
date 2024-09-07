@@ -8,9 +8,9 @@ part of 'woo_order_refund.dart';
 
 WooOrderRefund _$WooOrderRefundFromJson(Map<String, dynamic> json) =>
     WooOrderRefund(
-      id: (json['id'] as num).toInt(),
-      reason: json['reason'] as String,
-      total: json['total'] as String,
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      reason: json['reason'] as String? ?? '',
+      total: json['total'] as String? ?? '',
     );
 
 Map<String, dynamic> _$WooOrderRefundToJson(WooOrderRefund instance) =>

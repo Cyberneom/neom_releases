@@ -65,7 +65,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
     try {
 
       profile = userController.user.profiles.first;
-      payment.from = profile.id;
+      payment.from = userController.user.email;
 
       if(Get.arguments != null && Get.arguments.isNotEmpty) {
         if (Get.arguments[0] is AppProduct) {
@@ -73,7 +73,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
           order.customerEmail = userController.user.email;
           order.description = product.name;
           order.product = product;
-          payment.to = product.ownerId;
+          payment.to = product.ownerEmail ?? '';
 
           if(product.type == ProductType.event) {
             AppCommerceConstants.eventCoverLevels.forEach((key, value) {

@@ -8,18 +8,20 @@ part of 'woo_order_fee_line.dart';
 
 WooOrderFeeLine _$WooOrderFeeLineFromJson(Map<String, dynamic> json) =>
     WooOrderFeeLine(
-      id: (json['id'] as num).toInt(),
-      name: json['name'] as String,
-      taxClass: json['tax_class'] as String,
-      taxStatus: json['tax_status'] as String,
-      total: json['total'] as String,
-      taxTotal: json['tax_total'] as String,
-      taxes: (json['taxes'] as List<dynamic>)
-          .map((e) => WooOrderTax.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      metaData: (json['meta_data'] as List<dynamic>)
-          .map((e) => WooOrderMetaData.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      name: json['name'] as String? ?? '',
+      taxClass: json['tax_class'] as String? ?? '',
+      taxStatus: json['tax_status'] as String? ?? '',
+      total: json['total'] as String? ?? '',
+      taxTotal: json['tax_total'] as String? ?? '',
+      taxes: (json['taxes'] as List<dynamic>?)
+              ?.map((e) => WooOrderTax.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      metaData: (json['meta_data'] as List<dynamic>?)
+              ?.map((e) => WooOrderMetaData.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$WooOrderFeeLineToJson(WooOrderFeeLine instance) =>

@@ -8,13 +8,14 @@ part of 'woo_order_coupon_line.dart';
 
 WooOrderCouponLine _$WooOrderCouponLineFromJson(Map<String, dynamic> json) =>
     WooOrderCouponLine(
-      id: (json['id'] as num).toInt(),
-      code: json['code'] as String,
-      discount: json['discount'] as String,
-      discountTax: json['discount_tax'] as String,
-      metaData: (json['meta_data'] as List<dynamic>)
-          .map((e) => WooOrderMetaData.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      code: json['code'] as String? ?? '',
+      discount: json['discount'] as String? ?? '',
+      discountTax: json['discount_tax'] as String? ?? '',
+      metaData: (json['meta_data'] as List<dynamic>?)
+              ?.map((e) => WooOrderMetaData.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$WooOrderCouponLineToJson(WooOrderCouponLine instance) =>

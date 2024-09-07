@@ -8,16 +8,17 @@ part of 'woo_order_tax_line.dart';
 
 WooOrderTaxLine _$WooOrderTaxLineFromJson(Map<String, dynamic> json) =>
     WooOrderTaxLine(
-      id: (json['id'] as num).toInt(),
-      rateCode: json['rate_code'] as String,
-      rateId: json['rate_id'] as String,
-      label: json['label'] as String,
-      compound: json['compound'] as bool,
-      taxTotal: json['tax_total'] as String,
-      shippingTaxTotal: json['shipping_tax_total'] as String,
-      metaData: (json['meta_data'] as List<dynamic>)
-          .map((e) => WooOrderMetaData.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      rateCode: json['rate_code'] as String? ?? '',
+      rateId: json['rate_id'] as String? ?? '',
+      label: json['label'] as String? ?? '',
+      compound: json['compound'] as bool? ?? false,
+      taxTotal: json['tax_total'] as String? ?? '',
+      shippingTaxTotal: json['shipping_tax_total'] as String? ?? '',
+      metaData: (json['meta_data'] as List<dynamic>?)
+              ?.map((e) => WooOrderMetaData.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$WooOrderTaxLineToJson(WooOrderTaxLine instance) =>

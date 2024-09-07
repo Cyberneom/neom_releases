@@ -2,11 +2,11 @@ class WooBilling {
 
   final String firstName;
   final String lastName;
-  final String? company;
+  String company;
   final String address1;
-  final String? address2;
+  final String address2;
   final String city;
-  final String? state; //MX AS COUNTRY MX
+  final String state; //MX AS COUNTRY MX
   final String postcode;
   final String country;
   final String email;
@@ -15,11 +15,11 @@ class WooBilling {
   WooBilling({
     required this.firstName,
     required this.lastName,
-    this.company,
+    this.company = '',
     required this.address1,
-    this.address2,
+    this.address2 = '',
     required this.city,
-    this.state,
+    this.state = 'MX',
     required this.postcode,
     required this.country,
     required this.email,

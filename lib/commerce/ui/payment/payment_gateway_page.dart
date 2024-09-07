@@ -32,6 +32,7 @@ class PaymentGatewayPage extends StatelessWidget {
       init: PaymentGatewayController(),
       builder: (_) => Scaffold(
         appBar: AppBarChild(title: AppTranslationConstants.paymentDetails.tr),
+        backgroundColor: AppColor.main50,
         body: SingleChildScrollView(
           controller: ScrollController(initialScrollOffset: 100),
           child: Container(

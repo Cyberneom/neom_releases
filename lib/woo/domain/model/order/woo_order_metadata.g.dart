@@ -8,8 +8,8 @@ part of 'woo_order_metadata.dart';
 
 WooOrderMetaData _$WooOrderMetaDataFromJson(Map<String, dynamic> json) =>
     WooOrderMetaData(
-      id: (json['id'] as num).toInt(),
-      key: json['key'] as String,
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      key: json['key'] as String? ?? '',
       value: json['value'],
     );
 

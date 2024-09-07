@@ -6,6 +6,7 @@ import 'package:neom_commons/core/data/firestore/constants/app_firestore_constan
 import 'package:neom_commons/core/utils/app_utilities.dart';
 import '../../domain/models/purchase_order.dart';
 import '../../domain/repository/order_repository.dart';
+import 'package:uuid/uuid.dart'; // Add this import for UUID generation
 
 class OrderFirestore implements OrderRepository {
 
@@ -15,21 +16,25 @@ class OrderFirestore implements OrderRepository {
   Future<String> insert(PurchaseOrder order) async {
     AppUtilities.logger.d("Inserting order ${order.id}");
 
+    String orderId = '';
     try {
 
       if(order.id.isNotEmpty) {
         await orderReference.doc(order.id).set(order.toJSON());
       } else {
-        DocumentReference documentReference = await orderReference.add(order.toJSON());
-        order.id = documentReference.id;
-
+        var uuid = const Uuid();
+        order.id = uuid.v4();
+        await orderReference.doc(order.id).set(order.toJSON());
+        // DocumentReference documentReference = await orderReference.add(order.toJSON());
+        // order.id = documentReference.id;
       }
-      AppUtilities.logger.d("Order for ${order.description} was added with id ${order.id}");
+      orderId = order.id;
+      AppUtilities.logger.d("Order for ${order.description} was added with id $orderId");
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
 
-    return order.id;
+    return orderId;
 
   }
 
@@ -89,9 +94,10 @@ class OrderFirestore implements OrderRepository {
         AppUtilities.logger.d("QuerySnapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
           if(orderIds.contains(documentSnapshot.id)){
+            AppUtilities.logger.d("DocumentSnapshot with ${documentSnapshot.id} about to be parsed");
             PurchaseOrder order = PurchaseOrder.fromJSON(documentSnapshot.data());
             order.id = documentSnapshot.id;
-            AppUtilities.logger.d("Order ${order.id} was retrieved with details");
+            AppUtilities.logger.t("Order ${order.id} was retrieved with details");
             orders[order.id] = order;
           }
         }

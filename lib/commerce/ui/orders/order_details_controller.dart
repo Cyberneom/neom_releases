@@ -40,7 +40,7 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
 
   String displayedName = "";
   String displayedDescription = "";
-  String displayedImgUrl = "";
+  // String displayedImgUrl = "";
 
 
   @override

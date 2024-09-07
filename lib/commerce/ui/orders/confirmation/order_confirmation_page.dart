@@ -32,7 +32,7 @@ class OrderConfirmationPage extends StatelessWidget {
             decoration: AppTheme.appBoxDecoration,
             padding: const EdgeInsets.all(20),
             height: AppTheme.fullHeight(context),
-            child: Obx(()=> _.isLoading ? const Center(child: CircularProgressIndicator())
+            child: _.isLoading ? const Center(child: CircularProgressIndicator())
                 : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
@@ -261,7 +261,7 @@ class OrderConfirmationPage extends StatelessWidget {
                     ),
                   ) : const SizedBox.shrink()
              ]
-            ),),
+            ),
           ),
         ),
       ),

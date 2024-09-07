@@ -43,17 +43,17 @@ class CommerceRoutes {
     GetPage(
       name: AppRouteConstants.services,
       page: () => const CommerceServicesPage(),
-      transition: Transition.zoom,
+      transition: Transition.leftToRight,
     ),
     GetPage(
       name: AppRouteConstants.quotation,
       page: () => const QuotationPage(),
-      transition: Transition.zoom,
+      transition: Transition.leftToRight,
     ),
     GetPage(
       name: AppRouteConstants.releaseUpload,
       page: () => const ReleaseUploadPage(),
-      transition: Transition.zoom,
+      transition: Transition.leftToRight,
     ),
     GetPage(
       name: AppRouteConstants.releaseUploadType,

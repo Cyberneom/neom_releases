@@ -7,6 +7,7 @@ import 'package:neom_commons/core/utils/constants/app_assets.dart';
 import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
 import 'package:neom_commons/core/utils/enums/product_type.dart';
+import 'package:neom_commons/neom_commons.dart';
 import '../../domain/models/purchase_order.dart';
 
 
@@ -25,7 +26,7 @@ class OrderItem extends StatelessWidget {
     if(order.product?.type == ProductType.coin) {
       leadingImg = Image.asset(AppAssets.appCoin, height: 40);
     } else {
-      leadingImg  = Image.network(order.product!.imgUrl);
+      leadingImg  = Image.network(order.product?.imgUrl.isNotEmpty ?? false ?  order.product!.imgUrl : AppFlavour.getNoImageUrl());
     }
 
     return Padding(

@@ -9,17 +9,19 @@ part of 'woo_order_shipping_line.dart';
 WooOrderShippingLine _$WooOrderShippingLineFromJson(
         Map<String, dynamic> json) =>
     WooOrderShippingLine(
-      id: (json['id'] as num).toInt(),
-      methodTitle: json['method_title'] as String,
-      methodId: json['method_id'] as String,
-      total: json['total'] as String,
-      taxTotal: json['tax_total'] as String,
-      taxes: (json['taxes'] as List<dynamic>)
-          .map((e) => WooOrderTax.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      metaData: (json['meta_data'] as List<dynamic>)
-          .map((e) => WooOrderMetaData.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      methodTitle: json['method_title'] as String? ?? '',
+      methodId: json['method_id'] as String? ?? '',
+      total: json['total'] as String? ?? '',
+      taxTotal: json['tax_total'] as String? ?? '',
+      taxes: (json['taxes'] as List<dynamic>?)
+              ?.map((e) => WooOrderTax.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      metaData: (json['meta_data'] as List<dynamic>?)
+              ?.map((e) => WooOrderMetaData.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
     );
 
 Map<String, dynamic> _$WooOrderShippingLineToJson(

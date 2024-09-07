@@ -22,7 +22,7 @@ class WooOrderLineItem {
   List<WooOrderMetaData> metaData;
   String sku;
   int price;
-  String? parentName;
+  String parentName;
 
   WooOrderLineItem({
     this.id = 0,
@@ -39,7 +39,7 @@ class WooOrderLineItem {
     this.metaData = const [],
     this.sku = '',
     this.price = 0,
-    this.parentName,
+    this.parentName = '',
   });
 
   factory WooOrderLineItem.fromJson(Map<String, dynamic> json) =>

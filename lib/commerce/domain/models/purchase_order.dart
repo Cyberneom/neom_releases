@@ -11,13 +11,13 @@ class PurchaseOrder {
 
   String id;
   String description;
+  String url;
   /// SaleType saleType;
   int createdTime;
   String customerEmail;
   String couponId;
   ///DEPRECATED List<String>? paymentIds;
   List<String>? invoiceIds;
-
   AppProduct? product;
 
   ///DEPRECATED
@@ -28,11 +28,10 @@ class PurchaseOrder {
   GooglePlayPurchaseDetails? googlePlayPurchaseDetails;
   AppStorePurchaseDetails? appStorePurchaseDetails;
 
-
-
   PurchaseOrder({
     this.id = "",
     this.description = "",
+    this.url = '',
     /// this.saleType = SaleType.notDefined,
     this.createdTime = 0,
     this.customerEmail = '',
@@ -49,8 +48,9 @@ class PurchaseOrder {
 
   Map<String, dynamic> toJSON() {
     return <String, dynamic>{
-      //'id': id
+      'id': id,
       'description': description,
+      'url': url,
       /// 'saleType': saleType.name,
       'createdTime': createdTime,
       'customerEmail': customerEmail,
@@ -68,6 +68,7 @@ class PurchaseOrder {
   PurchaseOrder.fromJSON(data) :
     id = data["id"] ?? "",
     description = data["description"] ?? "",
+    url = data["url"] ?? "",
     /// saleType = EnumToString.fromString(SaleType.values, data["saleType"]) ?? SaleType.product,
     createdTime = data["createdTime"] ?? 0,
     customerEmail = data["customerEmail"] ?? "",

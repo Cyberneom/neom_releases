@@ -28,7 +28,7 @@ WooOrderLineItem _$WooOrderLineItemFromJson(Map<String, dynamic> json) =>
           const [],
       sku: json['sku'] as String? ?? '',
       price: (json['price'] as num?)?.toInt() ?? 0,
-      parentName: json['parent_name'] as String?,
+      parentName: json['parent_name'] as String? ?? '',
     );
 
 Map<String, dynamic> _$WooOrderLineItemToJson(WooOrderLineItem instance) =>

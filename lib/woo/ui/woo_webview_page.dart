@@ -19,16 +19,17 @@ class WooWebViewPage extends StatelessWidget {
       builder: (_) => Scaffold(
         backgroundColor: AppColor.main50,
         body: SafeArea(
-          child: PopScope(
-            canPop: _.canPopWebView,
-            onPopInvoked: (didPop) async {
-              if (await _.webViewController.canGoBack()) {
+          child: WillPopScope(
+            onWillPop: () async {
+              if(await _.webViewController.canGoBack()) {
                 await _.webViewController.goBack();
+                return Future.value(false);
               } else {
                 _.setCanPopWebView(true);
+                return Future.value(false);
               }
             },
-            child: _.isLoading ? const AppCircularProgressIndicator() : WebViewWidget(
+            child: _.isLoading ? AppCircularProgressIndicator(subtitle: _.loadingSubtitle) : WebViewWidget(
               controller: _.webViewController,
             ),
           ),

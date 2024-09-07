@@ -29,6 +29,7 @@ class WooWebViewController extends GetxController implements WooWebViewService {
   bool clearCache = true;
   bool clearCookies = true;
   String url = '';
+  String loadingSubtitle = 'Cargando plataforma de compra';
 
   @override
   void onInit() async {
@@ -47,9 +48,9 @@ class WooWebViewController extends GetxController implements WooWebViewService {
           url = Get.arguments[0];
 
         }
-        // if (Get.arguments[1] != null && Get.arguments[1] is PurchaseOrder) {
-        //   order = Get.arguments[1];
-        // }
+        if(Get.arguments[1] != null && Get.arguments[1] is AppReleaseItem) {
+          releaseItem = Get.arguments[1];
+        }
       }
 
       webViewController.setBackgroundColor(AppColor.main50);
@@ -69,6 +70,14 @@ class WooWebViewController extends GetxController implements WooWebViewService {
       NavigationDelegate(
         onPageStarted: (String url) {
           isLoading = true;
+          if(url.contains('carrito')) {
+            loadingSubtitle = 'Dirigiendo a Carrito';
+          } else if(url.contains(WooConstants.checkout)) {
+            loadingSubtitle = 'Dirigiendo a Detalles de Facturación y Envío';
+          } else if(url.contains(WooConstants.ordenRecibida)) {
+            loadingSubtitle = '¡Orden creada satisfactoriamente!\nDirigiendo a detalles del pedido';
+          }
+
           update([AppPageIdConstants.wooWebView]);
         },
         onPageFinished: (String url) async {
@@ -105,8 +114,12 @@ class WooWebViewController extends GetxController implements WooWebViewService {
             canPopWebView = false;
             update([AppPageIdConstants.wooWebView]);
 
-            if(request.url.contains(WooConstants.ordenRecibida)) {
-              createInternalOrder();
+            if(request.url.contains(WooConstants.ordenRecibida) && !request.url.contains(WooConstants.paypal)) {
+              url = request.url;
+              String wooOrderId = await createInternalOrder();
+              userController.addOrderId(wooOrderId);
+              userController.addBoughtItem(releaseItem.id);
+
             }
 
             return NavigationDecision.navigate;
@@ -128,7 +141,7 @@ class WooWebViewController extends GetxController implements WooWebViewService {
   }
 
   @override
-  void createInternalOrder() async {
+  Future<String> createInternalOrder() async {
 
     String orderId = '';
     String orderKey ='' ;
@@ -145,28 +158,34 @@ class WooWebViewController extends GetxController implements WooWebViewService {
       }
     }
 
-    PurchaseOrder order = PurchaseOrder(
-      id: orderId,
-      description: releaseItem.name,
-      createdTime: DateTime.now().millisecondsSinceEpoch,
-      customerEmail: userController.user.email,
-      product: AppProduct.fromReleaseItem(releaseItem),
-      invoiceIds: [url],
-    );
+    if(orderId.isNotEmpty) {
+      PurchaseOrder order = PurchaseOrder(
+        id: orderId,
+        description: releaseItem.name,
+        url: url,
+        createdTime: DateTime.now().millisecondsSinceEpoch,
+        customerEmail: userController.user.email,
+        product: AppProduct.fromReleaseItem(releaseItem),
+        invoiceIds: [url],
+      );
 
-    await OrderFirestore().insert(order);
+      String successfulOrderId = await OrderFirestore().insert(order);
+      if(successfulOrderId.isNotEmpty) {
+        Payment payment = Payment(
+            orderId: orderId,
+            createdTime: DateTime.now().millisecondsSinceEpoch,
+            from: userController.user.email,
+            status: PaymentStatus.completed,
+            price: releaseItem.physicalPrice ?? releaseItem.digitalPrice,
+            secretKey: orderKey
+        );
 
-    Payment payment = Payment(
-      orderId: orderId,
-      createdTime: DateTime.now().millisecondsSinceEpoch,
-      from: userController.user.email,
-      status: PaymentStatus.completed,
-      price: releaseItem.physicalPrice ?? releaseItem.digitalPrice,
-      secretKey: orderKey
-    );
+        PaymentFirestore().insert(payment);
+      }
 
-    await PaymentFirestore().insert(payment);
+    }
 
+    return orderId;
   }
 
 }

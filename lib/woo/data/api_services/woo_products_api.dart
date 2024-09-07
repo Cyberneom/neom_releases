@@ -8,6 +8,7 @@ import 'package:neom_commons/core/domain/model/woo/woo_product.dart';
 import 'package:neom_commons/core/domain/model/woo/woo_product_attribute.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/enums/woo/woo_product_status.dart';
+import '../../utils/constants/woo_attribute_constants.dart';
 import '../../utils/constants/woo_constants.dart';
 
 class WooProductsApi {
@@ -82,10 +83,10 @@ class WooProductsApi {
     try {
       List<WooProductAttribute> totalAttributes = [];
       if(!isNew) {
-        WooProduct? currentProduct = await getProductAttributes(productId);
+        WooProduct? currentProduct = await getProduct(productId);
         if(currentProduct?.attributes?.isNotEmpty ?? false) {
           for(var attribute in attributes) {
-            if(currentProduct!.attributes!. containsKey(attribute.name)) {
+            if(currentProduct!.attributes!.containsKey(attribute.name)) {
               currentProduct.attributes![attribute.name] = attribute;
               attribute.position = position;
               totalAttributes.add(attribute);
@@ -128,7 +129,7 @@ class WooProductsApi {
     }
   }
 
-  static Future<WooProduct?> getProductAttributes(String productId) async {
+  static Future<WooProduct?> getProduct(String productId) async {
 
     String url = '${AppFlavour.getWooUrl()}/products';
     String credentials = base64Encode(utf8.encode('${AppFlavour.getWooClientKey()}:${AppFlavour.getWooClientSecret()}'));
@@ -154,14 +155,14 @@ class WooProductsApi {
     return product;
   }
 
-  // Verificar si la variación existe
-  static Future<String> getVariationId(int productId, String itemId, {optionId = ''}) async {
+  static Future<List<WooProduct>> getVariations(int productId, {int perPage = 100, int page = 1, String searchParam = ''}) async {
 
     String url = '${AppFlavour.getWooUrl()}/products';
     String credentials = base64Encode(utf8.encode('${AppFlavour.getWooClientKey()}:${AppFlavour.getWooClientSecret()}'));
+    List<WooProduct> productVariations = [];
 
     final response = await http.get(
-      Uri.parse('$url/$productId/variations?search=$itemId'),
+      Uri.parse('$url/$productId/variations?page=$page&per_page=$perPage&search=${Uri.encodeComponent(searchParam)}'),
       headers: {
         'Authorization': 'Basic $credentials',
       },
@@ -169,15 +170,14 @@ class WooProductsApi {
 
     if (response.statusCode == 200) {
       List variations = json.decode(response.body);
-      if (variations.isNotEmpty) {
-        return variations.first['id'].toString();
-      }
+      productVariations = variations.map((variation) => WooProduct.fromJSON(variation)).toList();
     }
-    return '';
+
+    return productVariations;
   }
 
   // Crear una nueva variación si no existe
-  static Future<String> createVariation(int productId, String itemId, List<String> options) async {
+  static Future<String> createVariation(String productId, String attributeName, String optionValue, {String sku = ''}) async {
 
     String url = '${AppFlavour.getWooUrl()}/products';
     String credentials = base64Encode(utf8.encode('${AppFlavour.getWooClientKey()}:${AppFlavour.getWooClientSecret()}'));
@@ -191,19 +191,70 @@ class WooProductsApi {
       body: json.encode({
         'attributes': [
           {
-            'name': 'Item ID',
-            'option': itemId,
+            'name': attributeName,
+            'option': optionValue,
           },
         ],
+        'sku': Uri.encodeComponent(productId+'-'+optionValue.toUpperCase()),
+        'virtual': true,
         'regular_price': '0.00', // Establece el precio si es necesario
       }),
     );
 
     if (response.statusCode == 201) {
+      AppUtilities.logger.i('Variation was created');
       final variation = json.decode(response.body);
       return variation['id'].toString();
+    } else {
+      AppUtilities.logger.e('Error creating variation: ${response.statusCode}');
     }
     return '';
   }
+
+  static Future<String> getNupaleVariationId(String itemName) async {
+
+    WooProduct? nupaleProduct = await getProduct(WooConstants.nupaleProductId.toString());
+    List<WooProduct> variations = await getVariations(nupaleProduct!.id, searchParam: itemName.toLowerCase());
+    String variationId = '';
+
+    if(variations.isNotEmpty) {
+      if(variations.length == 1) {
+        AppUtilities.logger.d('A Single Product Variation was retrieved.');
+      } else {
+        AppUtilities.logger.d('${variations.length} Product Variations were retrieved.');
+      }
+      variationId = variations.first.id.toString();
+    } else {
+      AppUtilities.logger.d('Product Variations are empty');
+    }
+
+    if (variationId.isEmpty) {
+      AppUtilities.logger.d('VariationId is empty');
+      variationId = await createNupaleVariation(nupaleProduct, itemName);
+    }
+
+    return variationId;
+  }
+
+  static Future<String> createNupaleVariation(WooProduct nupaleProduct, String itemName) async {
+    /// Variación no existe, crear variación y luego orden
+    WooProductAttribute? currentAttribute = nupaleProduct.attributes?[WooAttributeConstants.itemName];
+    if(currentAttribute != null) {
+      currentAttribute.options.add(itemName);
+      currentAttribute.variation = true;
+    } else {
+      currentAttribute = WooProductAttribute(
+        name: WooAttributeConstants.itemName,
+        options: [itemName],
+        variation: true,
+      );
+    }
+    await WooProductsApi.addAttributesToProduct(nupaleProduct.id.toString(), [currentAttribute]);
+    String variationId = '';
+    variationId = await WooProductsApi.createVariation(nupaleProduct.id.toString(), WooAttributeConstants.itemName, itemName);
+
+    return variationId;
+  }
+
 
 }

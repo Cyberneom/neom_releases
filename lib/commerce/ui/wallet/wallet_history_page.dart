@@ -28,7 +28,7 @@ class WalletHistoryPage extends StatelessWidget {
             preferredSize: const Size.fromHeight(50),
             child: AppBarChild(title: AppTranslationConstants.wallet.tr)
         ),
-        // backgroundColor: AppColor.gigBlue50,
+        backgroundColor: AppColor.main50,
         body: Container(
           decoration: AppTheme.appBoxDecoration,
           height: AppTheme.fullHeight(context),
@@ -137,7 +137,7 @@ class WalletHistoryPage extends StatelessWidget {
                                                   ?? AppCurrency.mxn
                                           );
                                         },
-                                        value: _.paymentCurrency.name,
+                                        value: _.paymentCurrency.value.name,
                                         alignment: Alignment.center,
                                         icon: const Icon(Icons.arrow_downward),
                                         iconSize: 20,
@@ -160,7 +160,7 @@ class WalletHistoryPage extends StatelessWidget {
                                       ),
                                       Row(
                                         children: [
-                                          Text("${CoreUtilities.getCurrencySymbol(_.paymentCurrency)} ${_.paymentAmount}",
+                                          Text("${CoreUtilities.getCurrencySymbol(_.paymentCurrency.value)} ${_.paymentAmount}",
                                             style: const TextStyle(fontSize: 15),
                                           ),
                                         ],

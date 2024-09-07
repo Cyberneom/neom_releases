@@ -7,7 +7,8 @@ enum WooOrderStatus {
   refunded('refunded'),
   failed('failed'),
   autoDraft('auto-draft'),
-  checkoutDraft('checkout-draft');
+  checkoutDraft('checkout-draft'),
+  nupaleSession('nupale-session');
 
   final String value;
   const WooOrderStatus(this.value);

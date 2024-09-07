@@ -188,7 +188,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
       itemCount: _.appReleaseItems.length,
       itemBuilder: (context, index) {
         AppReleaseItem releaseItem = _.appReleaseItems.elementAt(index);
-        String ownerName = releaseItem.ownerName ?? '';
+        String ownerName = releaseItem.ownerName;
 
         return ListTile(
           leading: Image.file(

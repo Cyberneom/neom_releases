@@ -30,6 +30,7 @@ class QuotationPage extends StatelessWidget {
       id: AppPageIdConstants.quotation,
       builder: (_) => Scaffold(
         appBar: AppBarChild(title: AppTranslationConstants.appItemQuotation.tr),
+        backgroundColor: AppColor.main50,
         body: Container(
           decoration: AppTheme.appBoxDecoration,
           child: ListView(

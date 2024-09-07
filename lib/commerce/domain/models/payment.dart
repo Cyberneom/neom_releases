@@ -8,7 +8,7 @@ class Payment {
   String orderId;
   int createdTime;
   String from; ///FROM EMAIL
-  String? to; ///TO EMAIL
+  String to; ///TO EMAIL
   Price? price;
   String secretKey;
   PaymentStatus status;
@@ -23,7 +23,7 @@ class Payment {
     this.orderId = '',
     this.createdTime = 0,
     this.from = '',
-    this.to,
+    this.to = '',
     this.price,
     this.tax = 0,
     this.facilitatorAmount = 0,

@@ -4,6 +4,7 @@ import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/ui/widgets/header_widget.dart';
 import 'package:neom_commons/core/ui/widgets/title_subtitle_row.dart';
+import 'package:neom_commons/core/utils/app_color.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
@@ -16,10 +17,11 @@ class CommerceServicesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<CommerceServicesController>(
-      id: AppPageIdConstants.settingsPrivacy,
+      id: AppPageIdConstants.offeredServices,
       init: CommerceServicesController(),
       builder: (_) => Scaffold(
         appBar: AppBarChild(title: AppTranslationConstants.offeredServices.tr),
+        backgroundColor: AppColor.main50,
         body: Container(
           decoration: AppTheme.appBoxDecoration,
           child: ListView(

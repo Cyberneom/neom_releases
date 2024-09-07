@@ -25,7 +25,7 @@ class AppProduct {
   int createdTime;
   int updatedTime;
 
-  String? ownerId;
+  String? ownerEmail; ///EMAIL OF OWNER
 
 
   AppProduct({
@@ -43,7 +43,8 @@ class AppProduct {
     this.lastReview,
     this.reviewIds,
     this.createdTime = 0,
-    this.updatedTime = 0
+    this.updatedTime = 0,
+    this.ownerEmail
   });
 
   Map<String, dynamic> toJSON() {
@@ -63,6 +64,7 @@ class AppProduct {
       'reviewIds': reviewIds,
       'createdTime': DateTime.now().millisecondsSinceEpoch,
       'updatedTime': DateTime.now().millisecondsSinceEpoch,
+      'ownerEmail': ownerEmail
     };
   }
 
@@ -81,7 +83,8 @@ class AppProduct {
     lastReview = Review.fromJSON(data["lastReview"] ?? {}),
     reviewIds = data["reviewIds"]?.cast<String>(),
     createdTime = data["createdTime"] ?? 0,
-    updatedTime = data["updatedTime"] ?? 0;
+    updatedTime = data["updatedTime"] ?? 0,
+    ownerEmail = data["ownerEmail"] ?? '';
 
   AppProduct.clone(AppProduct product) :
         id = product.id,
@@ -98,7 +101,8 @@ class AppProduct {
         lastReview = product.lastReview,
         reviewIds = product.reviewIds,
         createdTime = product.createdTime,
-        updatedTime = product.updatedTime;
+        updatedTime = product.updatedTime,
+        ownerEmail = product.ownerEmail;
 
   AppProduct.fromReleaseItem(AppReleaseItem releaseItem) :
         id = releaseItem.id,
@@ -109,7 +113,7 @@ class AppProduct {
         salePrice = releaseItem.physicalPrice ?? releaseItem.digitalPrice,
         qty = 1,
         imgUrl = releaseItem.imgUrl,
-        ownerId = releaseItem.ownerId,
+        ownerEmail = releaseItem.ownerEmail,
         numberOfSales = 0,
         createdTime = releaseItem.createdTime,
         isAvailable = true,
@@ -124,11 +128,10 @@ class AppProduct {
         salePrice = event.coverPrice,
         qty = 1,
         imgUrl = event.imgUrl,
-        ownerId = event.owner?.id,
+        ownerEmail = event.ownerEmail,
         numberOfSales = 0,
         createdTime = event.createdTime,
         isAvailable = true,
         updatedTime = 0;
-
 
 }

@@ -12,4 +12,5 @@ class WooAttributeConstants {
   static String publishedYear = 'publishedYear';
   static String productType = 'productType';
 
+  static String itemName = 'itemName';
 }

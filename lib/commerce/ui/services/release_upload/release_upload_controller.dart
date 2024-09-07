@@ -35,6 +35,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   final postUploadController = Get.put(PostUploadController());
 
   AppProfile profile = AppProfile();
+  AppUser user = AppUser();
 
   String backgroundImgUrl = "";
 
@@ -95,6 +96,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     AppUtilities.logger.d("Release Upload Controller Init");
 
     try {
+      user = userController.user;
       profile = userController.profile;
 
       scrollController = ScrollController();
@@ -116,8 +118,8 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       releaseItemlist.appReleaseItems = [];
 
       appReleaseItem.value.digitalPrice = Price(currency: AppCurrency.mxn, amount: double.parse(AppFlavour.getInitialPrice()));
-      appReleaseItem.value.ownerId = profile.id;
-      appReleaseItem.value.ownerName = profile.name;
+      appReleaseItem.value.ownerEmail = user.email;
+      appReleaseItem.value.ownerName =  profile.name;
       appReleaseItem.value.galleryUrls = [profile.photoUrl];
       appReleaseItem.value.categories = [];
       appReleaseItem.value.instruments = [];
@@ -915,7 +917,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         appReleaseItem.value.instruments = bandInstruments;
       }
 
-      appReleaseItem.value.ownerId = selectedBand.value.id;
+      appReleaseItem.value.ownerEmail = selectedBand.value.email;
       appReleaseItem.value.ownerName = selectedBand.value.name;
       appReleaseItem.value.galleryUrls = [selectedBand.value.photoUrl];
       appReleaseItem.value.ownerType = OwnerType.band;
@@ -943,7 +945,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       selectedBand.value = Band();
       bandInstruments = [];
 
-      appReleaseItem.value.ownerId = profile.id;
+      appReleaseItem.value.ownerEmail = user.email;
       appReleaseItem.value.ownerName = profile.name;
       appReleaseItem.value.galleryUrls = [profile.photoUrl];
       appReleaseItem.value.ownerType = OwnerType.profile;
