@@ -10,7 +10,7 @@ class AppCoinProductConstants {
     AppProduct(
       name: "App Coins Pack",
       description: "10 App Coins",
-      type: ProductType.coin,
+      type: ProductType.appCoin,
       regularPrice: Price(currency: AppCurrency.mxn, amount: 50),
       salePrice: Price(currency: AppCurrency.mxn, amount: 50),
       qty: 10,
@@ -19,7 +19,7 @@ class AppCoinProductConstants {
     AppProduct(
       name: "App Coins Pack",
       description: "20 App Coins",
-      type: ProductType.coin,
+      type: ProductType.appCoin,
       regularPrice: Price(currency: AppCurrency.mxn, amount: 100),
       salePrice: Price(currency: AppCurrency.mxn, amount: 90),
       qty: 20,
@@ -28,7 +28,7 @@ class AppCoinProductConstants {
     AppProduct(
       name: "App Coins Pack",
       description: "30 App Coins",
-      type: ProductType.coin,
+      type: ProductType.appCoin,
       regularPrice: Price(currency: AppCurrency.mxn, amount: 150),
       salePrice: Price(currency: AppCurrency.mxn, amount: 130),
       qty: 30,
@@ -37,7 +37,7 @@ class AppCoinProductConstants {
     AppProduct(
       name: "App Coins Pack",
       description: "50 App Coins",
-      type: ProductType.coin,
+      type: ProductType.appCoin,
       regularPrice: Price(currency: AppCurrency.mxn, amount: 250),
       salePrice: Price(currency: AppCurrency.mxn, amount: 220),
       qty: 50,
@@ -46,7 +46,7 @@ class AppCoinProductConstants {
     AppProduct(
       name: "App Coins Pack",
       description: "100 App Coins",
-      type: ProductType.coin,
+      type: ProductType.appCoin,
       regularPrice: Price(currency: AppCurrency.mxn, amount: 500),
       salePrice: Price(currency: AppCurrency.mxn, amount: 400),
       qty: 100,

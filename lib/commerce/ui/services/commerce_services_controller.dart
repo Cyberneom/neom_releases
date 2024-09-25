@@ -1,14 +1,7 @@
-import 'package:enum_to_string/enum_to_string.dart';
-import 'package:geolocator/geolocator.dart';
 import 'package:get/get.dart';
 import 'package:neom_commons/auth/ui/login/login_controller.dart';
-import 'package:neom_commons/core/data/implementations/geolocator_controller.dart';
-import 'package:neom_commons/core/data/implementations/shared_preference_controller.dart';
 import 'package:neom_commons/core/data/implementations/user_controller.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
-import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
-import 'package:neom_commons/core/utils/enums/app_locale.dart';
 
 class CommerceServicesController extends GetxController {
 

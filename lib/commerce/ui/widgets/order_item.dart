@@ -23,7 +23,7 @@ class OrderItem extends StatelessWidget {
 
     Widget leadingImg = const SizedBox.shrink();
 
-    if(order.product?.type == ProductType.coin) {
+    if(order.product?.type == ProductType.appCoin) {
       leadingImg = Image.asset(AppAssets.appCoin, height: 40);
     } else {
       leadingImg  = Image.network(order.product?.imgUrl.isNotEmpty ?? false ?  order.product!.imgUrl : AppFlavour.getNoImageUrl());
@@ -60,6 +60,13 @@ String getAmountToDisplay(PurchaseOrder order) {
   double amount = 0;
   amount = order.product?.salePrice?.amount ?? 0;
 
+  // Check if the amount is an integer
+  if (amount.floor() == amount) {
+    return amount.toInt().toString(); // Convert to integer and format
+  } else {
+    return amount.toStringAsFixed(1); // Format with two decimal places
+  }
+
   ///DEPRECATED
   // switch(order.saleType) {
   //   case SaleType.product:
@@ -86,6 +93,7 @@ String getCurrencyToDisplay(PurchaseOrder order) {
   AppCurrency currency = AppCurrency.appCoin;
   currency = order.product!.salePrice!.currency;
 
+  ///DEPRECATED 090824
   // switch(order.saleType) {
   //   case SaleType.product:
   //

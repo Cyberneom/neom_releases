@@ -23,12 +23,13 @@ class AppCommerceConstants {
   static List<int> appReleaseItemsQty = List<int>.generate(15, (index) => index + 1);
 
   ///This info is needed for quotations.
-  static const double revenuePercentage = 0.3; ///Revenue percentage from service
-  static const int processACost = 15; ///Cost Per Unit of Duration - Previously on 20
-  static const int processBCost = 20; ///Cost Per Unit of Duration - Previously on 30
+  static const double revenuePercentage = 0.25; ///Revenue percentage from service
+  static const int processACost = 18; ///Cost Per Unit of Duration - Previously on 20
+  static const int processBCost = 27; ///Cost Per Unit of Duration - Previously on 30
   static const int coverDesignCost = 1500;
   static const int coverPrint = 15;  ///Cost Per Unit
-  static const double costPerDurationUnit = 0.7; ///Cost Retrieved from BookDepot
-  static const double durationConvertionPerSize = 2.20; ///Converting size from Big to Small
+  static const double costPerDurationUnit = 0.67; ///Cost Retrieved from BookDepot
+  static const double durationConvertionPerSize = 2; ///Converting size from Big to Small
+  static const double costPerFlap = 6;///Cost Retrieved from BookDepot
 
 }

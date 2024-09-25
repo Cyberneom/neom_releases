@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:get/get.dart';
+import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:http/http.dart' as http;
 import 'package:intl_phone_field/countries.dart';
 import 'package:neom_commons/core/app_flavour.dart';
@@ -19,6 +19,7 @@ import 'package:neom_commons/core/domain/model/app_user.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
+import 'package:neom_commons/core/utils/constants/intl_countries_list.dart';
 import 'package:neom_commons/core/utils/constants/message_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
 import 'package:neom_commons/core/utils/enums/product_type.dart';
@@ -48,7 +49,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
   TextEditingController phoneController = TextEditingController();
 
-  final Rx<Country> phoneCountry = countries[0].obs;
+  final Rx<Country> phoneCountry = IntlPhoneConstants.availableCountries.first.obs;
   final RxBool isButtonDisabled = false.obs;
   final RxBool isLoading = true.obs;
 
@@ -93,13 +94,11 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
       emailController.text = userController.user.email;
       phoneController.text = userController.user.phoneNumber;
 
-      for (var country in countries) {
-        if(Get.locale!.countryCode == country.code){
-          phoneCountry.value = country; //Mexico
-        }
-      }
+      stripe.Stripe.publishableKey = AppFlavour.getStripePublishableKey();
+      await stripe.Stripe.instance.applySettings();
+
     } catch (e) {
-      AppUtilities.logger.i(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
   }
@@ -112,20 +111,24 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
       String paymentId = await PaymentFirestore().insert(payment);
       payment.id = paymentId;
 
-      if(await UserFirestore().addOrderId(userId: userId, orderId: payment.orderId)) {
-        userController.user.orderIds.add(payment.orderId);
-      } else {
-        AppUtilities.logger.w("Something occurred while adding order to User $userId");
-      }
+      ///DEPRECATED NOT TO REGISTER ORDER UNTIL PAYMENT IS INTENDED
+      // if(await UserFirestore().addOrderId(userId: userId, orderId: payment.orderId)) {
+      //   userController.user.orderIds.add(payment.orderId);
+      // } else {
+      //   AppUtilities.logger.w("Something occurred while adding order to User $userId");
+      // }
 
       if(payment.price?.currency == AppCurrency.appCoin) {
         update([AppPageIdConstants.paymentGateway]);
+        AppUtilities.logger.d('Paying with AppCoins');
         await payWithAppCoins();
       } else if(payment.status == PaymentStatus.completed &&
           (order.googlePlayPurchaseDetails != null || order.appStorePurchaseDetails != null)) {
+        AppUtilities.logger.d('Payment was already Completed through GooglePlay or AppStore');
         paymentStatus.value = payment.status;
         await handleProcessedPayment();
       } else {
+        AppUtilities.logger.d('Paying through Stripe');
         isLoading.value = false;
       }
     } catch (e) {
@@ -179,7 +182,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
           email: emailController.text,
           phone: phoneNumber,
           address: stripe.Address(
-            city: '',
+            city: profile.address.isNotEmpty ? profile.address.split(',').first : '',
             country: phoneCountry.value.name,
             line1: '',
             line2: '',
@@ -346,14 +349,14 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
             Get.toNamed(AppRouteConstants.splashScreen,
                 arguments: [AppRouteConstants.paymentGateway, AppRouteConstants.home]);
             break;
-          case ProductType.coin:
+          case ProductType.appCoin:
             int coinsQty = 0;
 
             try {
-              coinsQty = Get.find<WalletController>().appCoinProduct.qty;
+              coinsQty = Get.find<WalletController>().appCoinProduct.value.qty;
               AppUtilities.logger.d('$coinsQty from found WalletController');
             } catch(e) {
-              coinsQty = Get.put(WalletController()).appCoinProduct.qty;
+              coinsQty = Get.put(WalletController()).appCoinProduct.value.qty;
               AppUtilities.logger.d('$coinsQty from initiated WalletController');
             }
 
@@ -419,8 +422,6 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
     Map<String, dynamic> paymentIntentResponse;
 
     try {
-
-        stripe.Stripe.publishableKey = AppFlavour.getStripePublishableKey();
         // 1. Create payment method providing billingDetails
         paymentMethod = await stripe.Stripe.instance.createPaymentMethod(
             params: stripe.PaymentMethodParams.card(
@@ -493,13 +494,78 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
   }
 
   @override
+  Future<void> handleSuscriptionPayment(stripe.BillingDetails billingDetails) async {
+
+    stripe.PaymentMethod paymentMethod;
+    Map<String, dynamic> paymentIntentResponse;
+
+    try {
+      // 1. Create payment method providing billingDetails
+      paymentMethod = await stripe.Stripe.instance.createPaymentMethod(
+          params: stripe.PaymentMethodParams.card(
+              paymentMethodData: stripe.PaymentMethodData(
+                  billingDetails: billingDetails
+              )
+          )
+      );
+
+      AppUtilities.logger.i("Valid payment method added successfully");
+      AppUtilities.logger.i(paymentMethod.toString());
+
+      final String apiUrl = 'https://api.stripe.com/v1/subscriptions';
+      // Crear el cliente en Stripe
+      final customerResponse = await http.post(
+        Uri.parse('https://api.stripe.com/v1/customers'),
+        headers: {
+          'Authorization': 'Bearer ${AppFlavour.getStripeSecretLiveKey()}',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'email': userController.user.email,
+          'payment_method': paymentMethod.id,
+          'invoice_settings[default_payment_method]': paymentMethod.id,
+        },
+      );
+
+
+      final customer = json.decode(customerResponse.body);
+      final customerId = customer['id'];
+
+      // Crear la suscripción
+      final subscriptionResponse = await http.post(
+        Uri.parse(apiUrl),
+        headers: {
+          'Authorization': 'Bearer ${AppFlavour.getStripeSecretLiveKey()}',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'customer': customerId,
+          'items[0][price]': 'price_1PzmXjHpVUHkmiYF9Vcoau6V',
+          'expand[]': 'latest_invoice.payment_intent',
+        },
+      );
+
+      final subscription = json.decode(subscriptionResponse.body);
+      AppUtilities.logger.i('Subscription created: ${subscription['id']}');
+    } on stripe.StripeException catch (e) {
+      errorMsg = e.error.localizedMessage ?? "";
+      paymentStatus.value = PaymentStatus.declined;
+      AppUtilities.logger.e(errorMsg);
+    } catch (e) {
+      paymentStatus.value = PaymentStatus.unknown;
+      AppUtilities.logger.e(e.toString());
+    }
+
+  }
+
+  @override
   Future<Map<String, dynamic>> createPaymentIntent(
       String amount, String currency) async {
     try {
-      Map<String, dynamic> body = {
+      Map<String, String> body = {
         PaymentGatewayConstants.amount: amount,
         PaymentGatewayConstants.currency: currency,
-        PaymentGatewayConstants.paymentMethodTypes: [PaymentGatewayConstants.card]
+        '${PaymentGatewayConstants.paymentMethodTypes}[]': PaymentGatewayConstants.card
       };
 
       final response = await http.post(
@@ -510,7 +576,15 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
             'Content-Type': 'application/x-www-form-urlencoded'
           },
           encoding: Encoding.getByName("utf-8"));
-      return jsonDecode(response.body);
+
+      // Check if the response is successful
+      if (response.statusCode == 200) {
+        AppUtilities.logger.d('Stripe API Post Request successfully created: ${response.statusCode} - ${response.body}');
+        return jsonDecode(response.body);
+      } else {
+        AppUtilities.logger.e('Stripe API error: ${response.statusCode} - ${response.body}');
+      }
+
     } catch (err) {
       AppUtilities.logger.e('error in stripe create payment intent:${err.toString()}');
     }

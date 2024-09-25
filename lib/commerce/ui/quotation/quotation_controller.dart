@@ -15,11 +15,13 @@ class QuotationController extends GetxController implements QuotationService {
   final loginController = Get.find<LoginController>();
   final userController = Get.find<UserController>();
 
-  final RxBool isLoading = true.obs;
-  final RxBool isPhysical = true.obs;
-  final RxBool processARequired = true.obs;
-  final RxBool processBRequired = true.obs;
-  final RxBool coverDesignRequired = true.obs;
+  bool isLoading = true;
+  bool isPhysical = true;
+  bool processARequired = true;
+  bool processBRequired = true;
+  bool coverDesignRequired = true;
+  bool flapRequired = false;
+
   final Rx<Country> phoneCountry = IntlPhoneConstants.availableCountries[0].obs;
 
   AppPhysicalItem itemToQuote = AppPhysicalItem();
@@ -35,6 +37,7 @@ class QuotationController extends GetxController implements QuotationService {
   TextEditingController controllerPhone = TextEditingController();
 
   String phoneNumber = '';
+  String phoneCountryCode = '';
 
   @override
   void onInit() async {
@@ -46,14 +49,31 @@ class QuotationController extends GetxController implements QuotationService {
     updateQuotation();
     AppUtilities.logger.d("Settings Controller Init");
 
-    for (var country in countries) {
+    for (var country in IntlPhoneConstants.availableCountries) {
       if(Get.locale!.countryCode == country.code){
         phoneCountry.value = country; //Mexico
       }
     }
 
-    isLoading.value = false;
+    if(userController.user.phoneNumber.isNotEmpty && userController.user.countryCode.isNotEmpty) {
+      phoneNumber = userController.user.phoneNumber;
+      phoneCountryCode = userController.user.countryCode;
+    }
+
+    isLoading = false;
   }
+
+  @override
+  void onReady() async {
+    try {
+
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+
+    update([AppPageIdConstants.quotation]);
+  }
+
 
   @override
   void setAppItemSize(String selectedSize){
@@ -110,7 +130,7 @@ class QuotationController extends GetxController implements QuotationService {
   @override
   void setIsPhysical() async {
     AppUtilities.logger.t("setIsPhysical");
-    isPhysical.value = !isPhysical.value;
+    isPhysical = !isPhysical;
     updateQuotation();
     update([AppPageIdConstants.quotation]);
   }
@@ -118,7 +138,7 @@ class QuotationController extends GetxController implements QuotationService {
   @override
   void setProcessARequired() async {
     AppUtilities.logger.t("setProcessARequired");
-    processARequired.value = !processARequired.value;
+    processARequired = !processARequired;
     updateQuotation();
     update([AppPageIdConstants.quotation]);
   }
@@ -126,7 +146,7 @@ class QuotationController extends GetxController implements QuotationService {
   @override
   void setProcessBRequired() async {
     AppUtilities.logger.t("setProcessBRequired");
-    processBRequired.value = !processBRequired.value;
+    processBRequired = !processBRequired;
     updateQuotation();
     update([AppPageIdConstants.quotation]);
   }
@@ -134,7 +154,15 @@ class QuotationController extends GetxController implements QuotationService {
   @override
   void setCoverDesignRequired() async {
     AppUtilities.logger.t("setCoverDesignRequired");
-    coverDesignRequired.value = !coverDesignRequired.value;
+    coverDesignRequired = !coverDesignRequired;
+    updateQuotation();
+    update([AppPageIdConstants.quotation]);
+  }
+
+  @override
+  void setFlapRequired() async {
+    AppUtilities.logger.t("setFlapRequired");
+    flapRequired = !flapRequired;
     updateQuotation();
     update([AppPageIdConstants.quotation]);
   }
@@ -142,14 +170,15 @@ class QuotationController extends GetxController implements QuotationService {
   @override
   void updateQuotation() {
     AppUtilities.logger.t("Updating Quotation");
-    pricePerUnit = isPhysical.value ? (itemToQuote.duration * AppCommerceConstants.costPerDurationUnit).roundToDouble() : 0;
+    pricePerUnit = isPhysical ? (itemToQuote.duration * AppCommerceConstants.costPerDurationUnit
+        + (flapRequired ? AppCommerceConstants.costPerFlap : 0)).roundToDouble() : 0;
     AppUtilities.logger.i("Price per unit: $pricePerUnit");
-    processACost = processARequired.value ? (itemToQuote.duration * AppCommerceConstants.processACost).round() : 0;
+    processACost = processARequired ? (itemToQuote.duration * AppCommerceConstants.processACost).round() : 0;
     AppUtilities.logger.i("Price per Process A: $processACost");
-    processBCost = processBRequired.value ? (itemToQuote.duration * AppCommerceConstants.processBCost).round() : 0;
+    processBCost = processBRequired ? (itemToQuote.duration * AppCommerceConstants.processBCost).round() : 0;
     AppUtilities.logger.i("Price per Process B: $processBCost");
     addRevenuePercentage();
-    coverDesignCost = coverDesignRequired.value ? AppCommerceConstants.coverDesignCost : 0;
+    coverDesignCost = coverDesignRequired ? AppCommerceConstants.coverDesignCost : 0;
     AppUtilities.logger.i("Cover Design Cost: $coverDesignCost");
     totalCost = processACost + processBCost + coverDesignCost + (pricePerUnit*itemQty);
     AppUtilities.logger.i("Total Cost: $totalCost");
@@ -176,7 +205,7 @@ class QuotationController extends GetxController implements QuotationService {
       message = "${userController.user.userRole == UserRole.subscriber
           ? AppTranslationConstants.subscriberQuotationWhatsappMsg.tr : AppTranslationConstants.adminQuotationWhatsappMsg.tr}\n"
           "${itemToQuote.duration != 0 ? "\n${AppTranslationConstants.appItemDuration.tr}: ${itemToQuote.duration}" : ""}"
-          "${(itemQty != 0 && isPhysical.value) ? "\n${AppTranslationConstants.appItemQty.tr}: $itemQty\n" : ""}"
+          "${(itemQty != 0 && isPhysical) ? "\n${AppTranslationConstants.appItemQty.tr}: $itemQty\n" : ""}"
           "${processACost != 0 ? "\n${AppTranslationConstants.processA.tr}: \$$processACost MXN" : ""}"
           "${processBCost != 0 ? "\n${AppTranslationConstants.processB.tr}: \$$processBCost MXN" : ""}"
           "${coverDesignCost != 0 ? "\n${AppTranslationConstants.coverDesign.tr}: \$$coverDesignCost MXN" : ""}"
@@ -187,7 +216,7 @@ class QuotationController extends GetxController implements QuotationService {
 
       if(userController.user.userRole != UserRole.subscriber) {
         phone = AppFlavour.getWhatsappBusinessNumber();
-      } else {
+      } else if(phoneNumber.isEmpty && phoneCountryCode.isEmpty){
         if (controllerPhone.text.isEmpty &&
             (controllerPhone.text.length < phoneCountry.value.minLength
                 || controllerPhone.text.length > phoneCountry.value.maxLength)
@@ -199,8 +228,11 @@ class QuotationController extends GetxController implements QuotationService {
           phoneNumber = "";
         } else {
           phoneNumber = controllerPhone.text;
-          phone = phoneCountry.value.dialCode + phoneNumber;
+          phoneCountryCode = phoneCountry.value.dialCode;
+          phone =  phoneCountryCode + phoneNumber;
         }
+      } else {
+        phone =  phoneCountryCode + phoneNumber;
       }
 
 

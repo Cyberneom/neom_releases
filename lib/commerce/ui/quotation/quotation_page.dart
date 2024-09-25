@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/ui/widgets/header_intro.dart';
 import 'package:neom_commons/core/ui/widgets/header_widget.dart';
@@ -12,7 +11,6 @@ import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/constants/intl_countries_list.dart';
-import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 import 'package:neom_commons/core/utils/enums/app_item_size.dart';
 import 'package:neom_commons/core/utils/enums/user_role.dart';
 
@@ -114,7 +112,7 @@ class QuotationPage extends StatelessWidget {
                             LengthLimitingTextInputFormatter(5),
                           ],
                           keyboardType: TextInputType.number,
-                          enabled: _.isPhysical.value,
+                          enabled: _.isPhysical,
                           decoration: InputDecoration(
                               filled: true,
                               hintText: AppTranslationConstants.specifyAppItemQty.tr,
@@ -131,7 +129,7 @@ class QuotationPage extends StatelessWidget {
                         width: AppTheme.fullWidth(context)/2,
                         child: CheckboxListTile(
                           title: Text(AppTranslationConstants.appDigitalItem.tr),
-                          value: !_.isPhysical.value,
+                          value: !_.isPhysical,
                           onChanged: (bool? newValue) {
                             _.setIsPhysical();
                           },
@@ -148,18 +146,45 @@ class QuotationPage extends StatelessWidget {
                   children: [
                     CheckboxListTile(
                       title: Text(AppTranslationConstants.processA.tr),
-                      value: _.processARequired.value,
+                      value: _.processARequired,
                       onChanged: (value) => _.setProcessARequired(),
                     ),
                     CheckboxListTile(
                       title: Text(AppTranslationConstants.processB.tr),
-                      value: _.processBRequired.value,
+                      value: _.processBRequired,
                       onChanged: (value) => _.setProcessBRequired(),
                     ),
                     CheckboxListTile(
                       title: Text(AppTranslationConstants.coverDesignRequired.tr),
-                      value: _.coverDesignRequired.value,
+                      value: _.coverDesignRequired,
                       onChanged: (value) => _.setCoverDesignRequired(),
+                    ),
+                  ],
+                ),
+              ),
+              HeaderWidget(AppTranslationConstants.printing.tr, secondHeader: true),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // CheckboxListTile(
+                    //   title: Text(AppTranslationConstants.paperType.tr),
+                    //   value: true,
+                    //   enabled: false,
+                    //   onChanged: (value) => (),
+                    // ),
+                    // CheckboxListTile(
+                    //   title: Text(AppTranslationConstants.coverType.tr),
+                    //   value: true,
+                    //   enabled: false,
+                    //   onChanged: (value) => (),
+                    // ),
+                    CheckboxListTile(
+                      title: Text(AppTranslationConstants.flapRequired.tr),
+                      value: _.isPhysical ? _.flapRequired : false,
+                      enabled: _.isPhysical,
+                      onChanged: (value) => _.setFlapRequired(),
                     ),
                   ],
                 ),
@@ -173,31 +198,31 @@ class QuotationPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _.processARequired.value
+                    _.processARequired
                         ? buildQuotationInfo(
                         title: AppTranslationConstants.processA.tr,
                         subtitle: _.processACost.toString()
                     ) : const SizedBox.shrink(),
-                    _.processBRequired.value
+                    _.processBRequired
                         ? buildQuotationInfo(
                         title: AppTranslationConstants.processB.tr,
                         subtitle: _.processBCost.toString()
                     ) : const SizedBox.shrink(),
-                    _.coverDesignRequired.value
+                    _.coverDesignRequired
                         ? buildQuotationInfo(
                         title: AppTranslationConstants.coverDesign.tr,
                         subtitle: _.coverDesignCost.toString(),
                     ) : const SizedBox.shrink(),
-                    _.isPhysical.value
+                    _.isPhysical
                         ? buildQuotationInfo(
                         title: "${AppTranslationConstants.pricePerUnit.tr} x ${_.itemQty}",
-                        subtitle: _.pricePerUnit.toString()
+                        subtitle: _.pricePerUnit.round().toString()
                     ) : const SizedBox.shrink(),
                     const Divider(),
                     _.totalCost != 0
                         ? buildQuotationInfo(
                         title: AppTranslationConstants.totalToPay.tr,
-                        subtitle: _.totalCost.toString()
+                        subtitle: _.totalCost.round().toString()
                     ) : const SizedBox.shrink(),
                     _.totalCost != 0 ? Text(
                         "${AppTranslationConstants.quotationTotalMsg1.tr} ${_.itemToQuote.duration} ${AppTranslationConstants.quotationTotalMsg2.tr}",
@@ -207,12 +232,18 @@ class QuotationPage extends StatelessWidget {
                           fontWeight: FontWeight.w400),
                     ) : const SizedBox.shrink(),
                     const Divider(),
-                    AppFlavour.appInUse == AppInUse.e && _.userController.user.userRole != UserRole.subscriber ?
+                    if(_.userController.user.userRole != UserRole.subscriber)
                     Column(
                       children: [
+                        AppTheme.heightSpace10,
                         buildPhoneField(quotationController: _),
-                        AppTheme.heightSpace10
-                      ],) : const SizedBox.shrink(),
+                        AppTheme.heightSpace10,
+                        Text('Favor de agregar número si es cotización para cliente',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                        AppTheme.heightSpace10,
+                        const Divider(),
+                      ],),
                     Center(child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 20),
                       decoration: BoxDecoration(
@@ -228,8 +259,11 @@ class QuotationPage extends StatelessWidget {
                         },
                       ),
                     ),),
-                    AppTheme.heightSpace10,
-                    const HeaderIntro(showLogo: false),
+                    AppTheme.heightSpace20,
+                    Center(
+                      child: const HeaderIntro(showLogo: false, sizeRelation: 4,),
+                    )
+                    
                   ],
                 ),
               ) : const SizedBox.shrink(),

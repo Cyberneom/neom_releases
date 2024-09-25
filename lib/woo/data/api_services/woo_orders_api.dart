@@ -3,17 +3,13 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 import 'package:neom_commons/core/app_flavour.dart';
-import 'package:neom_commons/core/domain/model/app_release_item.dart';
 import 'package:neom_commons/core/domain/model/app_user.dart';
-import 'package:neom_commons/core/domain/model/woo/woo_product.dart';
-import 'package:neom_commons/core/domain/model/woo/woo_product_attribute.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
 
 import '../../domain/model/order/woo_billing.dart';
 import '../../domain/model/order/woo_order.dart';
 import '../../domain/model/order/woo_order_line_item.dart';
 import '../../domain/model/order/woo_shipping.dart';
-import '../../utils/constants/woo_attribute_constants.dart';
 import '../../utils/constants/woo_constants.dart';
 import '../../utils/enums/woo_order_status.dart';
 import '../../utils/enums/woo_payment_method.dart';

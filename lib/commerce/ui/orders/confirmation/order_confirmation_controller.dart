@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 // ignore: implementation_imports
@@ -57,6 +58,8 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
   bool isConsumable = false;
   bool isAppPurchaseLoading = false;
 
+  String fromRoute = '';
+
   @override
   void onInit() async {
     super.onInit();
@@ -85,9 +88,15 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
             inAppProductId = product.id;
           }
 
-          if(product.type == ProductType.coin) isConsumable = true;
+          if(product.type == ProductType.appCoin) isConsumable = true;
 
         }
+
+        if(Get.arguments.length > 1 && Get.arguments[1] is String) {
+          fromRoute = Get.arguments[1];
+        }
+
+
 
 
       }
@@ -111,8 +120,10 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
         displayedDescription = product.description;
         displayedImgUrl = product.imgUrl;
 
-        payment.price?.amount = product.salePrice?.amount ?? 0;
-        payment.price?.currency = product.salePrice?.currency ?? AppCurrency.appCoin;
+        payment.price = Price(
+          amount: product.salePrice?.amount ?? 0,
+          currency: product.salePrice?.currency ?? AppCurrency.appCoin
+        );
 
         sales = await SalesFirestore().retrieveSales(product.type);
         sales.orderNumber = sales.orderNumber + 1;
@@ -125,6 +136,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
         payment.tax = product.salePrice!.amount * AppPaymentConstants.mexicanTaxesAmount;
       }
 
+      ///DEPRECATED
       // switch(order.saleType) {
       //   case SaleType.product:
       //     if(product.id.isNotEmpty) {
@@ -238,7 +250,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
     await _subscription.cancel();
   }
 
-  Future<void> confirmOrder() async {
+  Future<void> confirmOrder({BuildContext? context}) async {
     AppUtilities.logger.i("Order was confirmed and would be created");
     // isLoading = true;
     String orderId = "";
@@ -246,10 +258,15 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
     try {
       orderId = await OrderFirestore().insert(order);
       if(orderId.isNotEmpty && order.product != null) {
-        await SalesFirestore().updateOrderNumber(sales.orderNumber, order.product!.type);
-        await SalesFirestore().addOrderId(orderId: order.id, productType: order.product!.type);
-        payment.orderId = order.id;
-        Get.toNamed(AppRouteConstants.paymentGateway, arguments: [payment, order]);
+        AppUtilities.logger.d("Order was created with orderId $orderId");
+        if(order.product?.type == ProductType.subscription) {
+          Get.toNamed(AppRouteConstants.stripeWebView, arguments: [order, fromRoute, context]);
+        } else {
+          payment.orderId = order.id;
+          Get.toNamed(AppRouteConstants.paymentGateway, arguments: [payment, order]);
+        }
+        SalesFirestore().updateOrderNumber(sales.orderNumber, order.product!.type);
+        SalesFirestore().addOrderId(orderId: order.id, productType: order.product!.type);
       } else {
         Get.snackbar(
           MessageTranslationConstants.errorCreatingOrder.tr,
@@ -304,7 +321,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
     }
 
     final bool available = await InAppPurchase.instance.isAvailable();
-    if (available) {
+    if(available) {
       Set<String> kIds = <String>{inAppProductId};
       final ProductDetailsResponse response = await InAppPurchase.instance.queryProductDetails(kIds);
       if (response.notFoundIDs.isNotEmpty) {

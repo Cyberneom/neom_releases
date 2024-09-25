@@ -18,7 +18,7 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
   final userController = Get.find<UserController>();
 
   bool isButtonDisabled = false;
-  bool isLoading = false;
+  bool isLoading = true;
   List<Payment> payments = [];
   List<Invoice> invoices = [];
 
@@ -95,10 +95,10 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
       if(payments.isNotEmpty) payment = payments.first;
 
       if((product?.regularPrice != null && product?.salePrice != null) &&
-      product?.regularPrice?.amount != product?.salePrice?.amount) {
+        product?.regularPrice?.amount != product?.salePrice?.amount) {
 
         discountAmount = product!.regularPrice!.amount - product!.salePrice!.amount;
-        discountPercentage = (discountAmount/product!.regularPrice!.amount) * 100;
+        discountPercentage = ((discountAmount/product!.regularPrice!.amount) * 100);
 
       } else if(coupon != null && coupon?.type != CouponType.productDiscount) {
         discountPercentage = coupon!.amount ;

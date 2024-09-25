@@ -5,6 +5,9 @@ import 'package:neom_commons/core/domain/model/price.dart';
 import 'package:neom_commons/core/domain/model/review.dart';
 import 'package:neom_commons/core/utils/enums/product_type.dart';
 
+// ignore: unused_import
+import '../../utils/commerce_utilities.dart';
+
 class AppProduct {
 
   String id;
@@ -25,8 +28,12 @@ class AppProduct {
   int createdTime;
   int updatedTime;
 
-  String? ownerEmail; ///EMAIL OF OWNER
+  String? ownerEmail;
 
+  @override
+  String toString() {
+    return 'AppProduct{id: $id, name: $name, description: $description, type: $type, regularPrice: $regularPrice, salePrice: $salePrice, qty: $qty, imgUrl: $imgUrl, isAvailable: $isAvailable, numberOfSales: $numberOfSales, reviewStars: $reviewStars, reviewIds: $reviewIds, lastReview: $lastReview, createdTime: $createdTime, updatedTime: $updatedTime, ownerEmail: $ownerEmail}';
+  }
 
   AppProduct({
     this.id = "",
@@ -110,7 +117,7 @@ class AppProduct {
         description = releaseItem.description,
         type =  releaseItem.physicalPrice != null ? ProductType.physical : ProductType.digital,
         regularPrice = releaseItem.physicalPrice ?? releaseItem.digitalPrice,
-        salePrice = releaseItem.physicalPrice ?? releaseItem.digitalPrice,
+        salePrice = releaseItem.salePrice,
         qty = 1,
         imgUrl = releaseItem.imgUrl,
         ownerEmail = releaseItem.ownerEmail,

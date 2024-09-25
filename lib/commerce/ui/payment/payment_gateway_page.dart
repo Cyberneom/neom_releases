@@ -14,6 +14,7 @@ import 'package:neom_commons/core/utils/app_color.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
+import 'package:neom_commons/core/utils/constants/intl_countries_list.dart';
 import 'package:neom_commons/core/utils/constants/message_translation_constants.dart';
 import 'package:neom_commons/core/utils/core_utilities.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
@@ -32,7 +33,6 @@ class PaymentGatewayPage extends StatelessWidget {
       init: PaymentGatewayController(),
       builder: (_) => Scaffold(
         appBar: AppBarChild(title: AppTranslationConstants.paymentDetails.tr),
-        backgroundColor: AppColor.main50,
         body: SingleChildScrollView(
           controller: ScrollController(initialScrollOffset: 100),
           child: Container(
@@ -64,18 +64,22 @@ class PaymentGatewayPage extends StatelessWidget {
                     ),
                     buildPhoneField(paymentGatewayController: _),
                     AppTheme.heightSpace20,
-                    CardFormField(
-                      controller: _.cardEditController,
-                      onCardChanged: (card) {
-                        _.cardFieldInputDetails = card;
-                      },
-                      style: CardFormStyle(
-                        placeholderColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.g) ? Colors.black : AppColor.white,
-                        textColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.g) ? Colors.black : AppColor.white,
-                        backgroundColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.g) ? AppColor.white : AppColor.main25,
+                    Container(
+                      height: AppTheme.fullHeight(context)/3,
+                      child: CardFormField(
+                        controller: _.cardEditController,
+                        onCardChanged: (card) {
+                          _.cardFieldInputDetails = card;
+                        },
+                        style: CardFormStyle(
+                          placeholderColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.g) ? Colors.black : AppColor.white,
+                          textColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.g) ? Colors.black : AppColor.white,
+                          backgroundColor: (Platform.isIOS && AppFlavour.appInUse == AppInUse.g) ? AppColor.white : AppColor.main25,
+                        ),
+                        countryCode: 'MX',
+                        enablePostalCode: false,
+                        dangerouslyGetFullCardDetails: true
                       ),
-                      countryCode: Get.locale!.countryCode,
-                      enablePostalCode: false,
                     ),
                     AppTheme.heightSpace10,
                     Column(
@@ -112,6 +116,7 @@ class PaymentGatewayPage extends StatelessWidget {
 
 Widget buildPhoneField({required PaymentGatewayController paymentGatewayController}) {
   return IntlPhoneField(
+      countries: IntlPhoneConstants.availableCountries,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       decoration: InputDecoration(
         labelText: AppTranslationConstants.phoneNumber.tr,
@@ -124,7 +129,7 @@ Widget buildPhoneField({required PaymentGatewayController paymentGatewayControll
           ),
       ),
       initialValue: paymentGatewayController.phoneController.text,
-      initialCountryCode: "MX",
+      initialCountryCode: IntlPhoneConstants.initialCountryCode,
       onChanged: (phone) {
         paymentGatewayController.phoneController.text = phone.number;
       },

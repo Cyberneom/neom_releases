@@ -8,13 +8,12 @@ import '../../domain/models/app_product.dart';
 import '../../domain/repository/product_repository.dart';
 
 class ProductFirestore implements ProductRepository {
-
-  var logger = AppUtilities.logger;
+  
   final productReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.products);
 
   @override
   Future<List<AppProduct>> retrieveProductsByType({required ProductType type}) async {
-    logger.d("Retrieving Products by type ${type.name}");
+    AppUtilities.logger.d("Retrieving Products by type ${type.name}");
     List<AppProduct> products = [];
 
     try {
@@ -25,17 +24,17 @@ class ProductFirestore implements ProductRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        logger.d("Snapshot is not empty");
+        AppUtilities.logger.d("Snapshot is not empty");
         for (var productSnapshot in querySnapshot.docs) {
           AppProduct product = AppProduct.fromJSON(productSnapshot.data());
           product.id = productSnapshot.id;
-          logger.d(product.toString());
+          AppUtilities.logger.d(product.toString());
           products.add(product);
         }
-        logger.d("${products.length} products found");
+        AppUtilities.logger.d("${products.length} products found");
       }
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
     return products;
   }
@@ -43,7 +42,7 @@ class ProductFirestore implements ProductRepository {
 
   @override
   Future<String> insert(AppProduct product) async {
-    logger.d("Inserting product ${product.name}");
+    AppUtilities.logger.d("Inserting product ${product.name}");
     String productId = "";
 
     try {
@@ -58,9 +57,9 @@ class ProductFirestore implements ProductRepository {
         product.id = productId;
         
       }
-      logger.d("Product ${product.name} added with id ${product.id}");
+      AppUtilities.logger.d("Product ${product.name} added with id ${product.id}");
     } catch (e) {
-      logger.e(e.toString());
+      AppUtilities.logger.e(e.toString());
     }
 
     return productId;
@@ -70,15 +69,15 @@ class ProductFirestore implements ProductRepository {
 
   @override
   Future<bool> remove(AppProduct product) async {
-    logger.d("Removing product ${product.id}");
+    AppUtilities.logger.d("Removing product ${product.id}");
 
     try {
       await productReference.doc(product.id).delete();
-      logger.d("Product ${product.id} removed");
+      AppUtilities.logger.d("Product ${product.id} removed");
       return true;
 
     } catch (e) {
-      logger.e(e.toString());      
+      AppUtilities.logger.e(e.toString());      
     }
     return false;
   }

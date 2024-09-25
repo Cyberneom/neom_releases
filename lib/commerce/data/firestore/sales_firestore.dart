@@ -29,7 +29,6 @@ class SalesFirestore implements SalesRepository {
       AppUtilities.logger.e(e.toString());
     }
 
-    AppUtilities.logger.d("");
     return sales;
   }
 
@@ -52,7 +51,6 @@ class SalesFirestore implements SalesRepository {
   //   AppUtilities.logger.d("");
   //   return sales;
   // }
-
 
   // @override
   // Future<AppSale> retrieveEventSales() async {
@@ -99,30 +97,17 @@ class SalesFirestore implements SalesRepository {
     AppUtilities.logger.d("updateOrderNumber for Sales Type ${productType.name} to $newOrderNumber");
 
     try {
-      ///DEPRECATED
-      // String salesToUpdate = "";
-      // switch(salesType) {
-      //   case SaleType.product:
-      //     salesToUpdate = AppFirestoreConstants.productSales;
-      //     break;
-      //   case SaleType.event:
-      //     salesToUpdate = AppFirestoreConstants.eventSales;
-      //     break;
-      //   case SaleType.booking:
-      //     salesToUpdate = AppFirestoreConstants.bookingSales;
-      //     break;
-      //   case SaleType.digitalItem:
-      //     salesToUpdate = AppFirestoreConstants.releaseItemSales;
-      //     break;
-      //   case SaleType.physicalItem:
-      //     salesToUpdate = AppFirestoreConstants.releaseItemSales;
-      //     break;
-      // }
-
       DocumentSnapshot documentSnapshot = await salesReference
           .doc(productType.name).get();
 
-      await documentSnapshot.reference.update({AppFirestoreConstants.orderNumber: newOrderNumber});
+      if (documentSnapshot.exists) {
+        await documentSnapshot.reference.update({AppFirestoreConstants.orderNumber: newOrderNumber});
+      } else {
+        await salesReference.doc(productType.name).set({
+          AppFirestoreConstants.orderIds: [],
+          AppFirestoreConstants.orderNumber: newOrderNumber,
+        });
+      }
 
     } catch (e) {
       AppUtilities.logger.e(e.toString());

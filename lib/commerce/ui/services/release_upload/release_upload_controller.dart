@@ -849,7 +849,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
   void gotoPdfPreview() {
     releaseFilePath = getReleaseFilePath(releaseFile.value);
-    Get.toNamed(AppRouteConstants.PDFViewer,
+    Get.toNamed(AppRouteConstants.pdfViewer,
         arguments: [releaseFilePath, false]);
   }
 

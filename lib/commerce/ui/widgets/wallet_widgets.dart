@@ -20,7 +20,7 @@ Widget buildOrderList(BuildContext context, WalletController _){
 
 }
 
-Widget buildAppCoinComingSoon(BuildContext context, WalletController _){
+Widget buildNoHistoryToShow(BuildContext context, WalletController _){
   return Padding(
     padding: const EdgeInsets.only(left: 15, right: 15),
     child: Column(

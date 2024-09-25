@@ -52,11 +52,10 @@ class Payment {
     createdTime =  data["createdTime"] ?? 0,
     from = data["from"] ?? "",
     to = data["to"] ?? "",
-    price = Price.fromJSON(data["price"]),
+    price = data["price"] != null ? Price.fromJSON(data["price"]) : null,
     secretKey = data["secretKey"] ?? "",
     facilitatorAmount = data["facilitatorAmount"] ?? 0,
     tax = data["tax"] ?? 0,
     status = EnumToString.fromString(PaymentStatus.values, data["status"]) ?? PaymentStatus.pending;
-
 
 }

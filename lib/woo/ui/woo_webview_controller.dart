@@ -31,10 +31,12 @@ class WooWebViewController extends GetxController implements WooWebViewService {
   String url = '';
   String loadingSubtitle = 'Cargando plataforma de compra';
 
+  bool isDigital = true;
+
   @override
   void onInit() async {
     super.onInit();
-    AppUtilities.logger.i("Report Controller Init");
+    AppUtilities.logger.i("WooWebView Controller Init");
 
 
     if(clearCache) webViewController.clearCache();
@@ -46,10 +48,11 @@ class WooWebViewController extends GetxController implements WooWebViewService {
       if(Get.arguments != null && Get.arguments.isNotEmpty) {
         if (Get.arguments[0] is String) {
           url = Get.arguments[0];
-
         }
+
         if(Get.arguments[1] != null && Get.arguments[1] is AppReleaseItem) {
           releaseItem = Get.arguments[1];
+          isDigital = releaseItem.physicalPrice == null;
         }
       }
 
@@ -118,13 +121,14 @@ class WooWebViewController extends GetxController implements WooWebViewService {
               url = request.url;
               String wooOrderId = await createInternalOrder();
               userController.addOrderId(wooOrderId);
-              userController.addBoughtItem(releaseItem.id);
-
+              if(isDigital) userController.addBoughtItem(releaseItem.id);
             }
 
+            AppUtilities.logger.d('Navigating URL: ${request.url}');
             return NavigationDecision.navigate;
           } else {
             // Navigator.pop(context);
+            AppUtilities.logger.d('Preventing URL: ${request.url}');
             return NavigationDecision.prevent;
           }
         },
@@ -176,7 +180,7 @@ class WooWebViewController extends GetxController implements WooWebViewService {
             createdTime: DateTime.now().millisecondsSinceEpoch,
             from: userController.user.email,
             status: PaymentStatus.completed,
-            price: releaseItem.physicalPrice ?? releaseItem.digitalPrice,
+            price: releaseItem.salePrice,
             secretKey: orderKey
         );
 
