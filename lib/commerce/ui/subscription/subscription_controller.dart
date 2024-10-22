@@ -8,32 +8,38 @@ import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
 import 'package:neom_commons/core/utils/enums/product_type.dart';
+import 'package:neom_commons/core/utils/enums/subscription_level.dart';
 import 'package:neom_commons/neom_commons.dart';
 import 'package:flutter/material.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
+import 'package:enum_to_string/enum_to_string.dart';
 
 import '../../data/stripe_service.dart';
 import '../../domain/models/app_product.dart';
+import '../../domain/models/stripe_price.dart';
+import '../../domain/models/stripe_product.dart';
 
 class SubscriptionController extends GetxController with GetTickerProviderStateMixin {
 
   final userController = Get.find<UserController>();
 
   RxBool isLoading = true.obs;
-  final Rx<AppCurrency> currentCurrency = AppCurrency.mxn.obs;
+  Rx<SubscriptionLevel> selectedLevel = SubscriptionLevel.basicPlan.obs;
+  Rx<Price> selectedPrice = Price().obs;
 
   @override
   void onInit() async {
+    Map<String, List<StripePrice>> recurringPrices = await StripeService.getRecurringPricesFromStripe();
   }
 
   @override
   void onReady() async {
-
+    update([AppPageIdConstants.accountSettings]);
   }
 
   Future<bool?> getSubscriptionAlert(BuildContext context, String fromRoute) async {
     AppUtilities.logger.d("getSubscriptionAlert");
-
+    selectedPrice.value = AppFlavour.getSubscriptionPrice();
     return Alert(
         context: context,
         style: AlertStyle(
@@ -41,9 +47,44 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
             titleStyle: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
             titleTextAlign: TextAlign.justify
         ),
-        title: AppTranslationConstants.buySubscriptionMsg.tr,
-        content: Column(
+        content: Obx(() => Column(
           children: <Widget>[
+            AppTheme.heightSpace20,
+            Text((selectedLevel.value.name + 'Msg').tr,
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),textAlign: TextAlign.justify,),
+            AppTheme.heightSpace20,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("${AppTranslationConstants.subscription.tr}: ",
+                  style: const TextStyle(fontSize: 15),
+                ),
+                DropdownButton<String>(
+                  items: SubscriptionLevel.values.map((SubscriptionLevel level) {
+                    return DropdownMenuItem<String>(
+                      value: level.name,
+                      child: Text(level.name.tr),
+                    );
+                  }).toList(),
+                  onChanged: (String? level) {
+                    if(level != null) {
+                      changeSubscriptionLevel(level);
+                    }
+                  },
+                  value: selectedLevel.value.name,
+                  alignment: Alignment.center,
+                  icon: const Icon(Icons.arrow_downward),
+                  iconSize: 20,
+                  elevation: 16,
+                  style: const TextStyle(color: Colors.white),
+                  dropdownColor: AppColor.getMain(),
+                  underline: Container(
+                    height: 1,
+                    color: Colors.grey,
+                  ),
+                ),
+              ],
+            ),
             AppTheme.heightSpace20,
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -53,7 +94,7 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
                 ),
                 Row(
                   children: [
-                    Text("${CoreUtilities.getCurrencySymbol(currentCurrency.value)} ${AppFlavour.getSubscriptionPrice().amount} ${AppCurrency.mxn.name.tr.toUpperCase()}",
+                    Text("${CoreUtilities.getCurrencySymbol(selectedPrice.value.currency)} ${selectedPrice.value.amount} ${selectedPrice.value.currency.name.tr.toUpperCase()}",
                       style: const TextStyle(fontSize: 15),
                     ),
                     AppTheme.widthSpace5,
@@ -61,13 +102,13 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
                 ),
               ],
             ),
-          ],
+          ],),
         ),
         buttons: [
           DialogButton(
             color: AppColor.bondiBlue75,
             onPressed: () async {
-              await paySubscription(fromRoute);
+              await paySubscription(fromRoute, selectedLevel.value);
 
             },
             child: Text(AppTranslationConstants.confirmAndProceed.tr,
@@ -78,7 +119,7 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     ).show();
   }
 
-  Future<void> paySubscription(String fromRoute) async {
+  Future<void> paySubscription(String fromRoute, SubscriptionLevel subscriptionLevel) async {
     AppUtilities.logger.d("Entering paySusbscription Method");
 
     try {
@@ -130,5 +171,15 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
 
     update([AppPageIdConstants.appItemDetails, AppPageIdConstants.bookDetails, AppPageIdConstants.accountSettings]);
   }
+
+  void changeSubscriptionLevel(String itemType) {
+    selectedLevel.value = EnumToString.fromString(SubscriptionLevel.values, itemType) ?? SubscriptionLevel.basicPlan;
+    switch(selectedLevel) {
+      default:
+    }
+    update([AppPageIdConstants.accountSettings]);
+  }
+
+
 
 }

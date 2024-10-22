@@ -6,6 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:neom_commons/neom_commons.dart';
 import 'package:http/http.dart' as http;
 
+import '../domain/models/stripe_price.dart';
+import '../domain/models/stripe_product.dart';
 import '../domain/models/stripe_session.dart';
 
 
@@ -206,6 +208,124 @@ class StripeService {
     }
   }
 
+  static Future<List<StripeProduct>> getProducts() async {
+    String url = 'https://api.stripe.com/v1/products';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer ${kDebugMode ? AppFlavour.getStripeSecretTestKey() : AppFlavour.getStripeSecretLiveKey()}',
+        },
+      );
+
+      final responseData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        List productsData = responseData['data'];
+        List<StripeProduct> products = productsData
+            .map<StripeProduct>((productData) => StripeProduct.fromJSON(productData))
+            .toList();
+
+        AppUtilities.logger.d('Products fetched successfully.');
+        return products;
+      } else {
+        AppUtilities.logger.e('Error fetching products: ${responseData['error']['message']}');
+        return [];
+      }
+    } catch (e) {
+      AppUtilities.logger.e('Error fetching products: $e');
+      return [];
+    }
+  }
+
+  static Future<StripeProduct?> getProductById(String productId) async {
+    String url = 'https://api.stripe.com/v1/products/$productId';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer ${kDebugMode ? AppFlavour.getStripeSecretTestKey() : AppFlavour.getStripeSecretLiveKey()}',
+        },
+      );
+
+      final responseData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        StripeProduct product = StripeProduct.fromJSON(responseData);
+        AppUtilities.logger.d('Product fetched: $productId');
+        return product;
+      } else {
+        AppUtilities.logger.e('Error fetching product: ${responseData['error']['message']}');
+        return null;
+      }
+    } catch (e) {
+      AppUtilities.logger.e('Error fetching product: $e');
+      return null;
+    }
+  }
+
+  static Future<List<StripePrice>> getProductPrices(String productId) async {
+    String url = 'https://api.stripe.com/v1/prices?product=$productId';
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer ${kDebugMode ? AppFlavour.getStripeSecretTestKey() : AppFlavour.getStripeSecretLiveKey()}',
+        },
+      );
+
+      final responseData = json.decode(response.body);
+      if (response.statusCode == 200) {
+        List pricesData = responseData['data'];
+        List<StripePrice> prices = pricesData
+            .map<StripePrice>((priceData) => StripePrice.fromJSON(priceData))
+            .toList();
+
+        AppUtilities.logger.d('Prices fetched for product: $productId');
+        return prices;
+      } else {
+        AppUtilities.logger.e('Error fetching prices: ${responseData['error']['message']}');
+        return [];
+      }
+    } catch (e) {
+      AppUtilities.logger.e('Error fetching prices: $e');
+      return [];
+    }
+  }
+
+  static Future<Map<String, List<StripePrice>>> getRecurringPricesFromStripe() async {
+    AppUtilities.logger.d('getRecurringPricesFromStripe');
+    Map<String, List<StripePrice>> recurringProductPrices = {};
+
+    try {
+      // Fetch products from Stripe
+      List<StripeProduct> products = await StripeService.getProducts();
+
+
+      for (StripeProduct product in products) {
+        // Fetch prices for each product
+        List<StripePrice> prices = await StripeService.getProductPrices(product.id);
+
+        // Filter only recurring prices
+        List<StripePrice> recurringPrices = prices
+            .map((price) => price)
+            .where((price) => price.interval != null).toList();
+
+        if (recurringPrices.isNotEmpty) {
+          // Store product info and recurring prices
+          recurringProductPrices[product.id] = prices;
+        }
+      }
+
+      AppUtilities.logger.d("Fetched Stripe Subscription Products & Prices successfully");
+      return recurringProductPrices;
+    } catch (e) {
+      AppUtilities.logger.e("Error fetching recurring prices: $e");
+    }
+
+    return recurringProductPrices;
+  }
 
 
 }

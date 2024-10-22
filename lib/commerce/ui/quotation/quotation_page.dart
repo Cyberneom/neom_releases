@@ -20,7 +20,6 @@ class QuotationPage extends StatelessWidget {
 
   const QuotationPage({super.key});
 
-
   @override
   Widget build(BuildContext context) {
     return GetBuilder<QuotationController>(
@@ -64,10 +63,10 @@ class QuotationPage extends StatelessWidget {
                       DropdownButton<String>(
                         items: AppItemSize.values.map((AppItemSize size) {
                           return DropdownMenuItem<String>(
-                            value: size.value,
+                            value: size.name,
                             child: SizedBox(
-                              width: AppTheme.fullWidth(context)/3,
-                              child: Text(size.value.toUpperCase().tr,
+                              width: AppTheme.fullWidth(context)/2,
+                              child: Text(size.name.tr,
                                 overflow: TextOverflow.ellipsis,
                                 maxLines: 2,
                                 textAlign: TextAlign.center,
@@ -78,15 +77,15 @@ class QuotationPage extends StatelessWidget {
                         onChanged: (String? chosenSize) {
                           _.setAppItemSize(chosenSize!);
                         },
-                        value: _.itemToQuote.size.value,
-                        elevation: 20,
+                        value: _.itemToQuote.size.name,
+                        elevation: 30,
                         dropdownColor: AppColor.getMain(),
                         underline: const SizedBox.shrink(),
                       ),
                     ],
                   )
               ),
-              if(_.itemToQuote.size == AppItemSize.a4)
+              if(_.itemToQuote.size == AppItemSize.letter)
                 Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Text(
@@ -104,7 +103,7 @@ class QuotationPage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
-                        width: AppTheme.fullWidth(context)/3,
+                        width: AppTheme.fullWidth(context)/4,
                         child: TextFormField(
                           controller: _.itemQtyController,
                           inputFormatters: [
@@ -112,11 +111,11 @@ class QuotationPage extends StatelessWidget {
                             LengthLimitingTextInputFormatter(5),
                           ],
                           keyboardType: TextInputType.number,
-                          enabled: _.isPhysical,
+                          enabled: !_.onlyDigital,
                           decoration: InputDecoration(
                               filled: true,
                               hintText: AppTranslationConstants.specifyAppItemQty.tr,
-                              labelText: AppTranslationConstants.appItemQty.tr,
+                              labelText: AppTranslationConstants.qty.tr,
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(10),
                               )),
@@ -125,21 +124,36 @@ class QuotationPage extends StatelessWidget {
                           },
                         ),
                       ),
-                      SizedBox(
-                        width: AppTheme.fullWidth(context)/2,
-                        child: CheckboxListTile(
-                          title: Text(AppTranslationConstants.appDigitalItem.tr),
-                          value: !_.isPhysical,
-                          onChanged: (bool? newValue) {
-                            _.setIsPhysical();
-                          },
-                        ),
-                      ),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          if(!_.onlyDigital) SizedBox(
+                            width: AppTheme.fullWidth(context)*0.55,
+                            child: CheckboxListTile(
+                              title: Text(AppTranslationConstants.onlyPrinting.tr),
+                              value: _.onlyPrinting,
+                              onChanged: (bool? newValue) {
+                                _.setOnlyPrinting();
+                              },
+                            ),
+                          ),
+                          if(!_.onlyPrinting) SizedBox(
+                            width: AppTheme.fullWidth(context)*0.55,
+                            child: CheckboxListTile(
+                              title: Text(AppTranslationConstants.onlyDigital.tr),
+                              value: _.onlyDigital,
+                              onChanged: (bool? newValue) {
+                                _.setOnlyDigital();
+                              },
+                            ),
+                          ),
+                        ],
+                      )
                     ],
                   )
               ),
-              HeaderWidget(AppTranslationConstants.processAAndB.tr, secondHeader: true),
-              Padding(
+              if(!_.onlyPrinting) HeaderWidget(AppTranslationConstants.processAAndB.tr, secondHeader: true),
+              if(!_.onlyPrinting) Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -162,28 +176,86 @@ class QuotationPage extends StatelessWidget {
                   ],
                 ),
               ),
-              HeaderWidget(AppTranslationConstants.printing.tr, secondHeader: true),
-              Padding(
+              if(!_.onlyDigital) HeaderWidget(AppTranslationConstants.printing.tr, secondHeader: true),
+              if(!_.onlyDigital) Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width: AppTheme.fullWidth(context)/2,
+                        child: Text(AppTranslationConstants.paperType.tr, style: TextStyle(fontSize: 17),
+                        ),
+                      ),
+                      DropdownButton<String>(
+                        items: PaperType.values.map((PaperType paperType) {
+                          return DropdownMenuItem<String>(
+                            value: paperType.name,
+                            child: SizedBox(
+                              width: AppTheme.fullWidth(context)/4,
+                              child: Text(paperType.name.tr,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? chosenType) {
+                          _.setPaperType(chosenType!);
+                        },
+                        value: _.paperType.name,
+                        elevation: 30,
+                        dropdownColor: AppColor.getMain(),
+                        underline: const SizedBox.shrink(),
+                      ),
+                    ],
+                  )
+              ),
+              if(!_.onlyDigital) Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 35, vertical: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SizedBox(
+                        width: AppTheme.fullWidth(context)/2,
+                        child: Text(AppTranslationConstants.coverLamination.tr, style: TextStyle(fontSize: 17),
+                        ),
+                      ),
+                      DropdownButton<String>(
+                        items: CoverLamination.values.map((CoverLamination coverLamination) {
+                          return DropdownMenuItem<String>(
+                            value: coverLamination.name,
+                            child: SizedBox(
+                              width: AppTheme.fullWidth(context)/4,
+                              child: Text(coverLamination.name.tr,
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (String? chosenLamination) {
+                          _.setCoverLamination(chosenLamination!);
+                        },
+                        value: _.coverLamination.name,
+                        elevation: 30,
+                        dropdownColor: AppColor.getMain(),
+                        underline: const SizedBox.shrink(),
+                      ),
+                    ],
+                  )
+              ),
+              if(!_.onlyDigital) Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // CheckboxListTile(
-                    //   title: Text(AppTranslationConstants.paperType.tr),
-                    //   value: true,
-                    //   enabled: false,
-                    //   onChanged: (value) => (),
-                    // ),
-                    // CheckboxListTile(
-                    //   title: Text(AppTranslationConstants.coverType.tr),
-                    //   value: true,
-                    //   enabled: false,
-                    //   onChanged: (value) => (),
-                    // ),
                     CheckboxListTile(
                       title: Text(AppTranslationConstants.flapRequired.tr),
-                      value: _.isPhysical ? _.flapRequired : false,
-                      enabled: _.isPhysical,
+                      value: !_.onlyDigital ? _.flapRequired : false,
+                      enabled: !_.onlyDigital,
                       onChanged: (value) => _.setFlapRequired(),
                     ),
                   ],
@@ -213,19 +285,33 @@ class QuotationPage extends StatelessWidget {
                         title: AppTranslationConstants.coverDesign.tr,
                         subtitle: _.coverDesignCost.toString(),
                     ) : const SizedBox.shrink(),
-                    _.isPhysical
+                    !_.onlyDigital
                         ? buildQuotationInfo(
                         title: "${AppTranslationConstants.pricePerUnit.tr} x ${_.itemQty}",
-                        subtitle: _.pricePerUnit.round().toString()
+                        subtitle: _.pricePerUnit.toString()
                     ) : const SizedBox.shrink(),
                     const Divider(),
+                    _.subtotalCost != 0
+                        ? buildQuotationInfo(
+                        title: AppTranslationConstants.subtotal.tr,
+                        subtitle: _.subtotalCost.toString()
+                    ) : const SizedBox.shrink(),
+                    _.taxCost != 0
+                        ? buildQuotationInfo(
+                        title: AppTranslationConstants.taxes.tr,
+                        subtitle: _.taxCost.toStringAsFixed(1)
+                    ) : const SizedBox.shrink(),
                     _.totalCost != 0
                         ? buildQuotationInfo(
                         title: AppTranslationConstants.totalToPay.tr,
-                        subtitle: _.totalCost.round().toString()
+                        subtitle: _.totalCost.toString()
                     ) : const SizedBox.shrink(),
                     _.totalCost != 0 ? Text(
-                        "${AppTranslationConstants.quotationTotalMsg1.tr} ${_.itemToQuote.duration} ${AppTranslationConstants.quotationTotalMsg2.tr}",
+                        "${AppTranslationConstants.quotationTotalMsg1.tr} ${_.itemToQuote.duration} ${AppTranslationConstants.pages.tr.capitalize}, "
+                            "${_.itemToQuote.size.name.tr}, ${AppTranslationConstants.paper.tr.capitalize} ${_.paperType.name.tr}, "
+                            "${AppTranslationConstants.coverLamination.tr.capitalize} ${_.coverLamination.name.tr}"
+                            "${_.flapRequired ? ' ${AppTranslationConstants.and.tr} ${AppTranslationConstants.flap.tr.capitalize}. ' : '. '}"
+                            "${AppTranslationConstants.quotationTotalMsg2.tr}",
                       textAlign: TextAlign.justify,
                       style: const TextStyle(
                           color: Colors.white70,

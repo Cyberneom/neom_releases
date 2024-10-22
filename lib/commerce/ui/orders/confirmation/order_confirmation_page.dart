@@ -34,7 +34,7 @@ class OrderConfirmationPage extends StatelessWidget {
           padding: const EdgeInsets.all(20),
           height: AppTheme.fullHeight(context),
           child: _.isLoading ? const Center(child: CircularProgressIndicator())
-              : Column(
+              : SingleChildScrollView(child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                  Container(
@@ -247,7 +247,7 @@ class OrderConfirmationPage extends StatelessWidget {
                   ),
                 ) : const SizedBox.shrink()
            ]
-          ),
+          ),),
         ),
       ),
     );

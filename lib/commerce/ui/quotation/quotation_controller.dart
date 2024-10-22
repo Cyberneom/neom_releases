@@ -7,8 +7,9 @@ import 'package:neom_commons/core/utils/constants/intl_countries_list.dart';
 import 'package:neom_commons/core/utils/enums/app_item_size.dart';
 import 'package:neom_commons/neom_commons.dart';
 
+import '../../data/firestore/quotation_firestore.dart';
+import '../../domain/models/app_quotation.dart';
 import '../../domain/use_cases/quotation_service.dart';
-import '../../utils/constants/app_commerce_constants.dart';
 
 class QuotationController extends GetxController implements QuotationService {
   
@@ -16,21 +17,29 @@ class QuotationController extends GetxController implements QuotationService {
   final userController = Get.find<UserController>();
 
   bool isLoading = true;
-  bool isPhysical = true;
-  bool processARequired = true;
-  bool processBRequired = true;
-  bool coverDesignRequired = true;
+  bool processARequired = false;
+  bool processBRequired = false;
+  bool coverDesignRequired = false;
   bool flapRequired = false;
+  bool onlyPrinting = false;
+  bool onlyDigital = false;
 
   final Rx<Country> phoneCountry = IntlPhoneConstants.availableCountries[0].obs;
 
   AppPhysicalItem itemToQuote = AppPhysicalItem();
+  AppQuotation defaultQuotation = AppQuotation();
+  double costPerDurationUnit = 0;
   int itemQty = 0;
   int processACost = 0;
   int processBCost = 0;
   int coverDesignCost = 0;
   double pricePerUnit = 0;
+  double subtotalCost = 0;
+  double taxCost = 0;
   double totalCost = 0;
+
+  PaperType paperType = PaperType.uncoated90;
+  CoverLamination coverLamination = CoverLamination.matte;
 
   TextEditingController itemQtyController = TextEditingController();
   TextEditingController itemDurationController = TextEditingController();
@@ -42,10 +51,11 @@ class QuotationController extends GetxController implements QuotationService {
   @override
   void onInit() async {
     super.onInit();
-    itemDurationController.text = AppCommerceConstants.minDuration.toString();
-    itemToQuote.duration = (AppCommerceConstants.minDuration*AppCommerceConstants.durationConvertionPerSize).ceil();
-    itemQtyController.text = AppCommerceConstants.minQty.toString();
-    itemQty = AppCommerceConstants.minQty;
+    defaultQuotation = await QuotationFirestore().retrieve('default');
+    itemToQuote.duration = defaultQuotation.minDuration*3; // 25*3 min for books
+    itemDurationController.text = itemToQuote.duration.toString();
+    itemQtyController.text = defaultQuotation.minQty.toString();
+    itemQty = defaultQuotation.minQty;
     updateQuotation();
     AppUtilities.logger.d("Settings Controller Init");
 
@@ -66,6 +76,9 @@ class QuotationController extends GetxController implements QuotationService {
   @override
   void onReady() async {
     try {
+      ///THIS IS USED TO GENERATE DEFAULT QUOTATION VALUES FOR DYNAMIC USE
+      // AppQuotation defaultQuotation = AppQuotation(id: 'default', from: userController.user.id);  // Create a quotation with default values
+      // String quotationId = await QuotationFirestore().insert(defaultQuotation);
 
     } catch (e) {
       AppUtilities.logger.e(e.toString());
@@ -76,13 +89,41 @@ class QuotationController extends GetxController implements QuotationService {
 
 
   @override
-  void setAppItemSize(String selectedSize){
-    AppUtilities.logger.t("Setting new locale");
+  void setAppItemSize(String selectedSize) {
+    AppUtilities.logger.t("Setting new itemSize");
     try {
       itemToQuote.size = EnumToString.fromString(AppItemSize.values, selectedSize)
-          ?? AppItemSize.a4;
+          ?? AppItemSize.halfLetter;
 
       setAppItemDuration();
+    } catch (e) {
+      AppUtilities.logger.toString();
+    }
+
+    update([AppPageIdConstants.quotation]);
+  }
+
+  @override
+  void setPaperType(String selectedType) {
+    AppUtilities.logger.t("Setting new type");
+    try {
+      paperType = EnumToString.fromString(PaperType.values, selectedType)
+          ?? PaperType.uncoated90;
+      updateQuotation();
+    } catch (e) {
+      AppUtilities.logger.toString();
+    }
+
+    update([AppPageIdConstants.quotation]);
+  }
+
+  @override
+  void setCoverLamination(String selectedLamination) {
+    AppUtilities.logger.t("Setting new type");
+    try {
+      coverLamination = EnumToString.fromString(CoverLamination.values, selectedLamination)
+          ?? CoverLamination.matte;
+      updateQuotation();
     } catch (e) {
       AppUtilities.logger.toString();
     }
@@ -94,20 +135,24 @@ class QuotationController extends GetxController implements QuotationService {
   void setAppItemDuration() {
     AppUtilities.logger.t("setAppItemDuration");
 
-    int newDuration = int.parse(itemDurationController.text.trim());
 
-    if(itemToQuote.size == AppItemSize.a4) {
-      newDuration = (newDuration*AppCommerceConstants.durationConvertionPerSize).round();
+    if(itemDurationController.text.isNotEmpty) {
+      int newDuration = int.parse(itemDurationController.text.trim());
+
+      if(itemToQuote.size == AppItemSize.letter) {
+        newDuration = (newDuration*defaultQuotation.durationConvertionPerSize).round();
+      }
+
+      if(newDuration >= defaultQuotation.minDuration){
+        itemToQuote.duration = newDuration;
+      } else {
+        // itemToQuote.duration = defaultQuotation.minQty;
+        // AppUtilities.showSnackBar("Mínimo de páginas requerido",
+        //     "El mínimo de páginas recomendado para iniciar un proceso de publicación es de $itemQty");
+      }
+      updateQuotation();
     }
 
-    if(newDuration >= AppCommerceConstants.minDuration){
-      itemToQuote.duration = newDuration;
-    } else {
-      // itemToQuote.duration = AppCommerceConstants.minQty;
-      // AppUtilities.showSnackBar("Mínimo de páginas requerido",
-      //     "El mínimo de páginas recomendado para iniciar un proceso de publicación es de $itemQty");
-    }
-    updateQuotation();
     update([AppPageIdConstants.quotation]);
   }
 
@@ -115,25 +160,48 @@ class QuotationController extends GetxController implements QuotationService {
   void setAppItemQty() {
     AppUtilities.logger.t("setAppItemQty");
 
-    int newItemQty = int.parse(itemQtyController.text.trim());
+    if(itemQtyController.text.isNotEmpty) {
+      int newItemQty = int.parse(itemQtyController.text.trim());
+      if(newItemQty > defaultQuotation.minQty){
+        itemQty = newItemQty;
+      } else {
+        itemQty = defaultQuotation.minQty;
+        // AppUtilities.showSnackBar("Mínimo de libros requerido", "El mínimo de libros a imprimir es de $itemQty");
+      }
+      updateQuotation();
+    }
 
-    if(newItemQty > AppCommerceConstants.minQty){
-      itemQty = newItemQty;
-    } else {
-      // itemQty = AppCommerceConstants.minQty;
-      // AppUtilities.showSnackBar("Mínimo de libros requerido", "El mínimo de libros a imprimir es de $itemQty");
+    update([AppPageIdConstants.quotation]);
+  }
+
+  @override
+  void setOnlyPrinting() async {
+    AppUtilities.logger.t("setOnlyPrinting");
+    onlyPrinting = !onlyPrinting;
+    onlyDigital = false;
+    if(onlyPrinting) {
+      processARequired = false;
+      processBRequired = false;
+      coverDesignRequired = false;
     }
     updateQuotation();
     update([AppPageIdConstants.quotation]);
   }
 
   @override
-  void setIsPhysical() async {
-    AppUtilities.logger.t("setIsPhysical");
-    isPhysical = !isPhysical;
+  void setOnlyDigital() async {
+    AppUtilities.logger.t("setOnlyDigital");
+    onlyDigital = !onlyDigital;
+    onlyPrinting = false;
+    if(onlyDigital) {
+      itemQty = 0;
+    } else {
+      setAppItemQty();
+    }
     updateQuotation();
     update([AppPageIdConstants.quotation]);
   }
+
 
   @override
   void setProcessARequired() async {
@@ -170,26 +238,67 @@ class QuotationController extends GetxController implements QuotationService {
   @override
   void updateQuotation() {
     AppUtilities.logger.t("Updating Quotation");
-    pricePerUnit = isPhysical ? (itemToQuote.duration * AppCommerceConstants.costPerDurationUnit
-        + (flapRequired ? AppCommerceConstants.costPerFlap : 0)).roundToDouble() : 0;
+
+
+    if(!onlyDigital) {
+      if(itemQty <= defaultQuotation.minQty) {
+        costPerDurationUnit = defaultQuotation.maxCostPerDurationUnit;
+      } else if(itemQty >= defaultQuotation.midQty) {
+        costPerDurationUnit = defaultQuotation.minCostPerDurationUnit;
+      } else {
+        double interpolation = (itemQty - defaultQuotation.minQty) / (defaultQuotation.midQty - defaultQuotation.minQty);
+        costPerDurationUnit = defaultQuotation.maxCostPerDurationUnit - interpolation
+            * (defaultQuotation.maxCostPerDurationUnit - defaultQuotation.minCostPerDurationUnit);
+      }
+
+      switch(itemToQuote.size) {
+        case AppItemSize.quarterLetter:
+          costPerDurationUnit = costPerDurationUnit * defaultQuotation.lowSizeRelation;
+          break;
+        case AppItemSize.letter:
+          costPerDurationUnit = costPerDurationUnit * defaultQuotation.highSizeRelation;
+          break;
+        default:
+          break;
+      }
+
+      switch(paperType) {
+        case PaperType.bond75:
+          costPerDurationUnit = costPerDurationUnit * defaultQuotation.lowQualityRelation;
+          break;
+        case PaperType.couche130:
+          costPerDurationUnit = costPerDurationUnit * defaultQuotation.highQualityRelation;
+          break;
+        default:
+          break;
+      }
+
+      pricePerUnit = (itemToQuote.duration * costPerDurationUnit) + (flapRequired ? defaultQuotation.costPerFlap : 0)
+          + (defaultQuotation.prePrintCost/itemQty).roundToDouble();
+    } else {
+      pricePerUnit = 0;
+    }
+
     AppUtilities.logger.i("Price per unit: $pricePerUnit");
-    processACost = processARequired ? (itemToQuote.duration * AppCommerceConstants.processACost).round() : 0;
+    processACost = processARequired ? (itemToQuote.duration * defaultQuotation.processACost).round() : 0;
     AppUtilities.logger.i("Price per Process A: $processACost");
-    processBCost = processBRequired ? (itemToQuote.duration * AppCommerceConstants.processBCost).round() : 0;
+    processBCost = processBRequired ? (itemToQuote.duration * defaultQuotation.processBCost).round() : 0;
     AppUtilities.logger.i("Price per Process B: $processBCost");
     addRevenuePercentage();
-    coverDesignCost = coverDesignRequired ? AppCommerceConstants.coverDesignCost : 0;
+    coverDesignCost = coverDesignRequired ? defaultQuotation.coverDesignCost : 0;
     AppUtilities.logger.i("Cover Design Cost: $coverDesignCost");
-    totalCost = processACost + processBCost + coverDesignCost + (pricePerUnit*itemQty);
+    subtotalCost = processACost + processBCost + coverDesignCost + (pricePerUnit*itemQty);
+    taxCost = subtotalCost*defaultQuotation.tax;
+    totalCost = subtotalCost+taxCost;
     AppUtilities.logger.i("Total Cost: $totalCost");
     update([AppPageIdConstants.quotation]);
   }
 
   @override
   void addRevenuePercentage() {
-    pricePerUnit = (pricePerUnit * (1+AppCommerceConstants.revenuePercentage)).roundToDouble();
-    processACost = (processACost * (1+AppCommerceConstants.revenuePercentage)).round();
-    processBCost = (processBCost * (1+AppCommerceConstants.revenuePercentage)).round();
+    pricePerUnit = (pricePerUnit * (1+defaultQuotation.revenuePercentage)).roundToDouble();
+    processACost = (processACost * (1+defaultQuotation.revenuePercentage)).round();
+    processBCost = (processBCost * (1+defaultQuotation.revenuePercentage)).round();
   }
 
   @override
@@ -205,18 +314,29 @@ class QuotationController extends GetxController implements QuotationService {
       message = "${userController.user.userRole == UserRole.subscriber
           ? AppTranslationConstants.subscriberQuotationWhatsappMsg.tr : AppTranslationConstants.adminQuotationWhatsappMsg.tr}\n"
           "${itemToQuote.duration != 0 ? "\n${AppTranslationConstants.appItemDuration.tr}: ${itemToQuote.duration}" : ""}"
-          "${(itemQty != 0 && isPhysical) ? "\n${AppTranslationConstants.appItemQty.tr}: $itemQty\n" : ""}"
-          "${processACost != 0 ? "\n${AppTranslationConstants.processA.tr}: \$$processACost MXN" : ""}"
-          "${processBCost != 0 ? "\n${AppTranslationConstants.processB.tr}: \$$processBCost MXN" : ""}"
-          "${coverDesignCost != 0 ? "\n${AppTranslationConstants.coverDesign.tr}: \$$coverDesignCost MXN" : ""}"
-          "${pricePerUnit != 0 ? "\n${AppTranslationConstants.pricePerUnit.tr}: \$$pricePerUnit MXN\n" : ""}"
-          "${totalCost != 0 ? "\n${AppTranslationConstants.totalToPay.tr}: \$${totalCost.toString()} MXN\n\n" : ""}"
+          "${(itemQty != 0 && !onlyDigital) ? "\n${AppTranslationConstants.appItemQty.tr}: $itemQty\n" : ""}"
+          "\n${itemToQuote.size.name.tr}\n"
+          "${AppTranslationConstants.paperType.tr.capitalize}: ${paperType.name.tr}\n"
+          "${AppTranslationConstants.coverLamination.tr.capitalize}: ${coverLamination.name.tr}\n"
+          "${flapRequired ? "${AppTranslationConstants.flapRequired.tr}\n" : ""}"
+          "${pricePerUnit != 0 ? "\n${AppTranslationConstants.pricePerUnit.tr}: \$${pricePerUnit} MXN\n" : ""}"
+          "${processACost != 0 ? "${AppTranslationConstants.processA.tr}: \$${processACost.toDouble()} MXN\n" : ""}"
+          "${processBCost != 0 ? "${AppTranslationConstants.processB.tr}: \$${processBCost.toDouble()} MXN\n" : ""}"
+          "${coverDesignCost != 0 ? "${AppTranslationConstants.coverDesign.tr}: \$${coverDesignCost.toDouble()} MXN\n" : ""}"
+          "${totalCost != 0 ? "\n${AppTranslationConstants.subtotal.tr}: \$${subtotalCost.toString()} MXN\n" : ""}"
+          "${taxCost != 0 ? "${AppTranslationConstants.taxes.tr}: \$${taxCost.toStringAsFixed(1)} MXN\n" : ""}"
+          "${totalCost != 0 ? "${AppTranslationConstants.totalToPay.tr}: \$${totalCost.toString()} MXN\n\n" : ""}"
           "${AppTranslationConstants.thanksForYourAttention.tr}\n"
           "${userController.profile.name}";
 
       if(userController.user.userRole != UserRole.subscriber) {
+        message = message + '\n\n${MessageTranslationConstants.shareAppMsg.tr}\n'
+            '${AppFlavour.getLinksUrl()}\n';
+      }
+
+      if(userController.user.userRole == UserRole.subscriber) {
         phone = AppFlavour.getWhatsappBusinessNumber();
-      } else if(phoneNumber.isEmpty && phoneCountryCode.isEmpty){
+      } else if(phoneNumber.isEmpty && phoneCountryCode.isEmpty) {
         if (controllerPhone.text.isEmpty &&
             (controllerPhone.text.length < phoneCountry.value.minLength
                 || controllerPhone.text.length > phoneCountry.value.maxLength)
