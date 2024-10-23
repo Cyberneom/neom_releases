@@ -17,12 +17,13 @@ class QuotationFirestore {
 
       if (documentSnapshot.exists) {
         AppUtilities.logger.d("Snapshot is not empty");
-        quotation = AppQuotation.fromJson(documentSnapshot.data() as Map<String, dynamic>);
+        Map<String, dynamic> quotationJson = documentSnapshot.data() as Map<String, dynamic>;
+        quotation = AppQuotation.fromJson(quotationJson);
         quotation.id = documentSnapshot.id;
         AppUtilities.logger.d(quotation.toString());
         AppUtilities.logger.d("Quotation ${quotation.id} was retrieved");
       } else {
-        AppUtilities.logger.w("Quotation ${quotation.id} was not found");
+        AppUtilities.logger.w("Quotation $quotationId was not found");
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());

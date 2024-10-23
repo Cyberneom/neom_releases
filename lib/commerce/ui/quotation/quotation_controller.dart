@@ -334,13 +334,15 @@ class QuotationController extends GetxController implements QuotationService {
             '${AppFlavour.getLinksUrl()}\n';
       }
 
+      String phoneNumberText = controllerPhone.text;
+
       if(userController.user.userRole == UserRole.subscriber) {
         phone = AppFlavour.getWhatsappBusinessNumber();
-      } else if(phoneNumber.isEmpty && phoneCountryCode.isEmpty) {
-        if (controllerPhone.text.isEmpty &&
-            (controllerPhone.text.length < phoneCountry.value.minLength
-                || controllerPhone.text.length > phoneCountry.value.maxLength)
-        ) {
+      } else if(phoneNumberText.isEmpty && phoneNumber.isNotEmpty && phoneCountryCode.isNotEmpty) {
+        phone =  phoneCountryCode + phoneNumber;
+      } else {
+        if (phoneNumberText.isEmpty || phoneNumberText.length < phoneCountry.value.minLength
+            || phoneNumberText.length > phoneCountry.value.maxLength) {
           validateMsg = MessageTranslationConstants.pleaseEnterPhone;
           phoneNumber = "";
         } else if (phoneCountry.value.code.isEmpty) {
@@ -351,10 +353,7 @@ class QuotationController extends GetxController implements QuotationService {
           phoneCountryCode = phoneCountry.value.dialCode;
           phone =  phoneCountryCode + phoneNumber;
         }
-      } else {
-        phone =  phoneCountryCode + phoneNumber;
       }
-
 
       if(phone.isNotEmpty) {
         AppUtilities.logger.i("Sending WhatsApp Quotation to $phone");

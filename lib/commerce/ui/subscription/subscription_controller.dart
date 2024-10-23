@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
 import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/domain/model/price.dart';
+import 'package:neom_commons/core/domain/model/subscription_plan.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
@@ -14,6 +15,9 @@ import 'package:flutter/material.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 import 'package:enum_to_string/enum_to_string.dart';
 
+import '../../data/firestore/commerce_jobs_firestore.dart';
+import '../../data/firestore/product_firestore.dart';
+import '../../data/firestore/subscription_plan_firestore.dart';
 import '../../data/stripe_service.dart';
 import '../../domain/models/app_product.dart';
 import '../../domain/models/stripe_price.dart';
@@ -24,12 +28,19 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
   final userController = Get.find<UserController>();
 
   RxBool isLoading = true.obs;
-  Rx<SubscriptionLevel> selectedLevel = SubscriptionLevel.basicPlan.obs;
+  Rx<SubscriptionLevel> selectedLevel = SubscriptionLevel.basic.obs;
   Rx<Price> selectedPrice = Price().obs;
+  SubscriptionPlan selectedPlan = SubscriptionPlan();
+  Map<String, SubscriptionPlan> subscriptionPlans = {};
 
   @override
   void onInit() async {
-    Map<String, List<StripePrice>> recurringPrices = await StripeService.getRecurringPricesFromStripe();
+    // Map<String, List<StripePrice>> recurringPrices = await StripeService.getRecurringPricesFromStripe();
+    subscriptionPlans = await SubscriptionPlanFirestore().getAll();
+    if(subscriptionPlans.isNotEmpty) selectedPlan = subscriptionPlans.values.first;
+    // CommerceJobsFirestore().insertSubscriptionPlans();
+
+
   }
 
   @override
@@ -39,7 +50,8 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
 
   Future<bool?> getSubscriptionAlert(BuildContext context, String fromRoute) async {
     AppUtilities.logger.d("getSubscriptionAlert");
-    selectedPrice.value = AppFlavour.getSubscriptionPrice();
+    // selectedPrice.value = AppFlavour.getSubscriptionPrice();
+
     return Alert(
         context: context,
         style: AlertStyle(
@@ -60,18 +72,18 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
                   style: const TextStyle(fontSize: 15),
                 ),
                 DropdownButton<String>(
-                  items: SubscriptionLevel.values.map((SubscriptionLevel level) {
+                  items: subscriptionPlans.keys.map((String planName) {
                     return DropdownMenuItem<String>(
-                      value: level.name,
-                      child: Text(level.name.tr),
+                      value: planName,
+                      child: Text(planName.tr),
                     );
                   }).toList(),
-                  onChanged: (String? level) {
-                    if(level != null) {
-                      changeSubscriptionLevel(level);
+                  onChanged: (String? plan) {
+                    if(plan != null) {
+                      changeSubscriptionPlan(plan);
                     }
                   },
-                  value: selectedLevel.value.name,
+                  value: selectedPlan.name,
                   alignment: Alignment.center,
                   icon: const Icon(Icons.arrow_downward),
                   iconSize: 20,
@@ -172,8 +184,8 @@ class SubscriptionController extends GetxController with GetTickerProviderStateM
     update([AppPageIdConstants.appItemDetails, AppPageIdConstants.bookDetails, AppPageIdConstants.accountSettings]);
   }
 
-  void changeSubscriptionLevel(String itemType) {
-    selectedLevel.value = EnumToString.fromString(SubscriptionLevel.values, itemType) ?? SubscriptionLevel.basicPlan;
+  void changeSubscriptionPlan(String itemType) {
+    selectedLevel.value = EnumToString.fromString(SubscriptionLevel.values, itemType) ?? SubscriptionLevel.basic;
     switch(selectedLevel) {
       default:
     }

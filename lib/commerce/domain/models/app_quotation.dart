@@ -74,7 +74,7 @@ class AppQuotation {
       processBCost: json['processBCost'] ?? 20,
       processCCost: json['processCCost'] ?? 0,
       coverDesignCost: json['coverDesignCost'] ?? 1500,
-      prePrintCost: json['prePrintCost'] ?? 600,
+      prePrintCost: json['prePrintCost'] ?? 500,
       minDuration: json['minDuration'] ?? 25,
       maxDuration: json['maxDuration'] ?? 500,
       minCostPerDurationUnit: json['minCostPerDurationUnit'] ?? 0.35,
@@ -87,11 +87,11 @@ class AppQuotation {
       coverPrint: json['coverPrint'] ?? 15,
       costPerFlap: double.tryParse(json['costPerFlap'].toString()) ?? 6.0,
       tax: json['tax'] ?? 0.16,
-      revenuePercentage: json['revenuePercentage'] ?? 0.18,
-      lowQualityRelation: json['lowQualityRelation'] ?? 0.8,
-      highQualityRelation: json['highQualityRelation'] ?? 1.5,
-      lowSizeRelation: json['lowSizeRelation'] ?? 1.2,
-      highSizeRelation: json['highSizeRelation'] ?? 1.5,
+      revenuePercentage: json['revenuePercentage'] ?? 0.25,
+      lowQualityRelation: double.tryParse(json['lowQualityRelation'].toString()) ?? 0.8,
+      highQualityRelation: double.tryParse(json['highQualityRelation'].toString()) ?? 1.5,
+      lowSizeRelation: double.tryParse(json['lowSizeRelation'].toString()) ?? 1.2,
+      highSizeRelation: double.tryParse(json['highSizeRelation'].toString()) ?? 1.5,
     );
   }
 
