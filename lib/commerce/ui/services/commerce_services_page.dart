@@ -26,8 +26,11 @@ class CommerceServicesPage extends StatelessWidget {
           decoration: AppTheme.appBoxDecoration,
           child: ListView(
           children: <Widget>[
-            HeaderWidget(AppTranslationConstants.digitalLibrary.tr),
-            TitleSubtitleRow(AppTranslationConstants.digitalPositioning.tr, url: AppFlavour.getDigitalPositioningUrl()),
+            ///DEPRECATED
+            // HeaderWidget(AppTranslationConstants.digitalLibrary.tr),
+            // TitleSubtitleRow(AppTranslationConstants.digitalPositioning.tr, url: AppFlavour.getDigitalPositioningUrl()),
+            HeaderWidget(AppTranslationConstants.memberships.tr),
+            TitleSubtitleRow(AppTranslationConstants.subscriptionPlans.tr, url: AppFlavour.getSubscriptionPlansUrl()),
             HeaderWidget(AppTranslationConstants.promotion.tr),
             TitleSubtitleRow(AppTranslationConstants.presskit.tr, url: AppFlavour.getPresskitUrl()),
             TitleSubtitleRow(AppTranslationConstants.mediatour.tr, url: AppFlavour.getMediatourUrl()),
@@ -36,6 +39,7 @@ class CommerceServicesPage extends StatelessWidget {
             TitleSubtitleRow(AppTranslationConstants.onlineClinics.tr, url: AppFlavour.getOnlineClinicUrl()),
             HeaderWidget(AppTranslationConstants.publishingHouse.tr, secondHeader: true,),
             TitleSubtitleRow(AppTranslationConstants.copyright.tr, url: AppFlavour.getCopyrightUrl()),
+            TitleSubtitleRow(AppTranslationConstants.isbnProcedure.tr, url: AppFlavour.getIsbnProcedureUrl()),
             TitleSubtitleRow(AppTranslationConstants.coverDesign.tr, url: AppFlavour.getCoverDesignUrl()),
             //TODO Activate once crowdfunding is active again
             // TitleSubtitleRow(AppTranslationConstants.startCampaignUrl.tr, url: AppFlavour.getStartCampaignUrl()),

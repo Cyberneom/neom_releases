@@ -12,6 +12,7 @@ class AppQuotation {
   int prePrintCost;
 
   int minDuration;
+  int midDuration;
   int maxDuration;
   double minCostPerDurationUnit;
   double midCostPerDurationUnit;
@@ -45,7 +46,8 @@ class AppQuotation {
     this.coverDesignCost = 1500,
     this.prePrintCost = 600,
     this.minDuration = 25,
-    this.maxDuration = 500,
+    this.midDuration = 250,
+    this.maxDuration = 1000,
     this.minCostPerDurationUnit = 0.35,
     this.midCostPerDurationUnit = 0.50,
     this.maxCostPerDurationUnit = 0.65,
@@ -76,7 +78,8 @@ class AppQuotation {
       coverDesignCost: json['coverDesignCost'] ?? 1500,
       prePrintCost: json['prePrintCost'] ?? 500,
       minDuration: json['minDuration'] ?? 25,
-      maxDuration: json['maxDuration'] ?? 500,
+      midDuration: json['midDuration'] ?? 250,
+      maxDuration: json['maxDuration'] ?? 1000,
       minCostPerDurationUnit: json['minCostPerDurationUnit'] ?? 0.35,
       midCostPerDurationUnit: json['midCostPerDurationUnit'] ?? 0.50,
       maxCostPerDurationUnit: json['maxCostPerDurationUnit'] ?? 0.65,
@@ -108,6 +111,7 @@ class AppQuotation {
       'coverDesignCost': coverDesignCost,
       'prePrintCost': prePrintCost,
       'minDuration': minDuration,
+      'midDuration': midDuration,
       'maxDuration': maxDuration,
       'minCostPerDurationUnit': minCostPerDurationUnit,
       'midCostPerDurationUnit': midCostPerDurationUnit,

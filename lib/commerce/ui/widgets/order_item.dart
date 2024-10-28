@@ -1,11 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-import 'package:neom_commons/core/utils/app_color.dart';
-import 'package:neom_commons/core/utils/app_utilities.dart';
-import 'package:neom_commons/core/utils/constants/app_assets.dart';
-import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
-import 'package:neom_commons/core/utils/enums/app_currency.dart';
 import 'package:neom_commons/core/utils/enums/product_type.dart';
 import 'package:neom_commons/neom_commons.dart';
 import '../../domain/models/purchase_order.dart';
@@ -67,25 +62,6 @@ String getAmountToDisplay(PurchaseOrder order) {
     return amount.toStringAsFixed(1); // Format with two decimal places
   }
 
-  ///DEPRECATED
-  // switch(order.saleType) {
-  //   case SaleType.product:
-  //     amount = order.product!.salePrice!.amount;
-  //     break;
-  //   case SaleType.event:
-  //     amount = order.event!.coverPrice!.amount;
-  //     break;
-  //   case SaleType.booking:
-  //     break;
-  //   case SaleType.digitalItem:
-  //     amount = order.releaseItem!.digitalPrice!.amount;
-  //     break;
-  //   case SaleType.physicalItem:
-  //     amount = order.releaseItem!.physicalPrice!.amount;
-  //     break;
-  // }
-  
-  return amount.toString();
 }
 
 String getCurrencyToDisplay(PurchaseOrder order) {

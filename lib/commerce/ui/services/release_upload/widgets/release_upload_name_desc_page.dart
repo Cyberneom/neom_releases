@@ -146,7 +146,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                       ) : SizedBox(
                         width: AppTheme.fullWidth(context) / 2.75,
                         child: TextFormField(
-                           controller: _.digitalPriceController,
+                           controller: _.physicalPriceController,
                            inputFormatters: [
                              FilteringTextInputFormatter.digitsOnly,
                              NumberLimitInputFormatter(500),
@@ -156,13 +156,13 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                                suffixText: AppCurrency.mxn.value.tr.toUpperCase(),
                                filled: true,
                                hintText: "(${AppTranslationConstants.optional.tr})",
-                               labelText: AppTranslationConstants.releasePrice.tr,
+                               labelText: AppTranslationConstants.physicalReleasePrice.tr,
                                border: OutlineInputBorder(
                                  borderRadius: BorderRadius.circular(10),
                                )
                            ),
                            onChanged: (text) {
-                             _.setDigitalReleasePrice();
+                             _.setPhysicalReleasePrice();
                              },
                          ),
                         ),

@@ -7,6 +7,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 // ignore: implementation_imports
 import 'package:in_app_purchase_android/src/types/google_play_purchase_details.dart';
 import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+import 'package:neom_commons/core/domain/model/subscription_plan.dart';
 import 'package:neom_commons/core/utils/enums/product_type.dart';
 import 'package:neom_commons/neom_commons.dart';
 
@@ -32,6 +33,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
   final Rx<PaymentStatus> paymentStatus = PaymentStatus.pending.obs;
 
   AppProduct product = AppProduct();
+  SubscriptionPlan subscriptionPlan = SubscriptionPlan();
   // Event event = Event();
   // Booking booking = Booking();
   // AppReleaseItem releaseItem = AppReleaseItem();
@@ -46,9 +48,9 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
 
   AppSale sales = AppSale();
 
-  String displayedName = "";
-  String displayedDescription = "";
-  String displayedImgUrl = "";
+  // String displayedName = "";
+  // String displayedDescription = "";
+  // String displayedImgUrl = "";
 
   final InAppPurchase inAppPurchase = InAppPurchase.instance;
   late StreamSubscription<dynamic> _subscription;
@@ -71,36 +73,60 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
       payment.from = userController.user.email;
 
       if(Get.arguments != null && Get.arguments.isNotEmpty) {
-        if (Get.arguments[0] is AppProduct) {
+        if(Get.arguments[0] is AppProduct) {
           product = Get.arguments[0];
           order.customerEmail = userController.user.email;
           order.description = product.name;
           order.product = product;
           payment.to = product.ownerEmail ?? '';
 
-          if(product.type == ProductType.event) {
-            AppCommerceConstants.eventCoverLevels.forEach((key, value) {
-              if(product.salePrice!.amount == value) {
-                inAppProductId = key;
-              }
-            });
-          } else {
-            inAppProductId = product.id;
+          switch(product.type) {
+            case ProductType.event:
+              AppCommerceConstants.eventCoverLevels.forEach((key, value) {
+                if(product.salePrice!.amount == value) {
+                  inAppProductId = key;
+                }
+              });
+              break;
+            case ProductType.appCoin:
+              isConsumable = true;
+              inAppProductId = product.id;
+              break;
+            default:
+              inAppProductId = product.id;
+              break;
           }
 
-          if(product.type == ProductType.appCoin) isConsumable = true;
+          ///DEPRECATED
+          // if(product.type == ProductType.event) {
+          //   AppCommerceConstants.eventCoverLevels.forEach((key, value) {
+          //     if(product.salePrice!.amount == value) {
+          //       inAppProductId = key;
+          //     }
+          //   });
+          // } else {
+          //   inAppProductId = product.id;
+          // }
+          //
+          // if(product.type == ProductType.appCoin) isConsumable = true;
 
+        } else if(Get.arguments[0] is SubscriptionPlan) {
+          subscriptionPlan = Get.arguments[0];
+          product = AppProduct.fromSubscriptionPlan(subscriptionPlan);
+
+          order.customerEmail = userController.user.email;
+          order.description = subscriptionPlan.name.tr;
+          order.product = product;
+          order.subscriptionPlan = subscriptionPlan;
+
+          inAppProductId = subscriptionPlan.id;
         }
 
         if(Get.arguments.length > 1 && Get.arguments[1] is String) {
           fromRoute = Get.arguments[1];
         }
 
-
-
-
       }
-
     } catch (e) {
       AppUtilities.logger.i(e.toString());
     }
@@ -116,9 +142,10 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
       order.createdTime = now.millisecondsSinceEpoch;
 
       if(product.id.isNotEmpty) {
-        displayedName = product.name;
-        displayedDescription = product.description;
-        displayedImgUrl = product.imgUrl;
+        ///DEPRECATED
+        // displayedName = product.name;
+        // displayedDescription = product.description;
+        // displayedImgUrl = product.imgUrl;
 
         payment.price = Price(
           amount: product.salePrice?.amount ?? 0,

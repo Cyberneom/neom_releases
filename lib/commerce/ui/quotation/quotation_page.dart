@@ -184,7 +184,7 @@ class QuotationPage extends StatelessWidget {
                     children: [
                       SizedBox(
                         width: AppTheme.fullWidth(context)/2,
-                        child: Text(AppTranslationConstants.paperType.tr, style: TextStyle(fontSize: 17),
+                        child: Text(AppTranslationConstants.paperType.tr, style: const TextStyle(fontSize: 17),
                         ),
                       ),
                       DropdownButton<String>(
@@ -219,7 +219,7 @@ class QuotationPage extends StatelessWidget {
                     children: [
                       SizedBox(
                         width: AppTheme.fullWidth(context)/2,
-                        child: Text(AppTranslationConstants.coverLamination.tr, style: TextStyle(fontSize: 17),
+                        child: Text(AppTranslationConstants.coverLamination.tr, style: const TextStyle(fontSize: 17),
                         ),
                       ),
                       DropdownButton<String>(
@@ -324,7 +324,7 @@ class QuotationPage extends StatelessWidget {
                         AppTheme.heightSpace10,
                         buildPhoneField(quotationController: _),
                         AppTheme.heightSpace10,
-                        Text('Favor de agregar número si es cotización para cliente',
+                        const Text('Favor de agregar número si es cotización para cliente',
                           style: TextStyle(fontSize: 12),
                         ),
                         AppTheme.heightSpace10,
@@ -346,8 +346,8 @@ class QuotationPage extends StatelessWidget {
                       ),
                     ),),
                     AppTheme.heightSpace20,
-                    Center(
-                      child: const HeaderIntro(showLogo: false, sizeRelation: 4,),
+                    const Center(
+                      child: HeaderIntro(showLogo: false, sizeRelation: 4,),
                     )
                     
                   ],

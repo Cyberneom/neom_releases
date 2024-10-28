@@ -195,7 +195,7 @@ class WooProductsApi {
             'option': optionValue,
           },
         ],
-        'sku': Uri.encodeComponent(productId+'-'+optionValue.toUpperCase()),
+        'sku': Uri.encodeComponent('$productId-${optionValue.toUpperCase()}'),
         'virtual': true,
         'regular_price': '0.00', // Establece el precio si es necesario
       }),

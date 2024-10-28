@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
+import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl_phone_field/countries.dart';
 import 'package:neom_commons/core/app_flavour.dart';
@@ -493,70 +493,70 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
   }
 
-  @override
-  Future<void> handleSuscriptionPayment(stripe.BillingDetails billingDetails) async {
-
-    stripe.PaymentMethod paymentMethod;
-    Map<String, dynamic> paymentIntentResponse;
-
-    try {
-      // 1. Create payment method providing billingDetails
-      paymentMethod = await stripe.Stripe.instance.createPaymentMethod(
-          params: stripe.PaymentMethodParams.card(
-              paymentMethodData: stripe.PaymentMethodData(
-                  billingDetails: billingDetails
-              )
-          )
-      );
-
-      AppUtilities.logger.i("Valid payment method added successfully");
-      AppUtilities.logger.i(paymentMethod.toString());
-
-      final String apiUrl = 'https://api.stripe.com/v1/subscriptions';
-      // Crear el cliente en Stripe
-      final customerResponse = await http.post(
-        Uri.parse('https://api.stripe.com/v1/customers'),
-        headers: {
-          'Authorization': 'Bearer ${AppFlavour.getStripeSecretLiveKey()}',
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: {
-          'email': userController.user.email,
-          'payment_method': paymentMethod.id,
-          'invoice_settings[default_payment_method]': paymentMethod.id,
-        },
-      );
-
-
-      final customer = json.decode(customerResponse.body);
-      final customerId = customer['id'];
-
-      // Crear la suscripción
-      final subscriptionResponse = await http.post(
-        Uri.parse(apiUrl),
-        headers: {
-          'Authorization': 'Bearer ${AppFlavour.getStripeSecretLiveKey()}',
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: {
-          'customer': customerId,
-          'items[0][price]': 'price_1PzmXjHpVUHkmiYF9Vcoau6V',
-          'expand[]': 'latest_invoice.payment_intent',
-        },
-      );
-
-      final subscription = json.decode(subscriptionResponse.body);
-      AppUtilities.logger.i('Subscription created: ${subscription['id']}');
-    } on stripe.StripeException catch (e) {
-      errorMsg = e.error.localizedMessage ?? "";
-      paymentStatus.value = PaymentStatus.declined;
-      AppUtilities.logger.e(errorMsg);
-    } catch (e) {
-      paymentStatus.value = PaymentStatus.unknown;
-      AppUtilities.logger.e(e.toString());
-    }
-
-  }
+  // @override
+  // Future<void> handleSubscriptionPayment(stripe.BillingDetails billingDetails) async {
+  //
+  //   stripe.PaymentMethod paymentMethod;
+  //   Map<String, dynamic> paymentIntentResponse;
+  //
+  //   try {
+  //     // 1. Create payment method providing billingDetails
+  //     paymentMethod = await stripe.Stripe.instance.createPaymentMethod(
+  //         params: stripe.PaymentMethodParams.card(
+  //             paymentMethodData: stripe.PaymentMethodData(
+  //                 billingDetails: billingDetails
+  //             )
+  //         )
+  //     );
+  //
+  //     AppUtilities.logger.i("Valid payment method added successfully");
+  //     AppUtilities.logger.i(paymentMethod.toString());
+  //
+  //     const String apiUrl = 'https://api.stripe.com/v1/subscriptions';
+  //     // Crear el cliente en Stripe
+  //     final customerResponse = await http.post(
+  //       Uri.parse('https://api.stripe.com/v1/customers'),
+  //       headers: {
+  //         'Authorization': 'Bearer ${AppFlavour.getStripeSecretLiveKey()}',
+  //         'Content-Type': 'application/x-www-form-urlencoded',
+  //       },
+  //       body: {
+  //         'email': userController.user.email,
+  //         'payment_method': paymentMethod.id,
+  //         'invoice_settings[default_payment_method]': paymentMethod.id,
+  //       },
+  //     );
+  //
+  //
+  //     final customer = json.decode(customerResponse.body);
+  //     final customerId = customer['id'];
+  //
+  //     // Crear la suscripción
+  //     final subscriptionResponse = await http.post(
+  //       Uri.parse(apiUrl),
+  //       headers: {
+  //         'Authorization': 'Bearer ${AppFlavour.getStripeSecretLiveKey()}',
+  //         'Content-Type': 'application/x-www-form-urlencoded',
+  //       },
+  //       body: {
+  //         'customer': customerId,
+  //         'items[0][price]': 'price_1PzmXjHpVUHkmiYF9Vcoau6V',
+  //         'expand[]': 'latest_invoice.payment_intent',
+  //       },
+  //     );
+  //
+  //     final subscription = json.decode(subscriptionResponse.body);
+  //     AppUtilities.logger.i('Subscription created: ${subscription['id']}');
+  //   } on stripe.StripeException catch (e) {
+  //     errorMsg = e.error.localizedMessage ?? "";
+  //     paymentStatus.value = PaymentStatus.declined;
+  //     AppUtilities.logger.e(errorMsg);
+  //   } catch (e) {
+  //     paymentStatus.value = PaymentStatus.unknown;
+  //     AppUtilities.logger.e(e.toString());
+  //   }
+  //
+  // }
 
   @override
   Future<Map<String, dynamic>> createPaymentIntent(

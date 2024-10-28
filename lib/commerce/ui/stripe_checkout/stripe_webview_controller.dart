@@ -2,16 +2,24 @@ import 'dart:core';
 
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
+import 'package:neom_commons/core/data/api_services/stripe/stripe_service.dart';
+import 'package:neom_commons/core/data/firestore/user_subscription_firestore.dart';
 import 'package:neom_commons/core/domain/model/app_release_item.dart';
+import 'package:neom_commons/core/domain/model/stripe/stripe_session.dart';
+import 'package:neom_commons/core/domain/model/subscription_plan.dart';
+import 'package:neom_commons/core/domain/model/user_subscription.dart';
+import 'package:neom_commons/core/utils/enums/subscription_level.dart';
+import 'package:neom_commons/core/utils/enums/subscription_status.dart';
+import 'package:neom_commons/core/utils/enums/verification_level.dart';
 
 import 'package:neom_commons/neom_commons.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../data/firestore/payment_firestore.dart';
-import '../../data/stripe_service.dart';
+import '../../domain/models/app_product.dart';
 import '../../domain/models/payment.dart';
 import '../../domain/models/purchase_order.dart';
-import '../../domain/models/stripe_session.dart';
+import '../../utils/constants/app_commerce_constants.dart';
 import '../../utils/constants/stripe_webview_constants.dart';
 import '../../utils/enums/payment_status.dart';
 
@@ -38,9 +46,13 @@ class StripeViewController extends GetxController  {
   String priceId = '';
   String subscriptionId = '';
   PurchaseOrder order = PurchaseOrder();
+  AppProduct product = AppProduct();
+  SubscriptionPlan subscriptionPlan = SubscriptionPlan();
 
   BuildContext? context;
   String fromRoute = '';
+
+  int trialDays = 0;
 
   @override
   void onInit() async {
@@ -57,6 +69,16 @@ class StripeViewController extends GetxController  {
       if(Get.arguments != null && Get.arguments.isNotEmpty) {
         if(Get.arguments[0] is PurchaseOrder) {
           order = Get.arguments[0];
+          if(order.product != null) product = order.product!;
+
+          if(order.subscriptionPlan != null) {
+            subscriptionPlan = order.subscriptionPlan!;
+            priceId = subscriptionPlan.priceId;
+
+            if(subscriptionPlan.level == SubscriptionLevel.basic || subscriptionPlan.level == SubscriptionLevel.creator){
+              trialDays = AppCommerceConstants.trialPeriodDays;
+            }
+          }
         }
 
         if(Get.arguments.length > 1 && Get.arguments[1] is String) {
@@ -67,11 +89,9 @@ class StripeViewController extends GetxController  {
           context = Get.arguments[2];
         }
 
-
-
       }
 
-      checkoutSession = await StripeService.createCheckoutSessionUrl(userController.user.email);
+      checkoutSession = await StripeService.createCheckoutSessionUrl(userController.user.email, priceId, trialPeriodDays: trialDays);
 
       webViewController.setBackgroundColor(AppColor.main50);
       Uri uri = Uri.parse(checkoutSession.url);
@@ -130,18 +150,34 @@ class StripeViewController extends GetxController  {
               if(customerId.isNotEmpty) userController.updateCustomerId(customerId);
               if(subscriptionId.isNotEmpty) userController.updateSubscriptionId(subscriptionId);
 
+              if(userController.profile.verificationLevel == VerificationLevel.none) {
+                //TODO Verify if profile verification would be done here or manually.
+              }
+
+              UserSubscription userSubscription = UserSubscription(
+                subscriptionId: subscriptionId,
+                userId: userController.user.id,
+                level: subscriptionPlan.level,
+                price: subscriptionPlan.price,
+                status: SubscriptionStatus.active,
+                startDate: DateTime.now().millisecondsSinceEpoch,
+              );
+
+              userController.setUserSubscription(userSubscription);
+              UserSubscriptionFirestore().insert(userSubscription);
 
               if(fromRoute.isNotEmpty) {
                 switch(fromRoute) {
-                  case AppRouteConstants.accountSettings:
-                    Get.offAllNamed(AppRouteConstants.home);
-                    break;
                   case AppRouteConstants.pdfViewer:
                     if(context != null) {
                       Navigator.pop(context!);
                       Navigator.pop(context!);
                       Navigator.pop(context!);
                     }
+                    break;
+                  case AppRouteConstants.accountSettings:
+                  case AppRouteConstants.home:
+                    Get.offAllNamed(AppRouteConstants.home);
                     break;
                   default:
                     break;

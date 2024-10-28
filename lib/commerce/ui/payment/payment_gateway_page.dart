@@ -64,7 +64,7 @@ class PaymentGatewayPage extends StatelessWidget {
                     ),
                     buildPhoneField(paymentGatewayController: _),
                     AppTheme.heightSpace20,
-                    Container(
+                    SizedBox(
                       height: AppTheme.fullHeight(context)/3,
                       child: CardFormField(
                         controller: _.cardEditController,

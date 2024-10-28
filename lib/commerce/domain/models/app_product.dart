@@ -3,6 +3,7 @@ import 'package:neom_commons/core/domain/model/app_release_item.dart';
 import 'package:neom_commons/core/domain/model/event.dart';
 import 'package:neom_commons/core/domain/model/price.dart';
 import 'package:neom_commons/core/domain/model/review.dart';
+import 'package:neom_commons/core/domain/model/subscription_plan.dart';
 import 'package:neom_commons/core/utils/enums/product_type.dart';
 
 // ignore: unused_import
@@ -138,6 +139,20 @@ class AppProduct {
         ownerEmail = event.ownerEmail,
         numberOfSales = 0,
         createdTime = event.createdTime,
+        isAvailable = true,
+        updatedTime = 0;
+
+  AppProduct.fromSubscriptionPlan(SubscriptionPlan plan) :
+        id = plan.priceId,
+        name = plan.name,
+        description = '${plan.name}Msg',
+        type =  ProductType.subscription,
+        regularPrice = plan.price,
+        salePrice = plan.price,
+        qty = 1,
+        imgUrl = plan.imgUrl,
+        numberOfSales = 0,
+        createdTime = 0,
         isAvailable = true,
         updatedTime = 0;
 

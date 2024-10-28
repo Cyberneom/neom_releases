@@ -105,40 +105,41 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                         AppTheme.heightSpace10,
                         Column(
                             children: [
-                              (_.isPhysical.value && _.appReleaseItem.value.physicalPrice!.amount != 0) ?
+                              (_.isPhysical.value && _.appReleaseItem.value.physicalPrice?.amount != 0) ?
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Text("${AppTranslationConstants.physicalReleasePrice.tr}: \$${_.appReleaseItem.value.physicalPrice!.amount.truncate().toString()} MXN ",
+                                  Text("${AppTranslationConstants.physicalReleasePrice.tr}: \$${_.appReleaseItem.value.physicalPrice?.amount.truncate().toString()} MXN ",
                                     style: const TextStyle(fontSize: 15),
                                   ),
                                 ],
                               ) : const SizedBox.shrink(),
-                              (_.appReleaseItem.value.digitalPrice!.amount != 0) ?
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text("${AppTranslationConstants.digitalReleasePrice.tr}: \$${_.appReleaseItem.value.digitalPrice!.amount.truncate().toString()} MXN ",
-                                    style: const TextStyle(fontSize: 15),
-                                  ),
-                                ],
-                              ) : const SizedBox.shrink(),
-                              (_.appReleaseItem.value.digitalPrice!.amount != 0 &&
-                                  _.appReleaseItem.value.digitalPrice!.amount != double.parse(AppFlavour.getInitialPrice())
-                              ) ? Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text("(${AppTranslationConstants.initialPrice.tr}: \$${AppFlavour.getInitialPrice()} MXN)",
-                                    style: const TextStyle(fontSize: 15, decoration: TextDecoration.underline),
-                                  ),
-                                ],
-                              ) : const SizedBox.shrink()
+                              // (_.appReleaseItem.value.digitalPrice!.amount != 0) ?
+                              // Row(
+                              //   mainAxisAlignment: MainAxisAlignment.center,
+                              //   crossAxisAlignment: CrossAxisAlignment.center,
+                              //   children: [
+                              //     Text("${AppTranslationConstants.digitalReleasePrice.tr}: \$${_.appReleaseItem.value.digitalPrice!.amount.truncate().toString()} MXN ",
+                              //       style: const TextStyle(fontSize: 15),
+                              //     ),
+                              //   ],
+                              // ) : const SizedBox.shrink(),
+                              // (_.appReleaseItem.value.digitalPrice!.amount != 0 &&
+                              //     _.appReleaseItem.value.digitalPrice!.amount != double.parse(AppFlavour.getInitialPrice())
+                              // ) ? Row(
+                              //   mainAxisAlignment: MainAxisAlignment.center,
+                              //   crossAxisAlignment: CrossAxisAlignment.center,
+                              //   children: [
+                              //     Text("(${AppTranslationConstants.initialPrice.tr}: \$${AppFlavour.getInitialPrice()} MXN)",
+                              //       style: const TextStyle(fontSize: 15, decoration: TextDecoration.underline),
+                              //     ),
+                              //   ],
+                              // ) : const SizedBox.shrink()
                             ]
                         ),
                         GenresGridView(_.appReleaseItem.value.categories, AppColor.yellow),
+                        AppTheme.heightSpace10,
                         if(AppFlavour.appInUse == AppInUse.g && _.appReleaseItems.isNotEmpty)
                           Column(
                             children: <Widget>[
@@ -168,7 +169,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                           progressColor: AppColor.bondiBlue,
                         ),) : SubmitButton(context, text: AppTranslationConstants.submitRelease.tr,
                           isLoading: _.isLoading.value, isEnabled: !_.isButtonDisabled.value,
-                          onPressed: _.uploadReleaseItem,
+                          onPressed: _.uploadMedia,
                         ),
                         if(_.releaseItemIndex.value == 0) TitleSubtitleRow("", showDivider: false, subtitle: AppTranslationConstants.submitReleaseMsg.tr, titleFontSize: 14, subTitleFontSize: 12,),
                       ],

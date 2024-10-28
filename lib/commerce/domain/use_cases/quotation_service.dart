@@ -10,5 +10,10 @@ abstract class QuotationService {
   void updateQuotation();
   void addRevenuePercentage();
   Future<void> sendWhatsappQuotation();
+  void setPaperType(String selectedType);
+  void setCoverLamination(String selectedLamination);
+  void setOnlyPrinting();
+  void setOnlyDigital();
+  void setFlapRequired();
 
 }

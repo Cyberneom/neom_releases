@@ -32,7 +32,7 @@ class OrderDetailsPage extends StatelessWidget {
           decoration: AppTheme.appBoxDecoration,
           padding: const EdgeInsets.all(20),
           height: AppTheme.fullHeight(context),
-          child: _.isLoading ? AppCircularProgressIndicator() : Column(
+          child: _.isLoading ? const AppCircularProgressIndicator() : Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                  Container(
@@ -66,7 +66,7 @@ class OrderDetailsPage extends StatelessWidget {
                                  maxLines: 1,
                                ),
                                AppTheme.heightSpace5,
-                               Text(_.displayedName,
+                               Text(_.displayedName.tr,
                                    style: const TextStyle(
                                        fontSize: 12
                                    ),
@@ -76,7 +76,7 @@ class OrderDetailsPage extends StatelessWidget {
                                AppTheme.heightSpace5,
                              SizedBox(
                                width: AppTheme.fullWidth(context)/2,
-                               child: Text(_.displayedDescription,
+                               child: Text(_.displayedDescription.tr,
                                    style: const TextStyle(
                                        fontSize: 12,
                                    ),
@@ -116,14 +116,14 @@ class OrderDetailsPage extends StatelessWidget {
                   Divider(color: AppColor.white80),
                   TextButton(
                     onPressed: () => CoreUtilities.launchURL(_.order.url),
-                    child: Text(AppTranslationConstants.checkInvoice.tr),
                     style: TextButton.styleFrom(
                       padding: EdgeInsets.zero,
-                      minimumSize: Size(0, 0), // Removes any minimum size constraints
+                      minimumSize: const Size(0, 0), // Removes any minimum size constraints
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap, // Reduces the tap area to the content
                     ),
+                    child: Text(AppTranslationConstants.checkInvoice.tr),
                   )
-                ],) : SizedBox.shrink(),
+                ],) : const SizedBox.shrink(),
                 Divider(color: AppColor.white80),
                 Text(AppTranslationConstants.yourPurchase.tr,
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)
@@ -174,7 +174,7 @@ class OrderDetailsPage extends StatelessWidget {
                 SizedBox(
                   height: AppTheme.fullHeight(context)/6,
                   child: SingleChildScrollView(
-                    child: ReadMoreContainer(text: "${_.order.description.tr}${_.order.product!.description.isNotEmpty ? "\n${_.order.product!.description}" : ""}",
+                    child: ReadMoreContainer(text: "${_.order.description.tr}${_.order.product!.description.isNotEmpty ? "\n${_.order.product!.description.tr}" : ""}",
                       padding: 0,
                       trimLines: 6,
                       color: Colors.grey,
@@ -191,7 +191,7 @@ class OrderDetailsPage extends StatelessWidget {
                   children: <Widget>[
                     SizedBox(
                       width: AppTheme.fullWidth(context)/2,
-                      child: Text(_.displayedName,
+                      child: Text(_.displayedName.tr,
                           style: const TextStyle(
                               color: Colors.grey,
                               fontSize: 16,

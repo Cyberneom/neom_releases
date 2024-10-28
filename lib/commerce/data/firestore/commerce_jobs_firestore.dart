@@ -1,7 +1,6 @@
+import 'package:neom_commons/core/data/firestore/subscription_plan_firestore.dart';
 import 'package:neom_commons/core/domain/model/subscription_plan.dart';
 import 'package:neom_commons/core/utils/enums/subscription_level.dart';
-
-import 'subscription_plan_firestore.dart';
 
 class CommerceJobsFirestore {
 
@@ -11,7 +10,7 @@ class CommerceJobsFirestore {
     // Lista de planes de suscripción con sus datos hardcodeados desde la imagen
     List<SubscriptionPlan> subscriptionPlans = [
       SubscriptionPlan(
-        id: "artistPlan",
+        id: "artist",
         name: "artistPlan",
         productId: "prod_QzVWA5ZJaxrk6D",
         priceId: "price_1Q7WVWHpVUHkmiYFhVeMVKfC",
@@ -21,7 +20,7 @@ class CommerceJobsFirestore {
         isActive: true,
       ),
       SubscriptionPlan(
-        id: "basicPlan",
+        id: "basic",
         name: "basicPlan",
         productId: "prod_QvY34BvmkRiWa",
         priceId: "price_1Q8STHpVUHkmiYF4l8sTLxO",
@@ -31,7 +30,7 @@ class CommerceJobsFirestore {
         isActive: true,
       ),
       SubscriptionPlan(
-        id: "creatorPlan",
+        id: "creator",
         name: "creatorPlan",
         productId: "prod_ROV2TQ55pxymGI",
         priceId: "price_1Q8U2SHpVUHkmiYFRBSJk6xc",
@@ -41,7 +40,7 @@ class CommerceJobsFirestore {
         isActive: true,
       ),
       SubscriptionPlan(
-        id: "premiumPlan",
+        id: "premium",
         name: "premiumPlan",
         productId: "prod_Qzh8z4x5Nc9gd",
         priceId: "price_1Q7hkZHpVUHkmiYF6eDYloG",
@@ -51,7 +50,7 @@ class CommerceJobsFirestore {
         isActive: true,
       ),
       SubscriptionPlan(
-        id: "professionalPlan",
+        id: "professional",
         name: "professionalPlan",
         productId: "prod_QzVc88mKouprWR",
         priceId: "price_1Q7WbJHpVUHkmiYFEzTYW8XH",
@@ -61,7 +60,7 @@ class CommerceJobsFirestore {
         isActive: true,
       ),
       SubscriptionPlan(
-        id: "publishPlan",
+        id: "publish",
         name: "publishPlan",
         productId: "prod_ROUjpm5bHLoWY",
         priceId: "price_1Q8TjKHpVUHkmiYFfDmz1GBw",

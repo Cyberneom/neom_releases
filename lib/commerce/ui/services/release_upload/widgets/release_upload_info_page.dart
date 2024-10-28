@@ -1,19 +1,16 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/core/ui/widgets/header_intro.dart';
-import 'package:neom_commons/core/ui/widgets/number_limit_input_formatter.dart';
 import 'package:neom_commons/core/ui/widgets/summary_button.dart';
 import 'package:neom_commons/core/utils/app_color.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_hero_tag_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
-import 'package:neom_commons/core/utils/enums/app_currency.dart';
 import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 
 import '../release_upload_controller.dart';
@@ -50,52 +47,52 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                   AppTheme.heightSpace100,
                   HeaderIntro(subtitle: AppTranslationConstants.releaseUploadPLaceDate.tr, showPreLogo: false,),
                   AppTheme.heightSpace10,
-                  AppFlavour.appInUse == AppInUse.e ? Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      SizedBox(
-                        width: AppTheme.fullWidth(context)/2,
-                        child: GestureDetector(
-                          child: Row(
-                            children: <Widget>[
-                              Checkbox(
-                                value: _.isPhysical.value,
-                                onChanged: (bool? newValue) {
-                                  _.setIsPhysical();
-                                  },
-                              ),
-                              Text(AppTranslationConstants.includesPhysical.tr),
-                            ],
-                          ),
-                          onTap: ()=>_.setIsPhysical(),
-                        ),
-                      ),
-                      SizedBox(
-                        width: AppTheme.fullWidth(context)/3,
-                        child: TextFormField(
-                          controller: _.physicalPriceController,
-                          enabled: _.isPhysical.value,
-                          inputFormatters: [
-                            FilteringTextInputFormatter.digitsOnly,
-                            NumberLimitInputFormatter(1000),
-                          ],
-                          keyboardType: TextInputType.number,
-                          decoration: InputDecoration(
-                              suffixText: AppCurrency.mxn.value.tr.toUpperCase(),
-                              filled: true,
-                              hintText: "(${AppTranslationConstants.optional.tr})",
-                              labelText: AppTranslationConstants.releasePrice.tr,
-                              border: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(10),
-                              )
-                          ),
-                          onChanged: (text) {
-                            _.setDigitalReleasePrice();
-                            },
-                        ),
-                      ),
-                    ],
-                  ) : const SizedBox.shrink(),
+                  // AppFlavour.appInUse == AppInUse.e ? Row(
+                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  //   children: [
+                  //     SizedBox(
+                  //       width: AppTheme.fullWidth(context)/2,
+                  //       child: GestureDetector(
+                  //         child: Row(
+                  //           children: <Widget>[
+                  //             Checkbox(
+                  //               value: _.isPhysical.value,
+                  //               onChanged: (bool? newValue) {
+                  //                 _.setIsPhysical();
+                  //                 },
+                  //             ),
+                  //             Text(AppTranslationConstants.includesPhysical.tr),
+                  //           ],
+                  //         ),
+                  //         onTap: ()=>_.setIsPhysical(),
+                  //       ),
+                  //     ),
+                  //     SizedBox(
+                  //       width: AppTheme.fullWidth(context)/3,
+                  //       child: TextFormField(
+                  //         controller: _.physicalPriceController,
+                  //         enabled: _.isPhysical.value,
+                  //         inputFormatters: [
+                  //           FilteringTextInputFormatter.digitsOnly,
+                  //           NumberLimitInputFormatter(1000),
+                  //         ],
+                  //         keyboardType: TextInputType.number,
+                  //         decoration: InputDecoration(
+                  //             suffixText: AppCurrency.mxn.value.tr.toUpperCase(),
+                  //             filled: true,
+                  //             hintText: "(${AppTranslationConstants.optional.tr})",
+                  //             labelText: AppTranslationConstants.releasePrice.tr,
+                  //             border: OutlineInputBorder(
+                  //               borderRadius: BorderRadius.circular(10),
+                  //             )
+                  //         ),
+                  //         onChanged: (text) {
+                  //           _.setDigitalReleasePrice();
+                  //           },
+                  //       ),
+                  //     ),
+                  //   ],
+                  // ) : const SizedBox.shrink(),
                   AppTheme.heightSpace10,
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

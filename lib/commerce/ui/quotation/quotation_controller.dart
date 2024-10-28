@@ -28,7 +28,7 @@ class QuotationController extends GetxController implements QuotationService {
 
   AppPhysicalItem itemToQuote = AppPhysicalItem();
   AppQuotation defaultQuotation = AppQuotation();
-  double costPerDurationUnit = 0;
+
   int itemQty = 0;
   int processACost = 0;
   int processBCost = 0;
@@ -241,22 +241,31 @@ class QuotationController extends GetxController implements QuotationService {
 
 
     if(!onlyDigital) {
-      if(itemQty <= defaultQuotation.minQty) {
-        costPerDurationUnit = defaultQuotation.maxCostPerDurationUnit;
-      } else if(itemQty >= defaultQuotation.midQty) {
-        costPerDurationUnit = defaultQuotation.minCostPerDurationUnit;
+
+      double durationUnitCostPerQty = 0;
+      double durationUnitCostPerDuration = 0;
+      double durationUnitCost = 0;
+
+
+      ///This interpolation is calculated to get the exact range of value within the max and min costs per duration unit related to the duration required.
+      durationUnitCostPerDuration = getDurationUnitCostPerDuration();
+      durationUnitCostPerQty = getDurationUnitCostPerQty();
+
+      AppUtilities.logger.d("DurationUnitCostPerDuration: $durationUnitCostPerDuration. DurationUnitCostPerQty: $durationUnitCostPerQty.");
+      if(durationUnitCostPerDuration < durationUnitCostPerQty) {
+        // durationUnitCost = (durationUnitCostPerDuration+durationUnitCostPerQty)/2;
+        durationUnitCost = durationUnitCostPerDuration;
       } else {
-        double interpolation = (itemQty - defaultQuotation.minQty) / (defaultQuotation.midQty - defaultQuotation.minQty);
-        costPerDurationUnit = defaultQuotation.maxCostPerDurationUnit - interpolation
-            * (defaultQuotation.maxCostPerDurationUnit - defaultQuotation.minCostPerDurationUnit);
+        durationUnitCost = durationUnitCostPerQty;
       }
+      AppUtilities.logger.d("DurationUnitCost: $durationUnitCost.");
 
       switch(itemToQuote.size) {
         case AppItemSize.quarterLetter:
-          costPerDurationUnit = costPerDurationUnit * defaultQuotation.lowSizeRelation;
+          durationUnitCost = durationUnitCost * defaultQuotation.lowSizeRelation;
           break;
         case AppItemSize.letter:
-          costPerDurationUnit = costPerDurationUnit * defaultQuotation.highSizeRelation;
+          durationUnitCost = durationUnitCost * defaultQuotation.highSizeRelation;
           break;
         default:
           break;
@@ -264,33 +273,33 @@ class QuotationController extends GetxController implements QuotationService {
 
       switch(paperType) {
         case PaperType.bond75:
-          costPerDurationUnit = costPerDurationUnit * defaultQuotation.lowQualityRelation;
+          durationUnitCost = durationUnitCost * defaultQuotation.lowQualityRelation;
           break;
         case PaperType.couche130:
-          costPerDurationUnit = costPerDurationUnit * defaultQuotation.highQualityRelation;
+          durationUnitCost = durationUnitCost * defaultQuotation.highQualityRelation;
           break;
         default:
           break;
       }
 
-      pricePerUnit = (itemToQuote.duration * costPerDurationUnit) + (flapRequired ? defaultQuotation.costPerFlap : 0)
-          + (defaultQuotation.prePrintCost/itemQty).roundToDouble();
+      pricePerUnit = (itemToQuote.duration * durationUnitCost) + (defaultQuotation.prePrintCost/itemQty).roundToDouble();
+      if(flapRequired) pricePerUnit = pricePerUnit + defaultQuotation.costPerFlap;
+      AppUtilities.logger.d("Price per unit: $pricePerUnit");
     } else {
       pricePerUnit = 0;
     }
 
-    AppUtilities.logger.i("Price per unit: $pricePerUnit");
     processACost = processARequired ? (itemToQuote.duration * defaultQuotation.processACost).round() : 0;
-    AppUtilities.logger.i("Price per Process A: $processACost");
+    AppUtilities.logger.t("Price per Process A: $processACost");
     processBCost = processBRequired ? (itemToQuote.duration * defaultQuotation.processBCost).round() : 0;
-    AppUtilities.logger.i("Price per Process B: $processBCost");
+    AppUtilities.logger.t("Price per Process B: $processBCost");
     addRevenuePercentage();
     coverDesignCost = coverDesignRequired ? defaultQuotation.coverDesignCost : 0;
-    AppUtilities.logger.i("Cover Design Cost: $coverDesignCost");
+    AppUtilities.logger.t("Cover Design Cost: $coverDesignCost");
     subtotalCost = processACost + processBCost + coverDesignCost + (pricePerUnit*itemQty);
     taxCost = subtotalCost*defaultQuotation.tax;
     totalCost = subtotalCost+taxCost;
-    AppUtilities.logger.i("Total Cost: $totalCost");
+    AppUtilities.logger.t("Total Cost: $totalCost");
     update([AppPageIdConstants.quotation]);
   }
 
@@ -319,7 +328,7 @@ class QuotationController extends GetxController implements QuotationService {
           "${AppTranslationConstants.paperType.tr.capitalize}: ${paperType.name.tr}\n"
           "${AppTranslationConstants.coverLamination.tr.capitalize}: ${coverLamination.name.tr}\n"
           "${flapRequired ? "${AppTranslationConstants.flapRequired.tr}\n" : ""}"
-          "${pricePerUnit != 0 ? "\n${AppTranslationConstants.pricePerUnit.tr}: \$${pricePerUnit} MXN\n" : ""}"
+          "${pricePerUnit != 0 ? "\n${AppTranslationConstants.pricePerUnit.tr}: \$$pricePerUnit MXN\n" : ""}"
           "${processACost != 0 ? "${AppTranslationConstants.processA.tr}: \$${processACost.toDouble()} MXN\n" : ""}"
           "${processBCost != 0 ? "${AppTranslationConstants.processB.tr}: \$${processBCost.toDouble()} MXN\n" : ""}"
           "${coverDesignCost != 0 ? "${AppTranslationConstants.coverDesign.tr}: \$${coverDesignCost.toDouble()} MXN\n" : ""}"
@@ -330,8 +339,7 @@ class QuotationController extends GetxController implements QuotationService {
           "${userController.profile.name}";
 
       if(userController.user.userRole != UserRole.subscriber) {
-        message = message + '\n\n${MessageTranslationConstants.shareAppMsg.tr}\n'
-            '${AppFlavour.getLinksUrl()}\n';
+        message = '$message\n\n${MessageTranslationConstants.shareAppMsg.tr}\n${AppFlavour.getLinksUrl()}\n';
       }
 
       String phoneNumberText = controllerPhone.text;
@@ -366,6 +374,36 @@ class QuotationController extends GetxController implements QuotationService {
     }
 
     update([AppPageIdConstants.quotation]);
+  }
+
+  double getDurationUnitCostPerDuration() {
+    ///This interpolation is calculated to get the exact range of value within the max and min costs per duration unit related to the duration required.
+    int durationToInterpolate = (itemToQuote.duration >= defaultQuotation.midDuration) ? defaultQuotation.midDuration : itemToQuote.duration;
+    double costRange = defaultQuotation.maxCostPerDurationUnit - defaultQuotation.minCostPerDurationUnit;
+    double durationInterpolation = (durationToInterpolate - defaultQuotation.minDuration) / (defaultQuotation.midDuration- defaultQuotation.minDuration);
+    double durationUnitCostPerDuration = defaultQuotation.maxCostPerDurationUnit - (durationInterpolation.toPrecision(2) * costRange.toPrecision(2));
+    return durationUnitCostPerDuration;
+  }
+
+  double getDurationUnitCostPerQty() {
+
+    double costRange = defaultQuotation.maxCostPerDurationUnit - defaultQuotation.minCostPerDurationUnit;
+    double durationUnitCostPerQty = 0;
+
+    // if(itemQty <= defaultQuotation.minQty) {
+    //   durationUnitCostPerQty = defaultQuotation.maxCostPerDurationUnit;
+    // } else if(itemQty >= defaultQuotation.midQty || itemToQuote.duration >= defaultQuotation.midDuration) {
+    //   durationUnitCostPerQty = defaultQuotation.minCostPerDurationUnit;
+    // } else {
+    //   double qtyInterpolation = (itemQty - defaultQuotation.minQty) / (defaultQuotation.midQty - defaultQuotation.minQty);
+    //   durationUnitCostPerQty = defaultQuotation.maxCostPerDurationUnit - (qtyInterpolation * costRange);
+    // }
+
+    int qtyToInterpolate = (itemQty >= defaultQuotation.midQty) ? defaultQuotation.midQty : itemQty;
+    double qtyInterpolation = (qtyToInterpolate - defaultQuotation.minQty) / (defaultQuotation.midQty - defaultQuotation.minQty);
+    durationUnitCostPerQty = defaultQuotation.maxCostPerDurationUnit - (qtyInterpolation * costRange);
+
+    return durationUnitCostPerQty;
   }
 
 }

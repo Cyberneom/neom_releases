@@ -8,7 +8,6 @@ import 'package:get/get.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:neom_bands/bands/ui/band_controller.dart';
 import 'package:neom_commons/core/data/firestore/app_release_item_firestore.dart';
-import 'package:neom_commons/core/data/firestore/app_upload_firestore.dart';
 import 'package:neom_commons/core/data/firestore/itemlist_firestore.dart';
 import 'package:neom_commons/core/domain/model/app_release_item.dart';
 import 'package:neom_commons/core/utils/enums/itemlist_type.dart';
@@ -22,6 +21,7 @@ import 'package:neom_posts/neom_posts.dart';
 import 'package:neom_timeline/neom_timeline.dart';
 import 'package:rubber/rubber.dart';
 
+import '../../../../woo/data/api_services/woo_media_api.dart';
 import '../../../domain/use_cases/release_upload_service.dart';
 
 
@@ -51,7 +51,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   TextEditingController maxDistanceKmController = TextEditingController();
   TextEditingController durationController = TextEditingController();
   TextEditingController paymentAmountController = TextEditingController();
-  TextEditingController digitalPriceController = TextEditingController();
+  // TextEditingController digitalPriceController = TextEditingController();
   TextEditingController physicalPriceController = TextEditingController();
 
   final Rx<Band> selectedBand = Band().obs;
@@ -102,7 +102,10 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       scrollController = ScrollController();
       rubberAnimationController = RubberAnimationController(vsync: this, duration: const Duration(milliseconds: 20));
       releaseUploadDetailsAnimationController = getRubberAnimationController();
-      digitalPriceController.text = AppFlavour.getInitialPrice();
+
+      ///DEPRECATED
+      // digitalPriceController.text = AppFlavour.getInitialPrice();
+
       mapsController.goToPosition(profile.position!);
     } catch(e) {
       AppUtilities.logger.e(e.toString());
@@ -278,8 +281,9 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       if(postUploadController.croppedImageFile.value.path.isNotEmpty) {
         AppUtilities.logger.d("Uploading releaseCoverImg from: ${postUploadController.croppedImageFile.value.path}");
-        releaseCoverImgURL = await AppUploadFirestore().uploadImage(releaseItemlist.name,
-            postUploadController.croppedImageFile.value, UploadImageType.releaseItem);
+        releaseCoverImgURL = await WooMediaApi.uploadMediaToWordPress(postUploadController.croppedImageFile.value, fileName: releaseItemlist.name);
+        // releaseCoverImgURL = await AppUploadFirestore().uploadImage(releaseItemlist.name,
+        //     postUploadController.croppedImageFile.value, UploadImageType.releaseItem);
         releaseItemlist.imgUrl = releaseCoverImgURL;
       }
 
@@ -312,7 +316,9 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
           String filePath = releaseFilePaths.elementAt(releaseItemIndex.value);
 
           File fileToUpload = await AppUtilities.getFileFromPath(filePath);
-          releaseItem.previewUrl = await AppUploadFirestore().uploadReleaseItem(releaseItem.name, fileToUpload, mediaType);
+          releaseItem.previewUrl = await WooMediaApi.uploadMediaToWordPress(fileToUpload, fileName: releaseItem.name);
+          // releaseItem.previewUrl = await AppUploadFirestore().uploadReleaseItem(releaseItem.name, fileToUpload, mediaType);
+
 
           AppUtilities.logger.d("Updating Remote Preview URL as: ${releaseItem.previewUrl}");
         }
@@ -388,7 +394,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         isCommentEnabled: true,
         createdTime: DateTime.now().millisecondsSinceEpoch,
         caption: postCaption,
-        isVerified: profile.verificationLevel != VerificationLevel.none,
+        verificationLevel: profile.verificationLevel,
         lastInteraction: DateTime.now().millisecondsSinceEpoch,
       );
 
@@ -503,16 +509,17 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     update([AppPageIdConstants.releaseUpload]);
   }
 
-  void setDigitalReleasePrice() {
-    AppUtilities.logger.d("setDigitalReleasePrice");
-    
-    if(digitalPriceController.text.isNotEmpty) {
-      appReleaseItem.value.digitalPrice!.amount = double.parse(digitalPriceController.text);
-    }
-
-    durationIsSelected = false;
-    update([AppPageIdConstants.releaseUpload]);
-  }
+  ///DEPRECATED
+  // void setDigitalReleasePrice() {
+  //   AppUtilities.logger.d("setDigitalReleasePrice");
+  //
+  //   if(digitalPriceController.text.isNotEmpty) {
+  //     appReleaseItem.value.digitalPrice!.amount = double.parse(digitalPriceController.text);
+  //   }
+  //
+  //   durationIsSelected = false;
+  //   update([AppPageIdConstants.releaseUpload]);
+  // }
 
   @override
   bool validateItemlistNameDesc() {
@@ -572,7 +579,8 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       if(AppFlavour.appInUse == AppInUse.e) {
         setReleaseDuration();
-        setDigitalReleasePrice();
+        setPhysicalReleasePrice();
+        ///DEPRECATED setDigitalReleasePrice();
       }
 
       Get.toNamed(AppRouteConstants.releaseUploadInstr);
@@ -591,13 +599,23 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   }
 
   void setPhysicalReleasePrice() {
-    AppUtilities.logger.d("Setting physical release price to ${physicalPriceController.text}");
+    AppUtilities.logger.d("Setting physical release price to ${physicalPriceController.text.isNotEmpty ? physicalPriceController.text : null}");
 
     if(physicalPriceController.text.isNotEmpty) {
-      appReleaseItem.value.physicalPrice ??= Price(currency: AppCurrency.mxn);
-      appReleaseItem.value.physicalPrice!.amount = double.parse(physicalPriceController.text);
+      if(double.parse(physicalPriceController.text) > 0) {
+        isPhysical.value = true;
+        appReleaseItem.value.physicalPrice ??= Price(currency: AppCurrency.mxn);
+        appReleaseItem.value.physicalPrice!.amount = double.parse(physicalPriceController.text);
+      } else {
+        appReleaseItem.value.physicalPrice = null;
+        isPhysical.value = false;
+      }
+    } else {
+      appReleaseItem.value.physicalPrice = null;
+      isPhysical.value = false;
     }
 
+    durationIsSelected = false;
     update([AppPageIdConstants.releaseUpload]);
   }
 
@@ -849,8 +867,13 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
   void gotoPdfPreview() {
     releaseFilePath = getReleaseFilePath(releaseFile.value);
+
+    AppReleaseItem previewItem = AppReleaseItem(
+      previewUrl: releaseFilePath,
+      duration: int.parse(durationController.text),
+    );
     Get.toNamed(AppRouteConstants.pdfViewer,
-        arguments: [releaseFilePath, false]);
+        arguments: [previewItem, false]);
   }
 
   void increase() {
@@ -858,8 +881,8 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       int currentValue = int.tryParse(durationController.text) ?? 0;
       durationController.text = (currentValue + 1).toString();
     } else {
-      int currentValue = int.tryParse(digitalPriceController.text) ?? 0;
-      digitalPriceController.text = (currentValue + 1).toString();
+      int currentValue = int.tryParse(physicalPriceController.text) ?? 0;
+      physicalPriceController.text = (currentValue + 1).toString();
     }
 
     update([AppPageIdConstants.releaseUpload]);
@@ -872,9 +895,9 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         durationController.text = (currentValue - 1).toString();
       }
     } else {
-      int currentValue = int.tryParse(digitalPriceController.text) ?? 0;
+      int currentValue = int.tryParse(physicalPriceController.text) ?? 0;
       if (currentValue > 0) {
-        digitalPriceController.text = (currentValue - 1).toString();
+        physicalPriceController.text = (currentValue - 1).toString();
       }
     }
 
@@ -972,6 +995,76 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     } else {
       Get.toNamed(AppRouteConstants.releaseUploadItemlistNameDesc);
     }
+  }
+
+  @override
+  Future<void> uploadMedia() async {
+    AppUtilities.logger.d("Initiating Upload for Media ${releaseItemlist.name} "
+        "- Type: ${releaseItemlist.type} with ${appReleaseItems.length} items");
+
+    String releaseItemlistId = "";
+    String releaseCoverImgURL = '';
+
+    releaseItemIndex.value = 0;
+    isLoading.value = true;
+    update([AppPageIdConstants.releaseUpload]);
+
+    try {
+
+      if(postUploadController.croppedImageFile.value.path.isNotEmpty) {
+        AppUtilities.logger.d("Uploading releaseCoverImg from: ${postUploadController.croppedImageFile.value.path}");
+        releaseCoverImgURL = await WooMediaApi.uploadMediaToWordPress(postUploadController.croppedImageFile.value, fileName: releaseItemlist.name);
+        releaseItemlist.imgUrl = releaseCoverImgURL;
+      }
+
+      for (AppReleaseItem releaseItem in appReleaseItems) {
+        releaseItem.imgUrl = releaseItemlist.imgUrl;
+        releaseItem.categories = [];
+        releaseItem.boughtUsers = [];
+        releaseItem.createdTime = DateTime.now().millisecondsSinceEpoch;
+        releaseItem.metaId = releaseItemlist.id;
+        releaseItem.state = 5;
+
+        if(userController.user.releaseItemIds?.isEmpty ?? true) {
+          releaseItem.status = ReleaseStatus.publish;
+        }
+
+        if(releaseItem.previewUrl.isNotEmpty) {
+          AppUtilities.logger.i("Uploading file: ${releaseItem.previewUrl}");
+          String fileExtension = releaseItem.previewUrl.split('.').last.toLowerCase();
+
+          AppMediaType mediaType = AppMediaType.audio;
+          if(fileExtension == "mp3") {
+            mediaType = AppMediaType.audio;
+          } else if (fileExtension == "pdf") {
+            mediaType = AppMediaType.text;
+          }
+
+          String filePath = releaseFilePaths.elementAt(releaseItemIndex.value);
+
+          File fileToUpload = await AppUtilities.getFileFromPath(filePath);
+          releaseItem.previewUrl = await WooMediaApi.uploadMediaToWordPress(fileToUpload, fileName: releaseItem.name);
+
+          AppUtilities.logger.d("Updating Remote Preview URL as: ${releaseItem.previewUrl}");
+        }
+
+        releaseItemIndex.value++;
+        update([AppPageIdConstants.releaseUpload]);
+      }
+
+      AppUtilities.showSnackBar(
+          title: AppTranslationConstants.digitalPositioning,
+          message: AppTranslationConstants.digitalPositioningSuccess.tr
+      );
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+      AppUtilities.showSnackBar(title: AppTranslationConstants.digitalPositioning, message: e.toString());
+      isButtonDisabled.value = false;
+      isLoading.value = false;
+    }
+
+    isLoading.value = false;
+    update();
   }
 
 }

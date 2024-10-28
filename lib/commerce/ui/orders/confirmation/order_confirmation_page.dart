@@ -50,7 +50,7 @@ class OrderConfirmationPage extends StatelessWidget {
                              borderRadius: const BorderRadius.all(Radius.circular(10.0)),
                              child: _.order.product?.type == ProductType.appCoin
                                  ? Image.asset(AppAssets.appCoins13)
-                                 : Image.network(_.displayedImgUrl.isNotEmpty ? _.displayedImgUrl
+                                 : Image.network(_.product.imgUrl.isNotEmpty ? _.product.imgUrl
                                  : AppFlavour.getNoImageUrl(),
                              )
                          ),
@@ -69,7 +69,7 @@ class OrderConfirmationPage extends StatelessWidget {
                              ),
                            ),
                            AppTheme.heightSpace10,
-                           Text(_.displayedName,
+                           Text(_.product.name.tr,
                                style: const TextStyle(
                                    fontSize: 12
                                ),
@@ -77,7 +77,7 @@ class OrderConfirmationPage extends StatelessWidget {
                                maxLines: 2
                            ),
                            AppTheme.heightSpace10,
-                           Text(_.displayedDescription,
+                           Text(_.product.description.tr,
                                style: const TextStyle(
                                    fontSize: 12
                                ),
@@ -164,7 +164,7 @@ class OrderConfirmationPage extends StatelessWidget {
                 SizedBox(
                   height: AppTheme.fullHeight(context)/6,
                   child: SingleChildScrollView(
-                    child: ReadMoreContainer(text: "${_.order.description.tr}${_.order.product!.description.isNotEmpty ? "\n${_.order.product!.description}" : ""}",
+                    child: ReadMoreContainer(text: "${_.order.description.tr}${_.product.description.isNotEmpty ? "\n${_.product.description.tr}" : ""}",
                       padding: 0,
                       trimLines: 6,
                       color: Colors.grey,
@@ -181,7 +181,7 @@ class OrderConfirmationPage extends StatelessWidget {
                   children: <Widget>[
                     SizedBox(
                       width: AppTheme.fullWidth(context)*0.66,
-                      child: Text(_.displayedName,
+                      child: Text(_.product.name.tr,
                         style: const TextStyle(
                             color: Colors.grey,
                             fontSize: 16),

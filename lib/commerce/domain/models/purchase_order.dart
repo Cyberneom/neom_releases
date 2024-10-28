@@ -5,6 +5,7 @@ import 'package:in_app_purchase_android/billing_client_wrappers.dart';
 import 'package:in_app_purchase_android/src/types/google_play_purchase_details.dart';
 // ignore: implementation_imports
 import 'package:in_app_purchase_storekit/src/types/app_store_purchase_details.dart';
+import 'package:neom_commons/core/domain/model/subscription_plan.dart';
 import 'app_product.dart';
 
 class PurchaseOrder {
@@ -19,6 +20,7 @@ class PurchaseOrder {
   ///DEPRECATED List<String>? paymentIds;
   List<String>? invoiceIds;
   AppProduct? product;
+  SubscriptionPlan? subscriptionPlan;
 
   ///DEPRECATED
   /// Booking? booking;
@@ -39,6 +41,7 @@ class PurchaseOrder {
     /// this.paymentIds,
     this.invoiceIds,
     this.product,
+    this.subscriptionPlan,
     /// this.booking,
     /// this.releaseItem,
     /// this.event,
@@ -57,6 +60,7 @@ class PurchaseOrder {
       'couponId': couponId,
       'invoiceIds': invoiceIds,
       'product': product?.toJSON(),
+      'subscriptionPlan': subscriptionPlan?.toJSON(),
       /// 'booking': booking?.toJSON(),
       /// 'releaseItem': releaseItem?.toJSON(),
       /// 'event': event?.toJSON(),
@@ -76,6 +80,7 @@ class PurchaseOrder {
     /// paymentIds = data["paymentIds"]?.cast<String>() ?? [],
     invoiceIds = data["invoiceIds"]?.cast<String>() ?? [],
     product = AppProduct.fromJSON(data["product"] ?? {}),
+    subscriptionPlan = SubscriptionPlan.fromJSON(data["subscriptionPlan"] ?? {}),
     /// booking = Booking.fromJSON(data["booking"] ?? {}),
     /// event = Event.fromJSON(data["event"] ?? {}),
     /// releaseItem = AppReleaseItem.fromJSON(data["releaseItem"] ?? {}),

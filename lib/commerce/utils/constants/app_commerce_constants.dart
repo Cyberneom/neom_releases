@@ -17,4 +17,5 @@ class AppCommerceConstants {
 
   static List<int> appReleaseItemsQty = List<int>.generate(15, (index) => index + 1);
 
+  static int trialPeriodDays = 30;
 }
