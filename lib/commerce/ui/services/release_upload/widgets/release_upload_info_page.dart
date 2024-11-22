@@ -47,6 +47,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                   AppTheme.heightSpace100,
                   HeaderIntro(subtitle: AppTranslationConstants.releaseUploadPLaceDate.tr, showPreLogo: false,),
                   AppTheme.heightSpace10,
+                  ///DEPRECATED
                   // AppFlavour.appInUse == AppInUse.e ? Row(
                   //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   //   children: [

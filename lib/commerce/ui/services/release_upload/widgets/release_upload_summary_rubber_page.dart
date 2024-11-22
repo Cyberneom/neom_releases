@@ -4,7 +4,12 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
+import 'package:neom_audio_player/neom_player_invoker.dart';
+import 'package:neom_audio_player/ui/player/media_player_page.dart';
+import 'package:neom_audio_player/ui/player/miniplayer_controller.dart';
+import 'package:neom_audio_player/utils/helpers/media_item_mapper.dart';
 import 'package:neom_commons/core/app_flavour.dart';
+import 'package:neom_commons/core/domain/model/app_media_item.dart';
 import 'package:neom_commons/core/domain/model/app_release_item.dart';
 import 'package:neom_commons/core/ui/widgets/genres_grid_view.dart';
 import 'package:neom_commons/core/ui/widgets/read_more_container.dart';
@@ -15,6 +20,7 @@ import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
+import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 import 'package:neom_commons/core/utils/enums/itemlist_type.dart';
@@ -115,6 +121,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                                   ),
                                 ],
                               ) : const SizedBox.shrink(),
+                              ///DEPRECATED
                               // (_.appReleaseItem.value.digitalPrice!.amount != 0) ?
                               // Row(
                               //   mainAxisAlignment: MainAxisAlignment.center,
@@ -169,7 +176,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                           progressColor: AppColor.bondiBlue,
                         ),) : SubmitButton(context, text: AppTranslationConstants.submitRelease.tr,
                           isLoading: _.isLoading.value, isEnabled: !_.isButtonDisabled.value,
-                          onPressed: _.uploadMedia,
+                          onPressed: () => _.submitRelease(context),
                         ),
                         if(_.releaseItemIndex.value == 0) TitleSubtitleRow("", showDivider: false, subtitle: AppTranslationConstants.submitReleaseMsg.tr, titleFontSize: 14, subTitleFontSize: 12,),
                       ],
@@ -183,6 +190,8 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
     );
   }
 
+
+  ///ONLY OF USE FOR APPINUSE.G
   Widget buildReleaseItems(BuildContext context, ReleaseUploadController _) {
     return ListView.builder(
       padding: EdgeInsets.zero,
@@ -203,7 +212,9 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
               ]),
           trailing: Text(AppUtilities.secondsToMinutes(releaseItem.duration,)),
           ///FEATURE
-          // onTap: () => Get.to(() => MediaPlayerPage(appMediaItem: AppMediaItem.fromAppReleaseItem(releaseItem)),transition: Transition.zoom),
+          onTap: () async {
+            await _.playPreview(releaseItem);
+          }
 
         );
       },

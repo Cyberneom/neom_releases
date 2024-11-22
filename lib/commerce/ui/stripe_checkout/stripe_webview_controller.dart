@@ -169,6 +169,7 @@ class StripeViewController extends GetxController  {
               if(fromRoute.isNotEmpty) {
                 switch(fromRoute) {
                   case AppRouteConstants.pdfViewer:
+                  case AppRouteConstants.releaseUpload:
                     if(context != null) {
                       Navigator.pop(context!);
                       Navigator.pop(context!);
@@ -185,9 +186,8 @@ class StripeViewController extends GetxController  {
               }
 
               AppUtilities.showSnackBar(
-                  title: 'Suscripción "EMXI Lecturas" Confirmada',
-                  message: 'Ahora puedes seguir disfrutando de tus lecturas sin impedimentos. '
-                      '¡Muchas gracias por aprovechar nuestra plataforma!',
+                title: AppTranslationConstants.subscriptionConfirmed.tr,
+                message: AppTranslationConstants.subscriptionConfirmedMsg.tr,
                 duration: Duration(seconds: 6),
               );
             } else if(request.url.contains(StripeWebViewConstants.suscripcionFallida)) {

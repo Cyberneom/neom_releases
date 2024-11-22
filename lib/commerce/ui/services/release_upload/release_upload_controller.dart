@@ -9,10 +9,12 @@ import 'package:just_audio/just_audio.dart';
 import 'package:neom_bands/bands/ui/band_controller.dart';
 import 'package:neom_commons/core/data/firestore/app_release_item_firestore.dart';
 import 'package:neom_commons/core/data/firestore/itemlist_firestore.dart';
+import 'package:neom_commons/core/data/implementations/subscription_controller.dart';
 import 'package:neom_commons/core/domain/model/app_release_item.dart';
 import 'package:neom_commons/core/utils/enums/itemlist_type.dart';
 import 'package:neom_commons/core/utils/enums/release_status.dart';
 import 'package:neom_commons/core/utils/enums/release_type.dart';
+import 'package:neom_commons/core/utils/enums/subscription_status.dart';
 import 'package:neom_commons/core/utils/enums/verification_level.dart';
 import 'package:neom_commons/neom_commons.dart';
 import 'package:neom_instruments/instruments/ui/instrument_controller.dart';
@@ -88,6 +90,10 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   AudioPlayer audioPlayer = AudioPlayer();
 
   String previousItemName = '';
+  bool isPlaying = false;
+  String previewPath = '';
+
+  late SubscriptionController subscriptionController;
 
   @override
   void onInit() async {
@@ -794,7 +800,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       if (releaseFile.value != null && (releaseFile.value?.files.isNotEmpty ?? false)) {
         String releaseFileFirstName = releaseFile.value?.files.first.name ?? "";
-        if(appReleaseItems.where((element) => element.previewUrl== releaseFileFirstName).isNotEmpty) {
+        if(appReleaseItems.where((element) => element.previewUrl == releaseFileFirstName).isNotEmpty) {
           AppUtilities.showSnackBar(
               title: AppTranslationConstants.releaseUpload,
               message: AppTranslationConstants.releaseItemFileMsg,
@@ -998,11 +1004,21 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   }
 
   @override
+  Future<void> submitRelease(BuildContext context) async {
+   if(userController.userSubscription?.status == SubscriptionStatus.active) {
+     // uploadMedia();
+   } else {
+     subscriptionController = Get.put(SubscriptionController());
+     subscriptionController.getSubscriptionAlert(context, AppRouteConstants.releaseUpload, hideBasic: true);
+   }
+  }
+
+  @override
   Future<void> uploadMedia() async {
     AppUtilities.logger.d("Initiating Upload for Media ${releaseItemlist.name} "
         "- Type: ${releaseItemlist.type} with ${appReleaseItems.length} items");
 
-    String releaseItemlistId = "";
+    ///DEPRECATED String releaseItemlistId = "";
     String releaseCoverImgURL = '';
 
     releaseItemIndex.value = 0;
@@ -1065,6 +1081,21 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
     isLoading.value = false;
     update();
+  }
+
+  Future<void> playPreview(AppReleaseItem item) async {
+
+    if(isPlaying && previewPath.contains(item.previewUrl)) {
+      await audioPlayer.stop();
+      isPlaying = false;
+    } else {
+      await audioPlayer.stop();
+      previewPath = releaseFilePaths.firstWhere((path) => path.contains(item.previewUrl));
+      await audioPlayer.setFilePath(previewPath);
+      await audioPlayer.play();
+      isPlaying = true;
+    }
+
   }
 
 }
