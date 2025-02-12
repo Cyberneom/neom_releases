@@ -95,11 +95,11 @@ class WooOrdersApi {
     return wooOrders;
   }
 
-  static Future<String> createNupaleOrder(AppUser user, String itemName, int quantity) async {
+  static Future<String> createSessionOrder(AppUser user, String itemName, int quantity,{bool isNupale = false}) async {
     AppUtilities.logger.d('Processing Nupale Session Order of $quantity for $itemName');
 
     String orderId = '';
-    String variationId = await WooProductsApi.getNupaleVariationId(itemName);
+    String variationId = isNupale ? await WooProductsApi.getNupaleVariationId(itemName) :  await WooProductsApi.getCaseteVariationId(itemName);;
 
     if(variationId.isNotEmpty) {
       List<WooOrderLineItem> lineItems = [

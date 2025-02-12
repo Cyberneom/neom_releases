@@ -11,4 +11,5 @@ class WooConstants {
   static const List<String> allowedUrls = [carrito, checkout, ordenRecibida, paypal, stripe];
 
   static int nupaleProductId = 6490;
+  static int caseteProductId = 6490;
 }

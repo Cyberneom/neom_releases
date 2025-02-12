@@ -377,7 +377,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
             AppReleaseItemFirestore().addBoughtUser(releaseItemId: order.product!.id, userId: userId);
             Get.toNamed(AppRouteConstants.splashScreen,
                 arguments: [AppRouteConstants.paymentGateway,
-                  AppRouteConstants.lists]);
+                  AppRouteConstants.readlists]);
             break;
           case ProductType.subscription:
           // TODO: Handle this case.

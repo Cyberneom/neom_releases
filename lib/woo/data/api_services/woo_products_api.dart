@@ -14,12 +14,13 @@ import '../../utils/constants/woo_constants.dart';
 class WooProductsApi {
 
   static Future<List<WooProduct>> getProducts({int perPage = 25, int page = 1,
-    WooProductStatus status = WooProductStatus.publish, String categoryId = ''}) async {
-    AppUtilities.startStopwatch(reference: 'getProducts');
-
+    WooProductStatus status = WooProductStatus.publish, List<String> categoryIds = const []}) async {
+    
     String url = '${AppFlavour.getWooUrl()}/products?page=$page&per_page=$perPage&status=${status.name}';
-    if(categoryId.isNotEmpty) url = '$url&category=$categoryId';
-
+    if (categoryIds.isNotEmpty) {
+      String categoryParam = categoryIds.join(','); // Une los IDs con comas
+      url = '$url&category=$categoryParam';
+    }
     String credentials = base64Encode(utf8.encode('${AppFlavour.getWooClientKey()}:${AppFlavour.getWooClientSecret()}'));
     List<WooProduct> products = [];
 
@@ -38,8 +39,7 @@ class WooProductsApi {
           AppUtilities.logger.t('Product ${product.id} with name ${product.name}');
           products.add(product);
         }
-
-        // List<Product> products = data.map((item) => Product.fromJson(item)).toList();
+        
         AppUtilities.logger.d('${products.length} Products retrieved');
       } else {
         AppUtilities.logger.w(response.body.toString());
@@ -49,8 +49,6 @@ class WooProductsApi {
     } catch (e) {
       AppUtilities.logger.e(e.toString());
     }
-
-    AppUtilities.stopStopwatch();
     return products;
   }
 
@@ -252,6 +250,51 @@ class WooProductsApi {
     await WooProductsApi.addAttributesToProduct(nupaleProduct.id.toString(), [currentAttribute]);
     String variationId = '';
     variationId = await WooProductsApi.createVariation(nupaleProduct.id.toString(), WooAttributeConstants.itemName, itemName);
+
+    return variationId;
+  }
+
+  static Future<String> getCaseteVariationId(String itemName) async {
+
+    WooProduct? caseteProduct = await getProduct(WooConstants.caseteProductId.toString());
+    List<WooProduct> variations = await getVariations(caseteProduct!.id, searchParam: itemName.toLowerCase());
+    String variationId = '';
+
+    if(variations.isNotEmpty) {
+      if(variations.length == 1) {
+        AppUtilities.logger.d('A Single Product Variation was retrieved.');
+      } else {
+        AppUtilities.logger.d('${variations.length} Product Variations were retrieved.');
+      }
+      variationId = variations.first.id.toString();
+    } else {
+      AppUtilities.logger.d('Product Variations are empty');
+    }
+
+    if (variationId.isEmpty) {
+      AppUtilities.logger.d('VariationId is empty');
+      variationId = await createCaseteVariation(caseteProduct, itemName);
+    }
+
+    return variationId;
+  }
+
+  static Future<String> createCaseteVariation(WooProduct caseteProduct, String itemName) async {
+    /// Variación no existe, crear variación y luego orden
+    WooProductAttribute? currentAttribute = caseteProduct.attributes?[WooAttributeConstants.itemName];
+    if(currentAttribute != null) {
+      currentAttribute.options.add(itemName);
+      currentAttribute.variation = true;
+    } else {
+      currentAttribute = WooProductAttribute(
+        name: WooAttributeConstants.itemName,
+        options: [itemName],
+        variation: true,
+      );
+    }
+    await WooProductsApi.addAttributesToProduct(caseteProduct.id.toString(), [currentAttribute]);
+    String variationId = '';
+    variationId = await WooProductsApi.createVariation(caseteProduct.id.toString(), WooAttributeConstants.itemName, itemName);
 
     return variationId;
   }
