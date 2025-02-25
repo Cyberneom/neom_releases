@@ -29,6 +29,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
   bool isButtonDisabled = false;
 
   AppProfile profile = AppProfile();
+  ProfileType  profileType = ProfileType.general;
 
   final Rx<PaymentStatus> paymentStatus = PaymentStatus.pending.obs;
 
@@ -124,6 +125,11 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
 
         if(Get.arguments.length > 1 && Get.arguments[1] is String) {
           fromRoute = Get.arguments[1];
+        }
+
+        if(Get.arguments.length > 2 && Get.arguments[2] is ProfileType) {
+          profileType = Get.arguments[2];
+          order.customerType = profileType;
         }
 
       }

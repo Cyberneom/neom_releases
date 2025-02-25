@@ -75,7 +75,9 @@ class StripeViewController extends GetxController  {
             subscriptionPlan = order.subscriptionPlan!;
             priceId = subscriptionPlan.priceId;
 
-            if(subscriptionPlan.level == SubscriptionLevel.basic || subscriptionPlan.level == SubscriptionLevel.creator){
+            if(subscriptionPlan.level == SubscriptionLevel.basic
+                || subscriptionPlan.level == SubscriptionLevel.creator
+                || subscriptionPlan.level == SubscriptionLevel.connect) {
               trialDays = AppCommerceConstants.trialPeriodDays;
             }
           }
@@ -149,6 +151,12 @@ class StripeViewController extends GetxController  {
 
               if(customerId.isNotEmpty) userController.updateCustomerId(customerId);
               if(subscriptionId.isNotEmpty) userController.updateSubscriptionId(subscriptionId);
+              if(order.customerType != profile.type) {
+                if(await ProfileFirestore().updateType(profile.id, order.customerType)) {
+                  userController.profile.type = order.customerType;
+                  profile.type = order.customerType;
+                }
+              }
 
               if(userController.profile.verificationLevel == VerificationLevel.none) {
                 //TODO Verify if profile verification would be done here or manually.

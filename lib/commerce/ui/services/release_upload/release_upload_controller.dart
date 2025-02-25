@@ -1009,7 +1009,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
      // uploadMedia();
    } else {
      subscriptionController = Get.put(SubscriptionController());
-     subscriptionController.getSubscriptionAlert(context, AppRouteConstants.releaseUpload, hideBasic: true);
+     subscriptionController.getSubscriptionAlert(context, AppRouteConstants.releaseUpload);
    }
   }
 

@@ -6,6 +6,7 @@ import 'package:in_app_purchase_android/src/types/google_play_purchase_details.d
 // ignore: implementation_imports
 import 'package:in_app_purchase_storekit/src/types/app_store_purchase_details.dart';
 import 'package:neom_commons/core/domain/model/subscription_plan.dart';
+import 'package:neom_commons/core/utils/enums/profile_type.dart';
 import 'app_product.dart';
 
 class PurchaseOrder {
@@ -16,6 +17,7 @@ class PurchaseOrder {
   /// SaleType saleType;
   int createdTime;
   String customerEmail;
+  ProfileType customerType;
   String couponId;
   ///DEPRECATED List<String>? paymentIds;
   List<String>? invoiceIds;
@@ -37,6 +39,7 @@ class PurchaseOrder {
     /// this.saleType = SaleType.notDefined,
     this.createdTime = 0,
     this.customerEmail = '',
+    this.customerType = ProfileType.general,
     this.couponId = '',
     /// this.paymentIds,
     this.invoiceIds,
@@ -76,6 +79,7 @@ class PurchaseOrder {
     /// saleType = EnumToString.fromString(SaleType.values, data["saleType"]) ?? SaleType.product,
     createdTime = data["createdTime"] ?? 0,
     customerEmail = data["customerEmail"] ?? "",
+    customerType = EnumToString.fromString(ProfileType.values, data["type"] ?? ProfileType.general.value) ?? ProfileType.general,
     couponId = data["couponId"] ?? "",
     /// paymentIds = data["paymentIds"]?.cast<String>() ?? [],
     invoiceIds = data["invoiceIds"]?.cast<String>() ?? [],
