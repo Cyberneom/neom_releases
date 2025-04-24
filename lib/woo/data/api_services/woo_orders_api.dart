@@ -99,7 +99,7 @@ class WooOrdersApi {
     AppUtilities.logger.d('Processing Nupale Session Order of $quantity for $itemName');
 
     String orderId = '';
-    String variationId = isNupale ? await WooProductsApi.getNupaleVariationId(itemName) :  await WooProductsApi.getCaseteVariationId(itemName);;
+    String variationId = isNupale ? await WooProductsApi.getNupaleVariationId(itemName) :  await WooProductsApi.getCaseteVariationId(itemName);
 
     if(variationId.isNotEmpty) {
       List<WooOrderLineItem> lineItems = [

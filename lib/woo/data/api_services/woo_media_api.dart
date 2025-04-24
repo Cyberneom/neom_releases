@@ -30,7 +30,7 @@ class WooMediaApi {
 
       // Añade las cabeceras necesarias
       String jwtToken = await getJwtToken();
-      request.headers['Authorization'] = 'Bearer ${jwtToken}';
+      request.headers['Authorization'] = 'Bearer $jwtToken';
       request.headers['Content-Disposition'] = 'attachment; filename="${fileName.isNotEmpty ? fileName : file.path.split('/').last}"';
 
       // Envía la solicitud
