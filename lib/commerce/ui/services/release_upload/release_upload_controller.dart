@@ -689,7 +689,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   Future<void> addReleaseCoverImg() async {
     AppUtilities.logger.t("addReleaseCoverImg");
     try {
-      await postUploadController.handleImage(uploadImageType: UploadImageType.releaseItem,
+      await postUploadController.handleImage(imageType: UploadImageType.releaseItem,
         ratioX: AppFlavour.appInUse != AppInUse.e ? 1 : 6,
         ratioY: AppFlavour.appInUse != AppInUse.e ? 1 : 9,
       );
