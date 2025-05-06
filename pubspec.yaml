@@ -14,7 +14,7 @@ dependencies:
 
   neom_audio_player:
     git:
-      url: git@github.com:Cyberneom/neom_audio_player.git
+      url: https://github.com/Cyberneom/neom_audio_player.git
   neom_commons:
     git:
       url: git@github.com:Cyberneom/neom_commons.git
