@@ -20,6 +20,7 @@ import 'package:neom_commons/neom_commons.dart';
 import 'package:neom_instruments/instruments/ui/instrument_controller.dart';
 import 'package:neom_maps_services/places.dart';
 import 'package:neom_posts/neom_posts.dart';
+import 'package:neom_posts/posts/ui/upload/post_upload_controller.dart';
 import 'package:neom_timeline/neom_timeline.dart';
 import 'package:rubber/rubber.dart';
 
@@ -31,7 +32,6 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
   final userController = Get.find<UserController>();
   final instrumentController = Get.put(InstrumentController());
-  ///DEPRECATED final genresController = Get.put(GenresController());
   final bandController = Get.put(BandController());
   final mapsController = Get.put(MapsController());
   final postUploadController = Get.put(PostUploadController());

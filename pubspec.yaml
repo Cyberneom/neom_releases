@@ -12,6 +12,9 @@ dependencies:
   flutter:
     sdk: flutter
 
+  neom_audio_player:
+    git:
+      url: git@github.com:Cyberneom/neom_audio_player.git
   neom_commons:
     git:
       url: git@github.com:Cyberneom/neom_commons.git
@@ -21,18 +24,15 @@ dependencies:
   neom_posts:
     git:
       url: git@github.com:Cyberneom/neom_posts.git
-  neom_audio_player:
-    git:
-      url: https://github.com/Cyberneom/neom_audio_player.git
 
+  flutter_stripe: ^11.5.0
+  in_app_purchase: ^3.2.1
   in_app_purchase_storekit: ^0.3.21
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
-  build_runner: ^2.4.15
-  json_serializable: ^6.9.4
   flutter_lints: ^5.0.0
 
 flutter:

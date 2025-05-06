@@ -1,9 +1,10 @@
 dependency_overrides:
-  neom_commons:
-    path: ../neom_commons
-  neom_bands:
-    path: ../neom_bands
-  neom_posts:
-    path: ../neom_posts
   neom_audio_player:
     path: ../neom_audio_player
+  neom_bands:
+    path: ../neom_bands
+  neom_commons:
+    path: ../neom_commons
+  neom_posts:
+    path: ../neom_posts
+
