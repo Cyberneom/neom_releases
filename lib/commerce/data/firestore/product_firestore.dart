@@ -24,11 +24,11 @@ class ProductFirestore implements ProductRepository {
           .get();
 
       if (querySnapshot.docs.isNotEmpty) {
-        AppUtilities.logger.d("Snapshot is not empty");
+        AppUtilities.logger.t("Snapshot is not empty");
         for (var productSnapshot in querySnapshot.docs) {
           AppProduct product = AppProduct.fromJSON(productSnapshot.data());
           product.id = productSnapshot.id;
-          AppUtilities.logger.d(product.toString());
+          AppUtilities.logger.t(product.toString());
           products.add(product);
         }
         AppUtilities.logger.d("${products.length} products found");

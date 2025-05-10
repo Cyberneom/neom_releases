@@ -13,7 +13,7 @@ import '../../data/firestore/order_firestore.dart';
 import '../../data/firestore/product_firestore.dart';
 import '../../domain/models/app_product.dart';
 import '../../domain/models/payment.dart';
-import '../../domain/models/purchase_order.dart';
+import '../../domain/models/transaction_order.dart';
 import '../../domain/use_cases/wallet_service.dart';
 
 class WalletController extends GetxController with GetTickerProviderStateMixin implements WalletService  {
@@ -22,7 +22,7 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
 
   RxBool isLoading = true.obs;
   Wallet wallet = Wallet();
-  Map<String, PurchaseOrder> orders = {};
+  Map<String, TransactionOrder> orders = {};
 
   late TabController tabController;
 
@@ -78,10 +78,10 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
 
 
       orders = await OrderFirestore().retrieveFromList(userController.user.orderIds);
-      List<PurchaseOrder> ordersToSort = orders.values.toList();
+      List<TransactionOrder> ordersToSort = orders.values.toList();
       ordersToSort.sort((a, b) => a.createdTime.compareTo(b.createdTime));
       orders.clear();
-      for(PurchaseOrder order in ordersToSort.reversed) {
+      for(TransactionOrder order in ordersToSort.reversed) {
         orders[order.id] = order;
       }
 

@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:neom_commons/core/utils/app_theme.dart';
 import 'package:neom_commons/core/utils/constants/app_assets.dart';
 import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
-import '../../domain/models/purchase_order.dart';
+import '../../domain/models/transaction_order.dart';
 import '../wallet/wallet_controller.dart';
 import 'order_item.dart';
 
@@ -13,7 +13,7 @@ Widget buildOrderList(BuildContext context, WalletController _){
       padding: const EdgeInsets.fromLTRB(0.0, 0.0, 0.0, 0.0),
       itemCount: _.orders.length,
       itemBuilder: (context, index) {
-        PurchaseOrder order = _.orders.values.elementAt(index);
+        TransactionOrder order = _.orders.values.elementAt(index);
         return OrderItem(order: order);
       }
   );

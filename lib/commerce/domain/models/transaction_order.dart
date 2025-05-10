@@ -7,49 +7,41 @@ import 'package:in_app_purchase_android/src/types/google_play_purchase_details.d
 import 'package:in_app_purchase_storekit/src/types/app_store_purchase_details.dart';
 import 'package:neom_commons/core/domain/model/subscription_plan.dart';
 import 'package:neom_commons/core/utils/enums/profile_type.dart';
+import '../../utils/enums/transaction_type.dart';
 import 'app_product.dart';
 
-class PurchaseOrder {
+class TransactionOrder {
 
   String id;
   String description;
   String url;
-  /// SaleType saleType;
   int createdTime;
   String customerEmail;
   ProfileType customerType;
   String couponId;
-  ///DEPRECATED List<String>? paymentIds;
   List<String>? invoiceIds;
   AppProduct? product;
   SubscriptionPlan? subscriptionPlan;
 
-  ///DEPRECATED
-  /// Booking? booking;
-  /// Event? event;
-  /// AppReleaseItem? releaseItem;
-
   GooglePlayPurchaseDetails? googlePlayPurchaseDetails;
   AppStorePurchaseDetails? appStorePurchaseDetails;
 
-  PurchaseOrder({
+  TransactionType transactionType;
+
+  TransactionOrder({
     this.id = "",
     this.description = "",
     this.url = '',
-    /// this.saleType = SaleType.notDefined,
     this.createdTime = 0,
     this.customerEmail = '',
     this.customerType = ProfileType.general,
     this.couponId = '',
-    /// this.paymentIds,
     this.invoiceIds,
     this.product,
     this.subscriptionPlan,
-    /// this.booking,
-    /// this.releaseItem,
-    /// this.event,
     this.googlePlayPurchaseDetails,
-    this.appStorePurchaseDetails
+    this.appStorePurchaseDetails,
+    this.transactionType = TransactionType.purchase,
   });
 
   Map<String, dynamic> toJSON() {
@@ -57,39 +49,33 @@ class PurchaseOrder {
       'id': id,
       'description': description,
       'url': url,
-      /// 'saleType': saleType.name,
       'createdTime': createdTime,
       'customerEmail': customerEmail,
+      'customerType': customerType.name,
       'couponId': couponId,
       'invoiceIds': invoiceIds,
       'product': product?.toJSON(),
       'subscriptionPlan': subscriptionPlan?.toJSON(),
-      /// 'booking': booking?.toJSON(),
-      /// 'releaseItem': releaseItem?.toJSON(),
-      /// 'event': event?.toJSON(),
       'googlePlayPurchaseDetails': googlePlayPurchaseDetails != null ? googlePlayPurchaseDetailsJSON(googlePlayPurchaseDetails) : {},
       'appStorePurchaseDetails': appStorePurchaseDetails != null ? appStorePurchaseDetailsJSON(appStorePurchaseDetails) : {},
+      'transactionType': transactionType.name,
     };
   }
 
-  PurchaseOrder.fromJSON(data) :
+  TransactionOrder.fromJSON(data) :
     id = data["id"] ?? "",
     description = data["description"] ?? "",
     url = data["url"] ?? "",
-    /// saleType = EnumToString.fromString(SaleType.values, data["saleType"]) ?? SaleType.product,
     createdTime = data["createdTime"] ?? 0,
     customerEmail = data["customerEmail"] ?? "",
     customerType = EnumToString.fromString(ProfileType.values, data["type"] ?? ProfileType.general.value) ?? ProfileType.general,
     couponId = data["couponId"] ?? "",
-    /// paymentIds = data["paymentIds"]?.cast<String>() ?? [],
     invoiceIds = data["invoiceIds"]?.cast<String>() ?? [],
     product = AppProduct.fromJSON(data["product"] ?? {}),
     subscriptionPlan = SubscriptionPlan.fromJSON(data["subscriptionPlan"] ?? {}),
-    /// booking = Booking.fromJSON(data["booking"] ?? {}),
-    /// event = Event.fromJSON(data["event"] ?? {}),
-    /// releaseItem = AppReleaseItem.fromJSON(data["releaseItem"] ?? {}),
     googlePlayPurchaseDetails = googlePlayPurchaseDetailsFromJSON(data["googlePlayPurchaseDetails"] ?? {}),
-    appStorePurchaseDetails = appStorePurchaseDetailsFromJSON(data["appStorePurchaseDetails"] ?? {});
+    appStorePurchaseDetails = appStorePurchaseDetailsFromJSON(data["appStorePurchaseDetails"] ?? {}),
+    transactionType = EnumToString.fromString(TransactionType.values, data["transactionType"] ?? TransactionType.purchase.name) ?? TransactionType.purchase;
 
   static Map googlePlayPurchaseDetailsJSON(GooglePlayPurchaseDetails? purchaseDetails) {
     return {

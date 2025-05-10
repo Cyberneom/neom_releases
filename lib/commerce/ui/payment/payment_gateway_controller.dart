@@ -32,7 +32,7 @@ import '../../data/firestore/order_firestore.dart';
 import '../../data/firestore/payment_firestore.dart';
 import '../../domain/models/invoice.dart';
 import '../../domain/models/payment.dart';
-import '../../domain/models/purchase_order.dart';
+import '../../domain/models/transaction_order.dart';
 import '../../domain/use_cases/payment_gateway_service.dart';
 import '../../utils/constants/payment_gateway_constants.dart';
 import '../../utils/enums/payment_status.dart';
@@ -69,7 +69,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
   stripe.CardFieldInputDetails? cardFieldInputDetails;
   stripe.CardFormEditController cardEditController = stripe.CardFormEditController();
 
-  PurchaseOrder order = PurchaseOrder();
+  TransactionOrder order = TransactionOrder();
   Payment payment = Payment();
   Address userAddress = Address();
 
@@ -84,7 +84,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
           payment = Get.arguments[0];
         }
 
-        if (Get.arguments[1] != null && Get.arguments[1] is PurchaseOrder) {
+        if (Get.arguments[1] != null && Get.arguments[1] is TransactionOrder) {
           order = Get.arguments[1];
         }
       }

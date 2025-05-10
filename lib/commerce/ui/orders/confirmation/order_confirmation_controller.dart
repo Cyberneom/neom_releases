@@ -16,7 +16,7 @@ import '../../../data/firestore/sales_firestore.dart';
 import '../../../domain/models/app_product.dart';
 import '../../../domain/models/app_sale.dart';
 import '../../../domain/models/payment.dart';
-import '../../../domain/models/purchase_order.dart';
+import '../../../domain/models/transaction_order.dart';
 import '../../../utils/constants/app_commerce_constants.dart';
 import '../../../utils/enums/payment_status.dart';
 import 'in_app_payment_queue_delegate.dart';
@@ -45,7 +45,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
   double discountAmount = 0.0;
   double discountPercentage = 0.0;
 
-  PurchaseOrder order = PurchaseOrder();
+  TransactionOrder order = TransactionOrder();
 
   AppSale sales = AppSale();
 

@@ -3,11 +3,11 @@ import 'package:get/get.dart';
 
 import 'package:neom_commons/core/utils/enums/product_type.dart';
 import 'package:neom_commons/neom_commons.dart';
-import '../../domain/models/purchase_order.dart';
+import '../../domain/models/transaction_order.dart';
 
 
 class OrderItem extends StatelessWidget {
-  final PurchaseOrder order;
+  final TransactionOrder order;
   const OrderItem({
     super.key,
     required this.order,
@@ -51,7 +51,7 @@ class OrderItem extends StatelessWidget {
   }
 }
 
-String getAmountToDisplay(PurchaseOrder order) {
+String getAmountToDisplay(TransactionOrder order) {
   double amount = 0;
   amount = order.product?.salePrice?.amount ?? 0;
 
@@ -64,7 +64,7 @@ String getAmountToDisplay(PurchaseOrder order) {
 
 }
 
-String getCurrencyToDisplay(PurchaseOrder order) {
+String getCurrencyToDisplay(TransactionOrder order) {
 
   AppCurrency currency = AppCurrency.appCoin;
   currency = order.product!.salePrice!.currency;

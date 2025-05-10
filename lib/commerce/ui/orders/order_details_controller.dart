@@ -11,7 +11,7 @@ import '../../data/firestore/payment_firestore.dart';
 import '../../domain/models/app_product.dart';
 import '../../domain/models/invoice.dart';
 import '../../domain/models/payment.dart';
-import '../../domain/models/purchase_order.dart';
+import '../../domain/models/transaction_order.dart';
 
 class OrderDetailsController extends GetxController with GetTickerProviderStateMixin {
 
@@ -31,7 +31,7 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
   // Booking? booking;
   // AppReleaseItem? releaseItem;
 
-  PurchaseOrder order = PurchaseOrder();
+  TransactionOrder order = TransactionOrder();
   Payment payment = Payment();
   Invoice invoice = Invoice();
 
@@ -52,7 +52,7 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
       profile = userController.user.profiles.first;
 
       if(Get.arguments != null && Get.arguments.isNotEmpty) {
-        if (Get.arguments[0] is PurchaseOrder) {
+        if (Get.arguments[0] is TransactionOrder) {
           order = Get.arguments[0];
           product = order.product;
         }
