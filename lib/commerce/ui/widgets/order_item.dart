@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:neom_commons/core/utils/enums/product_type.dart';
 import 'package:neom_commons/neom_commons.dart';
 import '../../domain/models/transaction_order.dart';
+import '../../utils/enums/transaction_type.dart';
 
 
 class OrderItem extends StatelessWidget {
@@ -18,7 +19,7 @@ class OrderItem extends StatelessWidget {
 
     Widget leadingImg = const SizedBox.shrink();
 
-    if(order.product?.type == ProductType.appCoin) {
+    if(order.product?.type == ProductType.appCoin || order.transactionType == TransactionType.deposit) {
       leadingImg = Image.asset(AppAssets.appCoin, height: 40);
     } else {
       leadingImg  = Image.network(order.product?.imgUrl.isNotEmpty ?? false ?  order.product!.imgUrl : AppFlavour.getNoImageUrl());
@@ -40,7 +41,10 @@ class OrderItem extends StatelessWidget {
         subtitle: Text(AppUtilities.dateFormat(order.createdTime),
           style: const TextStyle(fontSize: 15),
         ),
-        trailing: Text("${getAmountToDisplay(order)} ${getCurrencyToDisplay(order).tr.toUpperCase()}",
+        trailing: Text(
+          order.transactionType == TransactionType.deposit
+              ? '1 ${AppFlavour.getAppCoinName()}' :
+            "${getAmountToDisplay(order)} ${getCurrencyToDisplay(order).tr.toUpperCase()}",
             style: const TextStyle(
                 color: AppColor.white,
                 fontSize: 18)

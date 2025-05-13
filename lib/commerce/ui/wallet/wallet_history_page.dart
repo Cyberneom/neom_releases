@@ -13,6 +13,7 @@ import 'package:rflutter_alert/rflutter_alert.dart';
 
 import '../../domain/models/app_product.dart';
 import '../widgets/wallet_widgets.dart';
+import 'wallet_card.dart';
 import 'wallet_controller.dart';
 
 class WalletHistoryPage extends StatelessWidget {
@@ -20,6 +21,7 @@ class WalletHistoryPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    bool isAble = false;
     return GetBuilder<WalletController>(
       id: AppPageIdConstants.walletHistory,
       init: WalletController(),
@@ -37,52 +39,57 @@ class WalletHistoryPage extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text.rich(
-                        TextSpan(
-                          children: [
-                            TextSpan(
-                              text: '${AppTranslationConstants.currentAmount.tr} \n',
-                              style: Theme.of(context)
-                                  .textTheme.titleLarge!
-                                  .copyWith(
-                                  color: Colors.grey,
-                                  fontSize: 16),
-                            ),
-                            TextSpan(
-                              text: '${AppFlavour.getAppCoinName()}: ${_.wallet.amount.truncate().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
-                              style: Theme.of(context)
-                                  .textTheme.titleLarge!
-                                  .copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 25,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        iconSize: 40,
-                        icon: const CircleAvatar(
-                          radius: 30,
-                          backgroundColor: AppColor.yellow,
-                          child: Icon(
-                            Icons.add,
-                            color: Colors.black38,
-                            size: 40,
-                          ),
-                        ),
-                        onPressed: () {
-                          showGetAppcoinsAlert(context, _);
-                        },
-                      ),
-                    ],
-                  ),
+                AppTheme.heightSpace20,
+                Padding(padding: const EdgeInsets.symmetric(horizontal: 40),
+                  child: WalletCard(),
                 ),
+                AppTheme.heightSpace20,
+                // Padding(
+                //   padding: const EdgeInsets.all(16.0),
+                //   child: Row(
+                //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                //     children: [
+                //       Text.rich(
+                //         TextSpan(
+                //           children: [
+                //             TextSpan(
+                //               text: '${AppTranslationConstants.currentAmount.tr} \n',
+                //               style: Theme.of(context)
+                //                   .textTheme.titleLarge!
+                //                   .copyWith(
+                //                   color: Colors.grey,
+                //                   fontSize: 16),
+                //             ),
+                //             TextSpan(
+                //               text: '${AppFlavour.getAppCoinName()}: ${_.wallet.amount.truncate().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')}',
+                //               style: Theme.of(context)
+                //                   .textTheme.titleLarge!
+                //                   .copyWith(
+                //                   fontWeight: FontWeight.bold,
+                //                   fontSize: 25,
+                //               ),
+                //             ),
+                //           ],
+                //         ),
+                //       ),
+                //       if(isAble) IconButton(
+                //         iconSize: 40,
+                //         icon: const CircleAvatar(
+                //           radius: 30,
+                //           backgroundColor: AppColor.yellow,
+                //           child: Icon(
+                //             Icons.add,
+                //             color: Colors.black38,
+                //             size: 40,
+                //           ),
+                //         ),
+                //         onPressed: () {
+                //           showGetAppcoinsAlert(context, _);
+                //         },
+                //       ),
+                //     ],
+                //   ),
+                // ),
                 Divider(thickness: 1, color: AppColor.white80),
                 SizedBox(
                   width: AppTheme.fullWidth(context),
@@ -95,7 +102,6 @@ class WalletHistoryPage extends StatelessWidget {
                 Divider(thickness: 1, color: AppColor.white80),
                 SizedBox(
                   height: AppTheme.fullHeight(context)*0.7,
-
                   child: _.orders.isNotEmpty ? buildOrderList(context, _)
                       :  buildNoHistoryToShow(context, _),
                 ),
