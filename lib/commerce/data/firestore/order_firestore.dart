@@ -5,7 +5,7 @@ import 'package:neom_commons/core/data/firestore/constants/app_firestore_constan
 import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:uuid/uuid.dart'; // Add this import for UUID generation
 
-import '../../domain/models/transaction_order.dart';
+import '../../domain/models/app_order.dart';
 import '../../domain/repository/order_repository.dart';
 
 class OrderFirestore implements OrderRepository {
@@ -13,7 +13,7 @@ class OrderFirestore implements OrderRepository {
   final orderReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.orders);
 
   @override
-  Future<String> insert(TransactionOrder order) async {
+  Future<String> insert(AppOrder order) async {
     AppUtilities.logger.d("Inserting order ${order.id}");
 
     String orderId = '';
@@ -40,7 +40,7 @@ class OrderFirestore implements OrderRepository {
 
 
   @override
-  Future<bool> remove(TransactionOrder order) async {
+  Future<bool> remove(AppOrder order) async {
     AppUtilities.logger.d("Removing product ${order.id}");
 
     try {
@@ -56,9 +56,9 @@ class OrderFirestore implements OrderRepository {
 
 
   @override
-  Future<TransactionOrder> retrieveOrder(String orderId) async {
+  Future<AppOrder> retrieveOrder(String orderId) async {
     AppUtilities.logger.d("Retrieving Order for id $orderId");
-    TransactionOrder order = TransactionOrder();
+    AppOrder order = AppOrder();
 
     try {
 
@@ -66,7 +66,7 @@ class OrderFirestore implements OrderRepository {
 
       if (documentSnapshot.exists) {
         AppUtilities.logger.d("Snapshot is not empty");
-          order = TransactionOrder.fromJSON(documentSnapshot.data());
+          order = AppOrder.fromJSON(documentSnapshot.data());
           order.id = documentSnapshot.id;
           AppUtilities.logger.d(order.toString());
         AppUtilities.logger.d("Order ${order.id} was retrieved");
@@ -82,10 +82,10 @@ class OrderFirestore implements OrderRepository {
 
 
   @override
-  Future<Map<String, TransactionOrder>> retrieveFromList(List<String> orderIds) async {
+  Future<Map<String, AppOrder>> retrieveFromList(List<String> orderIds) async {
     AppUtilities.logger.d("Getting orders from list");
 
-    Map<String, TransactionOrder> orders = {};
+    Map<String, AppOrder> orders = {};
 
     try {
       QuerySnapshot querySnapshot = await orderReference.get();
@@ -95,7 +95,7 @@ class OrderFirestore implements OrderRepository {
         for (var documentSnapshot in querySnapshot.docs) {
           if(orderIds.contains(documentSnapshot.id)){
             AppUtilities.logger.d("DocumentSnapshot with ${documentSnapshot.id} about to be parsed");
-            TransactionOrder order = TransactionOrder.fromJSON(documentSnapshot.data());
+            AppOrder order = AppOrder.fromJSON(documentSnapshot.data());
             order.id = documentSnapshot.id;
             AppUtilities.logger.t("Order ${order.id} was retrieved with details");
             orders[order.id] = order;

@@ -3,34 +3,26 @@ import 'package:get/get.dart';
 
 import 'package:neom_commons/core/utils/enums/product_type.dart';
 import 'package:neom_commons/neom_commons.dart';
-import '../../domain/models/transaction_order.dart';
+import '../../domain/models/app_order.dart';
+import '../../domain/models/app_transaction.dart';
 import '../../utils/enums/transaction_type.dart';
 
 
-class OrderItem extends StatelessWidget {
-  final TransactionOrder order;
-  const OrderItem({
+class TransactionTile extends StatelessWidget {
+  final AppTransaction transaction;
+  const TransactionTile({
     super.key,
-    required this.order,
+    required this.transaction,
   });
 
   @override
   Widget build(BuildContext context) {
 
-    Widget leadingImg = const SizedBox.shrink();
-
-    if(order.product?.type == ProductType.appCoin || order.transactionType == TransactionType.deposit) {
-      leadingImg = Image.asset(AppAssets.appCoin, height: 40);
-    } else {
-      leadingImg  = Image.network(order.product?.imgUrl.isNotEmpty ?? false ?  order.product!.imgUrl : AppFlavour.getNoImageUrl());
-    }
-
     return Padding(
       padding: const EdgeInsets.all(10),
       child: ListTile(
-        leading: leadingImg,
-        title: Text(
-          order.description,
+        leading: Image.asset(AppAssets.appCoin, height: 40),
+        title: Text(transaction.description,
           style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 18
@@ -38,26 +30,24 @@ class OrderItem extends StatelessWidget {
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
-        subtitle: Text(AppUtilities.dateFormat(order.createdTime),
+        subtitle: Text(AppUtilities.dateFormat(transaction.createdTime),
           style: const TextStyle(fontSize: 15),
         ),
-        trailing: Text(
-          order.transactionType == TransactionType.deposit
-              ? '1 ${AppFlavour.getAppCoinName()}' :
-            "${getAmountToDisplay(order)} ${getCurrencyToDisplay(order).tr.toUpperCase()}",
+        trailing: Text('${transaction.amount} ${transaction.currency.name.tr.toUpperCase()}',
             style: const TextStyle(
                 color: AppColor.white,
                 fontSize: 18)
         ),
-        onTap: () => Get.toNamed(AppRouteConstants.orderDetails, arguments: [order]),
+        onTap: () => Get.toNamed(AppRouteConstants.transactionDetails, arguments: [transaction]),
       ),
     );
   }
 }
 
-String getAmountToDisplay(TransactionOrder order) {
-  double amount = 0;
-  amount = order.product?.salePrice?.amount ?? 0;
+String getAmountToDisplay(AppTransaction transaction) {
+  AppUtilities.logger.t("Transaction amount: ${transaction.amount}");
+
+  double amount = transaction.amount;
 
   // Check if the amount is an integer
   if (amount.floor() == amount) {
@@ -68,10 +58,10 @@ String getAmountToDisplay(TransactionOrder order) {
 
 }
 
-String getCurrencyToDisplay(TransactionOrder order) {
+String getCurrencyToDisplay(AppTransaction transaction) {
 
   AppCurrency currency = AppCurrency.appCoin;
-  currency = order.product!.salePrice!.currency;
+  currency = transaction.currency;
 
   ///DEPRECATED 090824
   // switch(order.saleType) {

@@ -12,8 +12,9 @@ import 'package:neom_commons/core/utils/enums/product_type.dart';
 import '../../data/firestore/order_firestore.dart';
 import '../../data/firestore/product_firestore.dart';
 import '../../domain/models/app_product.dart';
+import '../../domain/models/app_transaction.dart';
 import '../../domain/models/payment.dart';
-import '../../domain/models/transaction_order.dart';
+import '../../domain/models/app_order.dart';
 import '../../domain/use_cases/wallet_service.dart';
 
 class WalletController extends GetxController with GetTickerProviderStateMixin implements WalletService  {
@@ -21,8 +22,10 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
   final userController = Get.find<UserController>();
 
   RxBool isLoading = true.obs;
+
   Wallet wallet = Wallet();
-  Map<String, TransactionOrder> orders = {};
+  List<AppTransaction> transactions = [];
+  Map<String, AppOrder> orders = {};
 
   late TabController tabController;
 
@@ -42,7 +45,8 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
     super.onInit();
     AppUtilities.logger.d("Wallet Controller");
     try {
-      wallet = userController.user.wallet;
+      loadWallet();
+
       tabController = TabController(
         length: 3,
         vsync: this,
@@ -78,10 +82,10 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
 
 
       orders = await OrderFirestore().retrieveFromList(userController.user.orderIds);
-      List<TransactionOrder> ordersToSort = orders.values.toList();
+      List<AppOrder> ordersToSort = orders.values.toList();
       ordersToSort.sort((a, b) => a.createdTime.compareTo(b.createdTime));
       orders.clear();
-      for(TransactionOrder order in ordersToSort.reversed) {
+      for(AppOrder order in ordersToSort.reversed) {
         orders[order.id] = order;
       }
 
@@ -93,6 +97,11 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
     update([AppPageIdConstants.walletHistory]);
   }
 
+  Future<void> loadWallet() async {
+    //load WalletFirestore
+    // wallet = userController.user.wallet;
+    //load TransactionsFirestore
+  }
 
   @override
   void dispose() {

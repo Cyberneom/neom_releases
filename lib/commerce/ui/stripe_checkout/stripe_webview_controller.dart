@@ -18,7 +18,7 @@ import 'package:webview_flutter/webview_flutter.dart';
 import '../../data/firestore/payment_firestore.dart';
 import '../../domain/models/app_product.dart';
 import '../../domain/models/payment.dart';
-import '../../domain/models/transaction_order.dart';
+import '../../domain/models/app_order.dart';
 import '../../utils/constants/app_commerce_constants.dart';
 import '../../utils/constants/stripe_webview_constants.dart';
 import '../../utils/enums/payment_status.dart';
@@ -45,7 +45,7 @@ class StripeViewController extends GetxController  {
   String customerId = '';
   String priceId = '';
   String subscriptionId = '';
-  TransactionOrder order = TransactionOrder();
+  AppOrder order = AppOrder();
   AppProduct product = AppProduct();
   SubscriptionPlan subscriptionPlan = SubscriptionPlan();
 
@@ -67,7 +67,7 @@ class StripeViewController extends GetxController  {
       profile = userController.user.profiles.first;
 
       if(Get.arguments != null && Get.arguments.isNotEmpty) {
-        if(Get.arguments[0] is TransactionOrder) {
+        if(Get.arguments[0] is AppOrder) {
           order = Get.arguments[0];
           if(order.product != null) product = order.product!;
 

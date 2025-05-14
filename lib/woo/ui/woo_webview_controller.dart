@@ -10,7 +10,7 @@ import '../../commerce/data/firestore/order_firestore.dart';
 import '../../commerce/data/firestore/payment_firestore.dart';
 import '../../commerce/domain/models/app_product.dart';
 import '../../commerce/domain/models/payment.dart';
-import '../../commerce/domain/models/transaction_order.dart';
+import '../../commerce/domain/models/app_order.dart';
 import '../../commerce/utils/enums/payment_status.dart';
 import '../domain/use_cases/woo_webview_service.dart';
 import '../utils/constants/woo_constants.dart';
@@ -163,7 +163,7 @@ class WooWebViewController extends GetxController implements WooWebViewService {
     }
 
     if(orderId.isNotEmpty) {
-      TransactionOrder order = TransactionOrder(
+      AppOrder order = AppOrder(
         id: orderId,
         description: releaseItem.name,
         url: url,

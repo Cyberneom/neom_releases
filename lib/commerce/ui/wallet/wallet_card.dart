@@ -1,11 +1,18 @@
 import 'dart:math';
 
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/cupertino.dart'; // For CupertinoIcons if used, e.g. chip
 import 'package:flutter/material.dart';
-import 'package:neom_commons/neom_commons.dart';
+import 'package:neom_commons/neom_commons.dart'; // Assuming this imports AppTheme, AppColor, AppAssets, AppTranslationConstants, etc.
+// If not, you might need individual imports:
+// import 'package:neom_commons/core/utils/app_theme.dart';
+// import 'package:neom_commons/core/utils/app_color.dart';
+// import 'package:neom_commons/core/utils/constants/app_assets.dart';
+// import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
+// import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 
-import 'wallet_controller.dart';
-import 'package:get/get.dart';
+
+import 'wallet_controller.dart'; // Your WalletController
+import 'package:get/get.dart'; // For GetBuilder
 
 class WalletCard extends StatelessWidget {
   const WalletCard({
@@ -15,153 +22,110 @@ class WalletCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetBuilder<WalletController>(
-        id: AppPageIdConstants.walletHistory,
-        init: WalletController(),
-    builder: (_) => Container(
-      width: double.infinity,
-      height: MediaQuery.of(context).size.width / 2,
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            blurRadius: 45,
-            color: Colors.grey.shade400,
-            offset: const Offset(0, 30),
-          )
-        ],
-        borderRadius: const BorderRadius.all(Radius.circular(25.0)),
-        // border: Border.all(
-        //   color: AppColor.yellow,
-        //   width: 1,
-        // ),
-        gradient: LinearGradient(
-          colors: [
-            AppColor.getMain(),
-            AppColor.main75,
+      id: AppPageIdConstants.walletHistory, // Ensure this ID matches if you update from controller
+      // init: WalletController(), // init is usually not needed here if controller is already initialized by the page
+      builder: (_) => Container(
+        width: double.infinity,
+        height: MediaQuery.of(context).size.width / 1.8, // Slightly taller for more content space
+        decoration: BoxDecoration(
+          borderRadius: const BorderRadius.all(Radius.circular(20.0)), // Slightly less rounded
+          gradient: LinearGradient(
+            colors: [
+              AppColor.getMain().withOpacity(0.95), // Slightly more opaque main color
+              AppColor.main75, // Your existing secondary gradient color
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            transform: const GradientRotation(pi / 5), // Adjusted rotation slightly
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColor.getMain().withOpacity(0.3), // Shadow based on main color
+              blurRadius: 15, // Softer blur
+              offset: const Offset(0, 8),
+            ),
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1), // A darker, more subtle shadow
+              blurRadius: 25,
+              offset: const Offset(0, 12),
+            ),
           ],
-          transform: const GradientRotation(pi / 4),
+          border: Border.all( // Adding a subtle border
+            color: Colors.white.withOpacity(0.15),
+            width: 0.5,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribute space
+            children: [
+              // Top Row: Coin Name and Chip Icon
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    AppTranslationConstants.appCoin.tr.toUpperCase(),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white.withOpacity(0.9),
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 1.5, // Increased letter spacing
+                    ),
+                  ),
+                  Icon(
+                    Icons.memory, // Material chip icon
+                    color: Colors.white.withOpacity(0.7),
+                    size: 30,
+                  ),
+                ],
+              ),
+
+              // Middle: Icon and Balance (centered within its available space)
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SizedBox(
+                      width: AppTheme.fullWidth(context) / 7.5, // Adjusted icon size
+                      height: AppTheme.fullWidth(context) / 7.5,
+                      child: ClipRRect(
+                        borderRadius: const BorderRadius.all(Radius.circular(12.0)),
+                        child: Image.asset(AppAssets.appCoin, fit: BoxFit.contain),
+                      ),
+                    ),
+                    AppTheme.heightSpace20, // Increased space
+                    Text(
+                      // Ensure _.wallet.amount is available and is a number
+                      _.wallet.amount.truncate().toString().replaceAllMapped(
+                          RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},'),
+                      style: const TextStyle(
+                        fontSize: 44, // Prominent balance
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Bottom Row: Dummy Card Number
+              Text(
+                "**** **** **** ${_.wallet.id.isNotEmpty ? _.wallet.id.substring(_.wallet.id.length - min(4,_.wallet.id.length)) : '****'}", // Display last 4 digits of wallet ID or a placeholder
+                style: TextStyle(
+                  fontSize: 15,
+                  color: Colors.white.withOpacity(0.75),
+                  letterSpacing: 2.5, // Wider spacing for card number feel
+                  fontFamily: 'monospace', // Monospace font for card numbers
+                ),
+              ),
+            ],
+          ),
         ),
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              AppTranslationConstants.appCoin.tr.toUpperCase(),
-              style: TextStyle(
-                fontSize: 20,
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            AppTheme.heightSpace10,
-            SizedBox(
-                width: AppTheme.fullWidth(context)/10,
-                height: AppTheme.fullWidth(context)/10,
-                child: ClipRRect(
-                    borderRadius: const BorderRadius.all(Radius.circular(10.0)),
-                    child: Image.asset(AppAssets.appCoin)
-                )
-            ),
-            AppTheme.heightSpace10,
-            Text(
-              _.wallet.amount.truncate().toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},'),
-              style: TextStyle(
-                fontSize: 35,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-
-            // const Spacer(),
-            // Row(
-            //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            //   children: [
-            //     Row(
-            //       children: [
-            //         Container(
-            //           width: 30,
-            //           height: 30,
-            //           decoration: const BoxDecoration(
-            //             color: Colors.white30,
-            //             shape: BoxShape.circle,
-            //           ),
-            //           child: const Center(
-            //             child: Icon(
-            //               CupertinoIcons.arrow_down,
-            //               color: Colors.green,
-            //             ),
-            //           ),
-            //         ),
-            //         const SizedBox(width: 12),
-            //         Column(
-            //           crossAxisAlignment: CrossAxisAlignment.start,
-            //           children: [
-            //             Text(
-            //               'Ingreso',
-            //               style: TextStyle(
-            //                 fontSize: 14,
-            //                 color: Colors.grey[300],
-            //               ),
-            //             ),
-            //             const Text(
-            //               '2300.00',
-            //               style: TextStyle(
-            //                 fontSize: 18,
-            //                 fontWeight: FontWeight.w500,
-            //                 color: Colors.white,
-            //               ),
-            //             ),
-            //           ],
-            //         ),
-            //       ],
-            //     ),
-            //     Row(
-            //       children: [
-            //         Container(
-            //           width: 30,
-            //           height: 30,
-            //           decoration: const BoxDecoration(
-            //             color: Colors.white30,
-            //             shape: BoxShape.circle,
-            //           ),
-            //           child: const Center(
-            //             child: Icon(
-            //               CupertinoIcons.arrow_up,
-            //               color: Colors.red,
-            //             ),
-            //           ),
-            //         ),
-            //         const SizedBox(width: 12),
-            //         Column(
-            //           crossAxisAlignment: CrossAxisAlignment.start,
-            //           children: [
-            //             Text(
-            //               'Gasto',
-            //               style: TextStyle(
-            //                 fontSize: 14,
-            //                 color: Colors.grey[300],
-            //               ),
-            //             ),
-            //             const Text(
-            //               '800.00',
-            //               style: TextStyle(
-            //                 fontSize: 18,
-            //                 fontWeight: FontWeight.w500,
-            //                 color: Colors.white,
-            //               ),
-            //             ),
-            //           ],
-            //         ),
-            //       ],
-            //     ),
-            //   ],
-            // )
-          ],
-        ),
-      ),),
     );
   }
 }

@@ -1,11 +1,11 @@
-import '../models/transaction_order.dart';
+import '../models/app_order.dart';
 
 abstract class OrderRepository {
 
-  Future<String> insert(TransactionOrder order);
-  Future<bool> remove(TransactionOrder order);
-  Future<TransactionOrder> retrieveOrder(String orderId);
-  Future<Map<String, TransactionOrder>> retrieveFromList(List<String> orderIds);
+  Future<String> insert(AppOrder order);
+  Future<bool> remove(AppOrder order);
+  Future<AppOrder> retrieveOrder(String orderId);
+  Future<Map<String, AppOrder>> retrieveFromList(List<String> orderIds);
   Future<bool> addInvoiceId({required String orderId, required String invoiceId});
   Future<bool> removeInvoiceId({required String orderId, required String invoiceId});
   Future<bool> addPaymentId({required String orderId, required String paymentId});

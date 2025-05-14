@@ -10,7 +10,7 @@ import 'package:neom_commons/core/utils/enums/profile_type.dart';
 import '../../utils/enums/transaction_type.dart';
 import 'app_product.dart';
 
-class TransactionOrder {
+class AppOrder {
 
   String id;
   String description;
@@ -26,9 +26,7 @@ class TransactionOrder {
   GooglePlayPurchaseDetails? googlePlayPurchaseDetails;
   AppStorePurchaseDetails? appStorePurchaseDetails;
 
-  TransactionType transactionType;
-
-  TransactionOrder({
+  AppOrder({
     this.id = "",
     this.description = "",
     this.url = '',
@@ -41,7 +39,6 @@ class TransactionOrder {
     this.subscriptionPlan,
     this.googlePlayPurchaseDetails,
     this.appStorePurchaseDetails,
-    this.transactionType = TransactionType.purchase,
   });
 
   Map<String, dynamic> toJSON() {
@@ -58,11 +55,10 @@ class TransactionOrder {
       'subscriptionPlan': subscriptionPlan?.toJSON(),
       'googlePlayPurchaseDetails': googlePlayPurchaseDetails != null ? googlePlayPurchaseDetailsJSON(googlePlayPurchaseDetails) : {},
       'appStorePurchaseDetails': appStorePurchaseDetails != null ? appStorePurchaseDetailsJSON(appStorePurchaseDetails) : {},
-      'transactionType': transactionType.name,
     };
   }
 
-  TransactionOrder.fromJSON(data) :
+  AppOrder.fromJSON(data) :
     id = data["id"] ?? "",
     description = data["description"] ?? "",
     url = data["url"] ?? "",
@@ -74,8 +70,7 @@ class TransactionOrder {
     product = AppProduct.fromJSON(data["product"] ?? {}),
     subscriptionPlan = SubscriptionPlan.fromJSON(data["subscriptionPlan"] ?? {}),
     googlePlayPurchaseDetails = googlePlayPurchaseDetailsFromJSON(data["googlePlayPurchaseDetails"] ?? {}),
-    appStorePurchaseDetails = appStorePurchaseDetailsFromJSON(data["appStorePurchaseDetails"] ?? {}),
-    transactionType = EnumToString.fromString(TransactionType.values, data["transactionType"] ?? TransactionType.purchase.name) ?? TransactionType.purchase;
+    appStorePurchaseDetails = appStorePurchaseDetailsFromJSON(data["appStorePurchaseDetails"] ?? {});
 
   static Map googlePlayPurchaseDetailsJSON(GooglePlayPurchaseDetails? purchaseDetails) {
     return {
