@@ -48,8 +48,8 @@ class PaymentGatewayPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text("${AppTranslationConstants.toPay.tr} ${CoreUtilities.getCurrencySymbol(_.payment.price?.currency ?? AppCurrency.appCoin)}"
-                        "${_.payment.price?.amount} (${_.payment.price?.currency.name.toUpperCase()}) ${AppTranslationConstants.using.tr}",
+                    Text("${AppTranslationConstants.toPay.tr} ${CoreUtilities.getCurrencySymbol(_.transaction?.currency ?? AppCurrency.appCoin)}"
+                        "${_.transaction?.amount} (${_.transaction?.currency.name.toUpperCase()}) ${AppTranslationConstants.using.tr}",
                         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20)
                     ),
                     AppTheme.heightSpace10,
@@ -85,8 +85,8 @@ class PaymentGatewayPage extends StatelessWidget {
                     Column(
                       children: [
                         SubmitButton(context, isEnabled: !_.isButtonDisabled.value, isLoading: _.isLoading.value,
-                        text: "${AppTranslationConstants.toPay.tr} ${CoreUtilities.getCurrencySymbol(_.payment.price?.currency ?? AppCurrency.appCoin)}"
-                            "${_.payment.price?.amount} (${_.payment.price?.currency.name.toUpperCase()})",
+                        text: "${AppTranslationConstants.toPay.tr} ${CoreUtilities.getCurrencySymbol(_.transaction?.currency ?? AppCurrency.appCoin)}"
+                            "${_.transaction?.amount} (${_.transaction?.currency.name.toUpperCase()})",
                         onPressed: _.handleStripePayment,),
                         _.cardEditController.details.complete ? const SizedBox.shrink()
                         : Column(

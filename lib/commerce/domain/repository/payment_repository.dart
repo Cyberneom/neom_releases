@@ -1,13 +1,14 @@
 import '../../utils/enums/payment_status.dart';
+import '../models/app_transaction.dart';
 import '../models/payment.dart';
 
-abstract class PaymentRepository {
+abstract class TransactionRepository {
 
-  Future<String> insert(Payment payment);
-  Future<bool> remove(Payment payment);
-  Future<Payment> retrievePayment(String paymentId);
-  Future<bool> updatePaymentStatus(String paymentId, PaymentStatus paymentStatus);
-  Future<Map<String, Payment>> retrieveFromList(List<String> paymentIds, {PaymentStatus? status});
-  Future<List<Payment>> retrieveByOrderId(String orderId);
+  Future<String> insert(AppTransaction transaction);
+  Future<bool> remove(AppTransaction transaction);
+  Future<AppTransaction?> retrieve(String transactionId);
+  Future<bool> updateStatus(String transactionId, TransactionStatus status);
+  Future<Map<String, AppTransaction>> retrieveFromList(List<String> transactionIds, {TransactionStatus? status});
+  Future<List<AppTransaction>> retrieveByOrderId(String orderId);
 
 }

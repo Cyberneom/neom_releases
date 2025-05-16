@@ -3,12 +3,12 @@ import 'package:neom_commons/core/data/firestore/constants/app_firestore_collect
 import 'package:neom_commons/core/data/firestore/constants/app_firestore_constants.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
-import '../../utils/enums/payment_status.dart';
-import '../../utils/enums/transaction_type.dart';
+import '../../commerce/utils/enums/payment_status.dart';
+import '../../commerce/utils/enums/transaction_type.dart';
 
-import '../../domain/models/app_transaction.dart';
-import '../../domain/models/wallet.dart';
-import '../../utils/enums/wallet_status.dart';
+import '../../commerce/domain/models/app_transaction.dart';
+import '../../commerce/domain/models/wallet.dart';
+import '../../commerce/utils/enums/wallet_status.dart';
 
 class WalletFirestore {
 
@@ -197,7 +197,7 @@ class WalletFirestore {
 
 
         // --- Actualizar Saldos y Guardar Transacción ---
-        transaction.status = PaymentStatus.completed; // Si llegamos aquí, la transacción se considera completada (pendiente de commit)
+        transaction.status = TransactionStatus.completed; // Si llegamos aquí, la transacción se considera completada (pendiente de commit)
 
         // Actualizar billetera del remitente (si aplica)
         if (senderWallet != null && senderWalletSnapshot != null) {

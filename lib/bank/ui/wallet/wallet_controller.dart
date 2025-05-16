@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:neom_commons/core/data/implementations/user_controller.dart';
-import 'package:neom_commons/core/domain/model/wallet.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
 import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/constants/app_payment_constants.dart';
@@ -9,13 +8,13 @@ import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
 import 'package:neom_commons/core/utils/enums/product_type.dart';
 
-import '../../data/firestore/order_firestore.dart';
-import '../../data/firestore/product_firestore.dart';
-import '../../domain/models/app_product.dart';
-import '../../domain/models/app_transaction.dart';
-import '../../domain/models/payment.dart';
-import '../../domain/models/app_order.dart';
-import '../../domain/use_cases/wallet_service.dart';
+import '../../../commerce/data/firestore/order_firestore.dart';
+import '../../../commerce/data/firestore/product_firestore.dart';
+import '../../../commerce/domain/models/app_order.dart';
+import '../../../commerce/domain/models/app_product.dart';
+import '../../../commerce/domain/models/app_transaction.dart';
+import '../../../commerce/domain/models/wallet.dart';
+import '../../../commerce/domain/use_cases/wallet_service.dart';
 
 class WalletController extends GetxController with GetTickerProviderStateMixin implements WalletService  {
 
@@ -38,7 +37,7 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
 
   bool isButtonDisabled = false;
   
-  Payment payment = Payment();
+  AppTransaction? transaction;
 
   @override
   void onInit() async {
@@ -52,7 +51,7 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
         vsync: this,
       );
       tabController.addListener(_tabChanged);
-      payment.from = userController.user.email;
+      transaction?.senderId = userController.user.email;
     } catch (e) {
       AppUtilities.logger.e(e);
     }

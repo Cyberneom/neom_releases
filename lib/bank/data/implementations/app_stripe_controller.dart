@@ -8,9 +8,9 @@ import 'package:http/http.dart' as http;
 import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/utils/app_utilities.dart';
 
-import '../../domain/models/payment.dart';
-import '../../utils/constants/payment_gateway_constants.dart';
-import '../../utils/enums/payment_status.dart';
+import '../../../commerce/domain/models/app_transaction.dart';
+import '../../../commerce/utils/constants/payment_gateway_constants.dart';
+import '../../../commerce/utils/enums/payment_status.dart';
 
 class AppStripeController {
 
@@ -24,7 +24,7 @@ class AppStripeController {
 
   bool _isInitialized = false;
   String errorMsg = "";
-  final Rx<PaymentStatus> paymentStatus = PaymentStatus.pending.obs;
+  final Rx<TransactionStatus> transactionStatus = TransactionStatus.pending.obs;
 
   // If you are using a real device to test the integration replace this url
   // with the endpoint of your test server (it usually should be the IP of your computer)
@@ -52,7 +52,7 @@ class AppStripeController {
   }
 
   @override
-  Future<void> handlePaymentMethod(Payment payment, BillingDetails billingDetails) async {
+  Future<void> handlePaymentMethod(AppTransaction transaction, BillingDetails billingDetails) async {
 
     PaymentMethod paymentMethod;
     Map<String, dynamic> paymentIntentResponse;
@@ -71,10 +71,10 @@ class AppStripeController {
       AppUtilities.logger.i(paymentMethod.toString());
 
       // 2. call API to create PaymentIntent
-      int amountToPayInCents = (payment.price!.amount * 100).toInt();
+      int amountToPayInCents = (transaction.amount * 100).toInt();
       paymentIntentResponse = await createPaymentIntent(
           amountToPayInCents.toString(),
-          payment.price!.currency.name
+          transaction.currency.name
       );
 
       if (paymentIntentResponse[PaymentGatewayConstants.clientSecret] != null && paymentMethod.id.isNotEmpty) {
@@ -108,22 +108,22 @@ class AppStripeController {
         } else if(paymentIntentResponse[PaymentGatewayConstants.requiresAction] == null) {
           // Payment succedeed
           AppUtilities.logger.i("Payment Intent and Confirmation were created successfully");
-          paymentStatus.value = PaymentStatus.completed;
+          transactionStatus.value = TransactionStatus.completed;
         }
       }
 
       if (paymentIntentResponse[PaymentGatewayConstants.error] != null) {
         // Error during creating or confirming Intent
-        paymentStatus.value = PaymentStatus.failed;
+        transactionStatus.value = TransactionStatus.failed;
         errorMsg = 'Error: ${paymentIntentResponse[PaymentGatewayConstants.error]}';
       }
 
     } on StripeException catch (e) {
       errorMsg = e.error.localizedMessage ?? "";
-      paymentStatus.value = PaymentStatus.declined;
+      transactionStatus.value = TransactionStatus.declined;
       AppUtilities.logger.e(errorMsg);
     } catch (e) {
-      paymentStatus.value = PaymentStatus.unknown;
+      transactionStatus.value = TransactionStatus.unknown;
       AppUtilities.logger.e(e.toString());
     }
 

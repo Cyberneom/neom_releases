@@ -147,7 +147,7 @@ class OrderDetailsPage extends StatelessWidget {
                         fontSize: 18)
                 ),
                 AppTheme.heightSpace5,
-                Text(_.payment.status.name.tr,
+                Text(_.appTransaction.status.name.tr,
                   style: const TextStyle(
                       color: Colors.grey,
                       fontSize: 16),
@@ -208,7 +208,7 @@ class OrderDetailsPage extends StatelessWidget {
                   ],
                 ),
                 AppTheme.heightSpace10,
-                _.payment.price?.amount == 0.0 || _.discountPercentage == 0 ? const SizedBox.shrink() :
+                _.appTransaction?.amount == 0.0 || _.discountPercentage == 0 ? const SizedBox.shrink() :
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: <Widget>[
@@ -218,7 +218,7 @@ class OrderDetailsPage extends StatelessWidget {
                             fontSize: 16
                         )
                     ),
-                    Text("${((_.product?.regularPrice?.amount ?? 0) - (_.payment.price?.amount ?? 0))} ${_.payment.price?.currency.name.tr.toUpperCase() ?? AppCurrency.mxn.name.toUpperCase()}",
+                    Text("${((_.product?.regularPrice?.amount ?? 0) - (_.appTransaction?.amount ?? 0))} ${_.appTransaction?.currency.name.tr.toUpperCase() ?? AppCurrency.mxn.name.toUpperCase()}",
                         style: const TextStyle(
                             color: Colors.grey,
                             fontSize: 16)
@@ -235,7 +235,7 @@ class OrderDetailsPage extends StatelessWidget {
                             color: AppColor.white80,
                             fontSize: 16, fontWeight: FontWeight.w600)
                     ),
-                    Text("${_.payment.price?.amount ?? 0} ${_.payment.price?.currency.name.tr.toUpperCase() ??  AppCurrency.mxn.name.toUpperCase()}",
+                    Text("${_.appTransaction?.amount ?? 0} ${_.appTransaction?.currency.name.tr.toUpperCase() ??  AppCurrency.mxn.name.toUpperCase()}",
                         style: TextStyle(
                             color: AppColor.white80,
                             fontSize: 16)

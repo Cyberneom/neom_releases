@@ -187,7 +187,7 @@ class OrderConfirmationPage extends StatelessWidget {
                             fontSize: 16),
                       ),
                     ),
-                    Text("${_.payment.price?.amount} ${_.payment.price?.currency.name.tr.toUpperCase()}",
+                    Text("${_.transaction?.amount} ${_.transaction?.currency.name.tr.toUpperCase()}",
                        style: const TextStyle(
                            color: Colors.grey,
                            fontSize: 16)
@@ -205,7 +205,7 @@ class OrderConfirmationPage extends StatelessWidget {
                              fontSize: 16
                          )
                      ),
-                     Text("${_.discountAmount} ${_.payment.price?.currency.name.tr.toUpperCase()}",
+                     Text("${_.discountAmount} ${_.transaction?.currency.name.tr.toUpperCase()}",
                          style: const TextStyle(
                              color: Colors.grey,
                              fontSize: 16)
@@ -222,7 +222,7 @@ class OrderConfirmationPage extends StatelessWidget {
                              color: AppColor.white80,
                              fontSize: 16, fontWeight: FontWeight.w600)
                      ),
-                     Text("${_.payment.price?.amount} ${_.payment.price?.currency.name.tr.toUpperCase()}",
+                     Text("${_.transaction?.amount} ${_.transaction?.currency.name.tr.toUpperCase()}",
                          style: TextStyle(
                              color: AppColor.white80,
                              fontSize: 16)

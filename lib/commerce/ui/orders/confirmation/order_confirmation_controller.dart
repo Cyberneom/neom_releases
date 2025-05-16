@@ -15,6 +15,7 @@ import '../../../data/firestore/order_firestore.dart';
 import '../../../data/firestore/sales_firestore.dart';
 import '../../../domain/models/app_product.dart';
 import '../../../domain/models/app_sale.dart';
+import '../../../domain/models/app_transaction.dart';
 import '../../../domain/models/payment.dart';
 import '../../../domain/models/app_order.dart';
 import '../../../utils/constants/app_commerce_constants.dart';
@@ -31,7 +32,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
   AppProfile profile = AppProfile();
   ProfileType  profileType = ProfileType.general;
 
-  final Rx<PaymentStatus> paymentStatus = PaymentStatus.pending.obs;
+  final Rx<TransactionStatus> transactionStatus = TransactionStatus.pending.obs;
 
   AppProduct product = AppProduct();
   SubscriptionPlan subscriptionPlan = SubscriptionPlan();
@@ -40,7 +41,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
   // AppReleaseItem releaseItem = AppReleaseItem();
 
   AppCoupon? coupon;
-  Payment payment = Payment();
+  AppTransaction? transaction;
 
   double discountAmount = 0.0;
   double discountPercentage = 0.0;
@@ -71,7 +72,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
     try {
 
       profile = userController.user.profiles.first;
-      payment.from = userController.user.email;
+      transaction?.senderId = userController.user.email;
 
       if(Get.arguments != null && Get.arguments.isNotEmpty) {
         if(Get.arguments[0] is AppProduct) {
@@ -79,7 +80,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
           order.customerEmail = userController.user.email;
           order.description = product.name;
           order.product = product;
-          payment.to = product.ownerEmail ?? '';
+          transaction?.recipientId = product.ownerEmail ?? '';
 
           switch(product.type) {
             case ProductType.event:
@@ -97,19 +98,6 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
               inAppProductId = product.id;
               break;
           }
-
-          ///DEPRECATED
-          // if(product.type == ProductType.event) {
-          //   AppCommerceConstants.eventCoverLevels.forEach((key, value) {
-          //     if(product.salePrice!.amount == value) {
-          //       inAppProductId = key;
-          //     }
-          //   });
-          // } else {
-          //   inAppProductId = product.id;
-          // }
-          //
-          // if(product.type == ProductType.appCoin) isConsumable = true;
 
         } else if(Get.arguments[0] is SubscriptionPlan) {
           subscriptionPlan = Get.arguments[0];
@@ -148,15 +136,8 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
       order.createdTime = now.millisecondsSinceEpoch;
 
       if(product.id.isNotEmpty) {
-        ///DEPRECATED
-        // displayedName = product.name;
-        // displayedDescription = product.description;
-        // displayedImgUrl = product.imgUrl;
-
-        payment.price = Price(
-          amount: product.salePrice?.amount ?? 0,
-          currency: product.salePrice?.currency ?? AppCurrency.appCoin
-        );
+        transaction?.amount = product.salePrice?.amount ?? 0;
+        transaction?.currency = product.salePrice?.currency ?? AppCurrency.appCoin;
 
         sales = await SalesFirestore().retrieveSales(product.type);
         sales.orderNumber = sales.orderNumber + 1;
@@ -166,7 +147,6 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
             "${profile.name.substring(0,3).toUpperCase()}"
             "${sales.orderNumber.toString()}";
 
-        payment.tax = product.salePrice!.amount * AppPaymentConstants.mexicanTaxesAmount;
       }
     } catch (e) {
       AppUtilities.logger.e(e.toString());
@@ -200,8 +180,8 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
         if(order.product?.type == ProductType.subscription) {
           Get.toNamed(AppRouteConstants.stripeWebView, arguments: [order, fromRoute, context]);
         } else {
-          payment.orderId = order.id;
-          Get.toNamed(AppRouteConstants.paymentGateway, arguments: [payment, order]);
+          transaction?.orderId = order.id;
+          Get.toNamed(AppRouteConstants.paymentGateway, arguments: [transaction, order]);
         }
         SalesFirestore().updateOrderNumber(sales.orderNumber, order.product!.type);
         SalesFirestore().addOrderId(orderId: order.id, productType: order.product!.type);
@@ -285,7 +265,7 @@ class OrderConfirmationController extends GetxController with GetTickerProviderS
             order.appStorePurchaseDetails = purchaseDetails;
           }
 
-          payment.status = PaymentStatus.completed;
+          transaction?.status = TransactionStatus.completed;
           await confirmOrder();
         } else if (purchaseDetails.pendingCompletePurchase) {
           await InAppPurchase.instance.completePurchase(purchaseDetails);

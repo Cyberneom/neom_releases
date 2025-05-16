@@ -33,7 +33,7 @@ class InvoiceItem extends StatelessWidget {
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   Text(
-                    '${invoice.payment!.price!.amount} ${invoice.payment!.price!.currency.name}',
+                    '${invoice.transaction?.amount} ${invoice.transaction?.currency.name}',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],
@@ -80,7 +80,7 @@ class InvoiceItem extends StatelessWidget {
                       borderRadius: BorderRadius.circular(4.0),
                     ),
                     child: Text(
-                      invoice.payment!.status.name,
+                      invoice.transaction!.status.name,
                       style: Theme.of(context)
                           .textTheme
                           .titleLarge!

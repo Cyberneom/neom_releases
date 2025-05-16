@@ -27,11 +27,12 @@ import 'package:neom_commons/core/utils/enums/user_role.dart';
 import 'package:neom_commons/core/utils/validator.dart';
 import 'package:neom_events/events/ui/event_details_controller.dart';
 
+import '../../../bank/data/implementations/app_bank_controller.dart';
+import '../../../bank/data/implementations/app_stripe_controller.dart';
 import '../../data/firestore/invoice_firestore.dart';
 import '../../data/firestore/order_firestore.dart';
-import '../../data/firestore/payment_firestore.dart';
-import '../../data/firestore/wallet_firestore.dart';
-import '../../data/implementations/app_stripe_controller.dart';
+import '../../../bank/data/transaction_firestore.dart';
+import '../../../bank/data/wallet_firestore.dart';
 import '../../domain/models/app_transaction.dart';
 import '../../domain/models/invoice.dart';
 import '../../domain/models/payment.dart';
@@ -40,8 +41,7 @@ import '../../domain/models/wallet.dart';
 import '../../domain/use_cases/payment_gateway_service.dart';
 import '../../utils/constants/payment_gateway_constants.dart';
 import '../../utils/enums/payment_status.dart';
-import '../wallet/wallet_controller.dart';
-
+import '../../utils/enums/transaction_type.dart';
 
 
 class PaymentGatewayController extends GetxController with GetTickerProviderStateMixin implements PaymentGatewayService {
@@ -60,13 +60,14 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
   AppUser user = AppUser();
   AppProfile profile = AppProfile();
 
-  final Rx<PaymentStatus> paymentStatus = PaymentStatus.pending.obs;
+  final Rx<TransactionStatus> transactiontStatus = TransactionStatus.pending.obs;
   final RxBool showWalletAmount = false.obs;
 
   String errorMsg = "";
   String phoneNumber = '';
 
 
+  AppBankController appBankController = AppBankController();
   AppStripeController appStripeController = AppStripeController();
   // // If you are using a real device to test the integration replace this url
   // // with the endpoint of your test server (it usually should be the IP of your computer)
@@ -75,7 +76,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
   stripe.CardFormEditController cardEditController = stripe.CardFormEditController();
 
   AppOrder order = AppOrder();
-  Payment payment = Payment();
+  AppTransaction transaction = AppTransaction();
   Address userAddress = Address();
   Wallet wallet = Wallet();
 
@@ -86,8 +87,8 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
     try {
       if(Get.arguments != null && Get.arguments.isNotEmpty) {
-        if (Get.arguments[0] is Payment) {
-          payment = Get.arguments[0];
+        if (Get.arguments[0] is AppTransaction) {
+          transaction = Get.arguments[0];
         }
 
         if (Get.arguments[1] != null && Get.arguments[1] is AppOrder) {
@@ -137,65 +138,20 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
   Future<void> processPayment() async {
 
-    String paymentId = await PaymentFirestore().insert(payment);
-    payment.id = paymentId;
+    String transactionId = await TransactionFirestore().insert(transaction);
+    transaction.id = transactionId;
 
-    if(payment.price?.currency == AppCurrency.appCoin) {
+    if(transaction?.currency == AppCurrency.appCoin) {
       AppUtilities.logger.d('Paying with AppCoins');
-      await payWithAppCoins();
-    } else if(payment.status == PaymentStatus.completed &&
-        (order.googlePlayPurchaseDetails != null || order.appStorePurchaseDetails != null)
-    ) {
-      AppUtilities.logger.d('Payment was already Completed through GooglePlay or AppStore');
-      paymentStatus.value = payment.status;
-      await handleProcessedPayment();
-    } else {
-      AppUtilities.logger.d('Paying through Stripe');
-    }
+      bool completed = await appBankController.processTransaction(transaction);
 
-    isLoading.value = false;
-  }
+      transactiontStatus.value = completed ?
+        TransactionStatus.completed : TransactionStatus.failed;
 
-  @override
-  Future<void> payWithAppCoins() async {
-    AppUtilities.logger.d("Entering payWithGigCoins Method");
+      TransactionFirestore().updateStatus(transaction.id, transactiontStatus.value);
 
-    paymentStatus.value = PaymentStatus.processing;
-
-    try {
-      ///Validate and get coins from user wallet
-      if((payment.price != null) && (wallet.balance >= (payment.price?.amount ?? 0))) {
-
-        AppTransaction transaction = AppTransaction(
-          id: payment.id,
-          senderId: payment.from,
-          recipientId: payment.to,
-          amount: payment.price?.amount ?? 0,
-          orderId: payment.orderId,
-          description: payment.reason: 'ProductPurchase',
-          createdTime: DateTime.now().millisecondsSinceEpoch,
-          type: TransactionType.payment,
-          status: TransactionStatus.pending,
-        );
-
-        if(Validator.isEmail(payment.to)) {
-          ///Add coins to host wallet
-          await payToUserWithCoins();
-        } else {
-          ///Add coins to bank in case there is no payment.to
-          //Verify Transaction created has appBank as recipientId
-          // await payToBank();
-        }
-      } else {
-        paymentStatus.value = PaymentStatus.failed;
-        errorMsg = MessageTranslationConstants.notEnoughFundsMsg.tr;
-        AppUtilities.logger.i(MessageTranslationConstants.notEnoughFundsMsg.tr);
-      }
-
-      await PaymentFirestore().updatePaymentStatus(payment.id, paymentStatus.value);
-
-      if(paymentStatus.value == PaymentStatus.completed) {
-        await handleProcessedPayment();
+      if(completed) {
+        await handleProcessedTransaction();
       } else {
         Get.back();
         AppUtilities.showSnackBar(
@@ -203,41 +159,106 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
           message: errorMsg.tr,
         );
       }
-    } catch (e) {
-      AppUtilities.logger.e(e.toString());
+    } else if(transaction.status == TransactionStatus.completed &&
+        (order.googlePlayPurchaseDetails != null || order.appStorePurchaseDetails != null)
+    ) {
+      AppUtilities.logger.d('Payment was already Completed through GooglePlay or AppStore');
+      transactiontStatus.value = transaction.status;
+      await handleProcessedTransaction();
+    } else {
+      AppUtilities.logger.d('Paying through Stripe');
     }
 
-    update([AppPageIdConstants.paymentGateway]);
+    isLoading.value = false;
   }
 
-  Future<void> payToUserWithCoins() async {
-    ///Add coins to host wallet
-    AppUser? toUser = await UserFirestore().getByEmail(payment.to);
-    if(toUser != null && toUser.id.isNotEmpty) {
+  // @override
+  // Future<void> payWithAppCoins() async {
+  //   AppUtilities.logger.d("Entering payWithGigCoins Method");
+  //
+  //   transactiontStatus.value = TransactionStatus.processing;
+  //
+  //   try {
+  //     ///Validate and get coins from user wallet
+  //     if((wallet.balance >= (transaction?.amount ?? 0))) {
+  //
+  //
+  //       // AppTransaction transaction = AppTransaction(
+  //       //   amount: appTransaction?.amount ?? 0,
+  //       //   type: TransactionType.purchase,
+  //       //   id: appTransaction.id,
+  //       //   senderId: appTransaction.senderId,
+  //       //   recipientId: appTransaction.recipientId,
+  //       //   orderId: appTransaction.orderId,
+  //       //   description: appTransaction.description,
+  //       //   createdTime: DateTime.now().millisecondsSinceEpoch,
+  //       //   status: TransactionStatus.pending,
+  //       // );
+  //       //
+  //       // if(Validator.isEmail(transaction.recipientId ?? '')) {
+  //       //   ///Add coins to host wallet
+  //       //   await payToUserWithCoins();
+  //       // } else {
+  //       //   ///Add coins to bank in case there is no payment.to
+  //       //   //Verify Transaction created has appBank as recipientId
+  //       //   // await payToBank();
+  //       // }
+  //       transactiontStatus.value = TransactionStatus.completed;
+  //     } else {
+  //       transactiontStatus.value = TransactionStatus.failed;
+  //       errorMsg = MessageTranslationConstants.notEnoughFundsMsg.tr;
+  //       AppUtilities.logger.e(MessageTranslationConstants.notEnoughFundsMsg.tr);
+  //     }
+  //
+  //     await TransactionFirestore().updateStatus(transaction.id, transactiontStatus.value);
+  //
+  //     if(transactiontStatus.value == TransactionStatus.completed) {
+  //       await handleProcessedPayment();
+  //     } else {
+  //       Get.back();
+  //       AppUtilities.showSnackBar(
+  //         title: MessageTranslationConstants.errorProcessingPayment.tr,
+  //         message: errorMsg.tr,
+  //       );
+  //     }
+  //   } catch (e) {
+  //     AppUtilities.logger.e(e.toString());
+  //   }
+  //
+  //   update([AppPageIdConstants.paymentGateway]);
+  // }
 
-      if(await UserFirestore().addToWallet(toUser.id, payment.price!.amount)) {
-        ///Remove coins from user wallet
-        if(await UserFirestore().subtractFromWallet(user.id, payment.price!.amount)) {
-          userController.subtractFromWallet(payment.price!.amount);
-          paymentStatus.value = PaymentStatus.completed;
-        } else {
-          paymentStatus.value = PaymentStatus.rolledBack;
-          if(await UserFirestore().subtractFromWallet(toUser.id, payment.price!.amount)) {
-            AppUtilities.logger.i("Amount ${payment.price!.amount} rolledback from wallet successfully for profile ${payment.to}");
-          } else {
-            AppUtilities.logger.i("Something happened subtracting from wallet for profile ${payment.to}");
-          }
-        }
-      } else {
-        paymentStatus.value = PaymentStatus.failed;
-        AppUtilities.logger.w("Something happened: ${MessageTranslationConstants.errorProcessingPaymentMsg.tr}");
-        Get.snackbar(
-            MessageTranslationConstants.errorProcessingPayment.tr,
-            MessageTranslationConstants.errorProcessingPaymentMsg.tr,
-            snackPosition: SnackPosition.bottom);
-      }
-    }
-  }
+  // Future<void> payToUserWithCoins() async {
+  //   AppUtilities.logger.d("Entering payToUserWithCoins Method");
+  //
+  //
+  //   AppUser? toUser = await UserFirestore().getByEmail(transaction.recipientId ?? '');
+  //
+  //   if(toUser != null && toUser.id.isNotEmpty) {
+  //
+  //     if(await UserFirestore().addToWallet(toUser.id, transaction?.amount)) {
+  //       ///Remove coins from user wallet
+  //       if(await UserFirestore().subtractFromWallet(user.id, transaction?.amount)) {
+  //         userController.subtractFromWallet(transaction?.amount);
+  //         transactiontStatus.value = TransactionStatus.completed;
+  //       } else {
+  //         transactiontStatus.value = TransactionStatus.rolledBack;
+  //         if(await UserFirestore().subtractFromWallet(toUser.id, transaction?.amount)) {
+  //           AppUtilities.logger.i("Amount ${transaction?.amount} rolledback from wallet successfully for profile ${transaction.senderId}");
+  //         } else {
+  //           AppUtilities.logger.i("Something happened subtracting from wallet for profile ${transaction.senderId}");
+  //         }
+  //       }
+  //     } else {
+  //       transactiontStatus.value = TransactionStatus.failed;
+  //       AppUtilities.logger.w("Something happened: ${MessageTranslationConstants.errorProcessingPaymentMsg.tr}");
+  //       Get.snackbar(
+  //           MessageTranslationConstants.errorProcessingPayment.tr,
+  //           MessageTranslationConstants.errorProcessingPaymentMsg.tr,
+  //           snackPosition: SnackPosition.bottom);
+  //     }
+  //   }
+  // }
 
   // Future<void> payToBank() async {
   //   ///Add coins to bank
@@ -266,17 +287,20 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
 
   @override
-  Future<void> handleProcessedPayment() async {
+  Future<void> handleProcessedTransaction() async {
+    AppUtilities.logger.d("Entering handleProcessedPayment Method");
 
     try {
-      if(paymentStatus.value == PaymentStatus.completed) {
+      if(transactiontStatus.value == TransactionStatus.completed) {
 
-        await generateAndInsertInvoice();
+        if(transaction.orderId?.isNotEmpty ?? false) {
+          generateAndInsertInvoice();
 
-        if(await UserFirestore().addOrderId(userId: user.id, orderId: payment.orderId)) {
-          userController.user.orderIds.add(payment.orderId);
-        } else {
-          AppUtilities.logger.w("Something occurred while adding order to User ${user.id}");
+          if(await UserFirestore().addOrderId(userId: user.id, orderId: transaction.orderId!)) {
+            userController.user.orderIds.add(transaction.orderId!);
+          } else {
+            AppUtilities.logger.w("Something occurred while adding order to User ${user.id}");
+          }
         }
 
         switch(order.product?.type) {
@@ -296,19 +320,19 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
                 arguments: [AppRouteConstants.paymentGateway, AppRouteConstants.home]);
             break;
           case ProductType.appCoin:
-            int coinsQty = 0;
+            appBankController.addCoinsToWallet(user.id);
+            // try {
+            //   coinsQty = Get.find<WalletController>().appCoinProduct.value.qty;
+            //   AppUtilities.logger.d('$coinsQty from found WalletController');
+            // } catch(e) {
+            //   coinsQty = Get.put(WalletController()).appCoinProduct.value.qty;
+            //   AppUtilities.logger.d('$coinsQty from initiated WalletController');
+            // }
 
-            try {
-              coinsQty = Get.find<WalletController>().appCoinProduct.value.qty;
-              AppUtilities.logger.d('$coinsQty from found WalletController');
-            } catch(e) {
-              coinsQty = Get.put(WalletController()).appCoinProduct.value.qty;
-              AppUtilities.logger.d('$coinsQty from initiated WalletController');
-            }
-
-            if(await UserFirestore().addToWallet(user.id, coinsQty.toDouble())) {
-              userController.addToWallet(coinsQty);
-            }
+            // ///ADD MONE TO USER WHY?
+            // if(await UserFirestore().addToWallet(user.id, coinsQty.toDouble())) {
+            //   userController.addToWallet(coinsQty);
+            // }
 
             Get.toNamed(AppRouteConstants.splashScreen,
                 arguments: [AppRouteConstants.paymentGateway, AppRouteConstants.wallet]);
@@ -356,7 +380,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
     try {
 
-      paymentStatus.value = PaymentStatus.processing;
+      transactiontStatus.value = TransactionStatus.processing;
       errorMsg = Validator.validateEmail(emailController.text);
 
       if(errorMsg.isEmpty) {
@@ -385,7 +409,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
 
         if(userController.user.userRole == UserRole.superAdmin) {
-          paymentStatus.value = PaymentStatus.completed;
+          transactiontStatus.value = TransactionStatus.completed;
         } else {
           stripe.BillingDetails billingDetails = stripe.BillingDetails(
             name: userController.user.name,
@@ -400,13 +424,13 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
               postalCode: '',
             ),
           );
-          await AppStripeController().handlePaymentMethod(payment, billingDetails);
+          await AppStripeController().handlePaymentMethod(transaction, billingDetails);
         }
 
-        await PaymentFirestore().updatePaymentStatus(payment.id, paymentStatus.value);
+        await TransactionFirestore().updateStatus(transaction.id, transactiontStatus.value);
 
-        if(paymentStatus.value == PaymentStatus.completed) {
-          await handleProcessedPayment();
+        if(transactiontStatus.value == TransactionStatus.completed) {
+          await handleProcessedTransaction();
         } else {
           isButtonDisabled.value = false;
           isLoading.value = false;
@@ -431,19 +455,23 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
   }
 
   Future<void> generateAndInsertInvoice() async {
-    Invoice invoice = Invoice(
-      description: order.description,
-      orderId: payment.orderId,
-      createdTime: DateTime.now().millisecondsSinceEpoch,
-      payment: payment,
-    );
 
-    invoice.toUser = userController.user;
-    invoice.id = await InvoiceFirestore().insert(invoice);
+    if(transaction.orderId?.isNotEmpty ?? false) {
+      Invoice invoice = Invoice(
+        description: order.description,
+        orderId: transaction.orderId!,
+        createdTime: DateTime.now().millisecondsSinceEpoch,
+        transaction: transaction,
+      );
 
-    if(invoice.id.isNotEmpty) {
-      await OrderFirestore().addInvoiceId(orderId: payment.orderId, invoiceId: invoice.id);
+      invoice.toUser = userController.user;
+      invoice.id = await InvoiceFirestore().insert(invoice);
+
+      if(invoice.id.isNotEmpty) {
+        await OrderFirestore().addInvoiceId(orderId: transaction.orderId!, invoiceId: invoice.id);
+      }
     }
+
   }
 
 

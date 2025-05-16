@@ -7,11 +7,13 @@ import 'package:neom_commons/neom_commons.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
 import '../../commerce/data/firestore/order_firestore.dart';
-import '../../commerce/data/firestore/payment_firestore.dart';
+import '../../bank/data/transaction_firestore.dart';
 import '../../commerce/domain/models/app_product.dart';
+import '../../commerce/domain/models/app_transaction.dart';
 import '../../commerce/domain/models/payment.dart';
 import '../../commerce/domain/models/app_order.dart';
 import '../../commerce/utils/enums/payment_status.dart';
+import '../../commerce/utils/enums/transaction_type.dart';
 import '../domain/use_cases/woo_webview_service.dart';
 import '../utils/constants/woo_constants.dart';
 
@@ -175,16 +177,18 @@ class WooWebViewController extends GetxController implements WooWebViewService {
 
       String successfulOrderId = await OrderFirestore().insert(order);
       if(successfulOrderId.isNotEmpty) {
-        Payment payment = Payment(
+        AppTransaction transaction = AppTransaction(
+            type: TransactionType.purchase,
             orderId: orderId,
             createdTime: DateTime.now().millisecondsSinceEpoch,
-            from: userController.user.email,
-            status: PaymentStatus.completed,
-            price: releaseItem.salePrice,
-            secretKey: orderKey
+            senderId: userController.user.email,
+            status: TransactionStatus.completed,
+            amount: releaseItem.salePrice?.amount ?? 0,
+            currency: releaseItem.salePrice?.currency ?? AppCurrency.appCoin,
+            secretKey: orderKey,
         );
 
-        PaymentFirestore().insert(payment);
+        TransactionFirestore().insert(transaction);
       }
 
     }

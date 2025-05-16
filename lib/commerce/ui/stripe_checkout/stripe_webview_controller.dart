@@ -15,13 +15,15 @@ import 'package:neom_commons/core/utils/enums/verification_level.dart';
 import 'package:neom_commons/neom_commons.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 
-import '../../data/firestore/payment_firestore.dart';
+import '../../../bank/data/transaction_firestore.dart';
 import '../../domain/models/app_product.dart';
+import '../../domain/models/app_transaction.dart';
 import '../../domain/models/payment.dart';
 import '../../domain/models/app_order.dart';
 import '../../utils/constants/app_commerce_constants.dart';
 import '../../utils/constants/stripe_webview_constants.dart';
 import '../../utils/enums/payment_status.dart';
+import '../../utils/enums/transaction_type.dart';
 
 class StripeViewController extends GetxController  {
 
@@ -228,15 +230,17 @@ class StripeViewController extends GetxController  {
   Future<void> createInternalPayment() async {
 
     if(order.id.isNotEmpty) {
-      Payment payment = Payment(
+      AppTransaction transaction = AppTransaction(
           orderId: order.id,
           createdTime: DateTime.now().millisecondsSinceEpoch,
-          from: userController.user.email,
-          status: PaymentStatus.completed,
-          price: order.product?.salePrice,
+          senderId: userController.user.email,
+          status: TransactionStatus.completed,
+          amount: order.product?.salePrice?.amount ?? 0,
+          currency: order.product?.salePrice?.currency ?? AppCurrency.appCoin,
+          type: TransactionType.purchase
       );
 
-      PaymentFirestore().insert(payment);
+      TransactionFirestore().insert(transaction);
     }
 
   }

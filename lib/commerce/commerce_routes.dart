@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:neom_commons/core/utils/constants/app_route_constants.dart';
 
+import '../bank/ui/wallet/wallet_history_page.dart';
 import 'ui/orders/confirmation/order_confirmation_page.dart';
 import 'ui/orders/order_details_page.dart';
 import 'ui/payment/payment_gateway_page.dart';
@@ -16,7 +17,6 @@ import 'ui/services/release_upload/widgets/release_upload_name_desc_page.dart';
 import 'ui/services/release_upload/widgets/release_upload_summary_page.dart';
 import 'ui/services/release_upload/widgets/release_upload_type_page.dart';
 import 'ui/stripe_checkout/stripe_webview_page.dart';
-import 'ui/wallet/wallet_history_page.dart';
 
 class CommerceRoutes {
 

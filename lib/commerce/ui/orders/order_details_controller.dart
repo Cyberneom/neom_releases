@@ -7,8 +7,9 @@ import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/core/utils/enums/coupon_type.dart';
 
 import '../../data/firestore/invoice_firestore.dart';
-import '../../data/firestore/payment_firestore.dart';
+import '../../../bank/data/transaction_firestore.dart';
 import '../../domain/models/app_product.dart';
+import '../../domain/models/app_transaction.dart';
 import '../../domain/models/invoice.dart';
 import '../../domain/models/payment.dart';
 import '../../domain/models/app_order.dart';
@@ -19,20 +20,17 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
 
   bool isButtonDisabled = false;
   bool isLoading = true;
-  List<Payment> payments = [];
+  List<AppTransaction> transactions = [];
   List<Invoice> invoices = [];
 
   AppProfile profile = AppProfile();
 
   AppProduct? product;
   AppCoupon? coupon;
-  ///DEPRECATED
-  // Event? event;
-  // Booking? booking;
-  // AppReleaseItem? releaseItem;
+
 
   AppOrder order = AppOrder();
-  Payment payment = Payment();
+  AppTransaction appTransaction = AppTransaction();
   Invoice invoice = Invoice();
 
   double discountAmount = 0.0;
@@ -90,9 +88,9 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
   void onReady() async {
     try {
 
-      payments = await PaymentFirestore().retrieveByOrderId(order.id);
+      transactions = await TransactionFirestore().retrieveByOrderId(order.id);
 
-      if(payments.isNotEmpty) payment = payments.first;
+      if(transactions.isNotEmpty) appTransaction = transactions.first;
 
       if((product?.regularPrice != null && product?.salePrice != null) &&
         product?.regularPrice?.amount != product?.salePrice?.amount) {

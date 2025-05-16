@@ -1,5 +1,6 @@
 import 'package:neom_commons/core/domain/model/address.dart';
 import 'package:neom_commons/core/domain/model/app_user.dart';
+import 'app_transaction.dart';
 import 'payment.dart';
 
 class Invoice {
@@ -9,7 +10,7 @@ class Invoice {
   AppUser toUser = AppUser();
   String orderId;
   int createdTime;
-  Payment? payment;
+  AppTransaction? transaction;
   Address? address;
 
   Invoice({
@@ -17,7 +18,7 @@ class Invoice {
     this.description = "",
     this.orderId = "",
     this.createdTime = 0,
-    this.payment,
+    this.transaction,
   });
 
   Map<String, dynamic> toJSON() {
@@ -27,8 +28,8 @@ class Invoice {
       'toUser': toUser.toInvoiceJSON(),
       'orderId': orderId,
       'createdTime': createdTime,
-      'payment': payment?.toJSON() ?? Payment().toJSON(),
-      'address': address?.toJSON() ?? Address().toJSON(),
+      'transaction': transaction?.toJSON(),
+      'address': address?.toJSON(),
     };
   }
 
@@ -38,7 +39,7 @@ class Invoice {
     toUser = AppUser.fromJSON(data["toUser"]),
     orderId = data["orderId"] ?? "",
     createdTime = data["createdTime"] ?? 0,
-    payment = Payment.fromJSON(data["payment"]),
+    transaction = AppTransaction.fromJSON(data["transaction"]),
     address = Address.fromJSON(data["address"]);
 
 }

@@ -11,8 +11,8 @@ import 'package:neom_commons/core/utils/core_utilities.dart';
 import 'package:neom_commons/core/utils/enums/app_currency.dart';
 import 'package:rflutter_alert/rflutter_alert.dart';
 
-import '../../domain/models/app_product.dart';
-import '../widgets/wallet_widgets.dart';
+import '../../../commerce/domain/models/app_product.dart';
+import '../../../commerce/ui/widgets/wallet_widgets.dart';
 import 'wallet_card.dart';
 import 'wallet_controller.dart';
 

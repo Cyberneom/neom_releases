@@ -22,7 +22,7 @@ class AppTransaction {
   TransactionType type;
   double amount;
   AppCurrency currency;
-  PaymentStatus status;
+  TransactionStatus status;
 
   String? orderId; // Opcional: ID de la AppOrder si la transacción es por una compra
   String? senderId; // ID (walletId) de quien envía/origina el débito
@@ -34,8 +34,8 @@ class AppTransaction {
   // double balanceAfter; // Saldo de la billetera afectada DESPUÉS de esta transacción
 
   AppTransaction({
-    required this.amount,
-    required this.type, // Un valor por defecto
+    this.amount = 0,
+    this.type = TransactionType.purchase,
     this.senderId = AppCommerceConstants.appBank, // Considerar si siempre habrá un senderId
     this.recipientId = AppCommerceConstants.appBank, // Considerar si siempre habrá un recipientId
     this.id = "",
@@ -43,7 +43,8 @@ class AppTransaction {
     this.createdTime = 0,
     this.orderId, // Es opcional
     this.currency = AppCurrency.appCoin, // Moneda por defecto
-    this.status = PaymentStatus.pending, // Estado por defect
+    this.status = TransactionStatus.pending, // Estado por defect
+    this.secretKey,
   });
 
   Map<String, dynamic> toJSON() {
@@ -58,12 +59,13 @@ class AppTransaction {
       'status': status.name,
       'senderId': senderId,
       'recipientId': recipientId,
+      'secretKey': secretKey,
       // 'balanceBefore': balanceBefore,
       // 'balanceAfter': balanceAfter,
     };
   }
 
-  AppTransaction.fromJSON(Map<dynamic, dynamic> data)
+  AppTransaction.fromJSON(data)
       : id = data["id"] ?? "",
         description = data["description"] ?? "",
         createdTime = data["createdTime"] ?? 0,
@@ -75,11 +77,12 @@ class AppTransaction {
             AppCurrency.values, data["currency"] ?? AppCurrency.appCoin.name) ??
             AppCurrency.appCoin,
         orderId = data["orderId"],
-        status = EnumToString.fromString(PaymentStatus.values,
-            data["status"] ?? PaymentStatus.pending.name) ??
-            PaymentStatus.pending,
+        status = EnumToString.fromString(TransactionStatus.values,
+            data["status"] ?? TransactionStatus.pending.name) ??
+            TransactionStatus.pending,
         senderId = data["senderId"] ?? "",
-        recipientId = data["recipientId"] ?? "";
+        recipientId = data["recipientId"] ?? "",
+        secretKey = data["secretKey"] ?? "";
         // balanceBefore = double.parse(data["balanceBefore"]?.toString() ?? "0"),
         // balanceAfter = double.parse(data["balanceAfter"]?.toString() ?? "0");
 

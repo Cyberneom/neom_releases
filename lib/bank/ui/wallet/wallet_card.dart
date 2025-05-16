@@ -99,7 +99,7 @@ class WalletCard extends StatelessWidget {
                     AppTheme.heightSpace20, // Increased space
                     Text(
                       // Ensure _.wallet.amount is available and is a number
-                      _.wallet.amount.truncate().toString().replaceAllMapped(
+                      _.wallet.balance.truncate().toString().replaceAllMapped(
                           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},'),
                       style: const TextStyle(
                         fontSize: 44, // Prominent balance
