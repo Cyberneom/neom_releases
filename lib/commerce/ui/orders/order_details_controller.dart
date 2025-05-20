@@ -11,7 +11,6 @@ import '../../../bank/data/transaction_firestore.dart';
 import '../../domain/models/app_product.dart';
 import '../../domain/models/app_transaction.dart';
 import '../../domain/models/invoice.dart';
-import '../../domain/models/payment.dart';
 import '../../domain/models/app_order.dart';
 
 class OrderDetailsController extends GetxController with GetTickerProviderStateMixin {
@@ -59,25 +58,6 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
         }
       }
 
-      ///DEPRECATED
-      // switch(order.saleType) {
-      //   case SaleType.product:
-      //     product = order.product!;
-      //     break;
-      //   case SaleType.event:
-      //     event = order.event!;
-      //     break;
-      //   case SaleType.booking:
-      //     booking = order.booking!;
-      //     break;
-      //   case SaleType.physicalItem:
-      //     releaseItem = order.releaseItem;
-      //     break;
-      //   case SaleType.digitalItem:
-      //     releaseItem = order.releaseItem;
-      //     break;
-      // }
-
     } catch (e) {
       AppUtilities.logger.i(e.toString());
     }
@@ -112,12 +92,6 @@ class OrderDetailsController extends GetxController with GetTickerProviderStateM
         displayedName = product!.name;
         displayedDescription = product!.description;
       }
-      ///DEPRECATED
-      // else if (event?.id.isNotEmpty ?? false) {
-      //   displayedName = event!.name;
-      //   displayedDescription = event!.description;
-      //   displayedImgUrl = event!.imgUrl;
-      // }
 
     } catch (e) {
       AppUtilities.logger.e(e.toString());

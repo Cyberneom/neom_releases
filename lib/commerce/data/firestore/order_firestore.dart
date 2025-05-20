@@ -94,7 +94,7 @@ class OrderFirestore implements OrderRepository {
         AppUtilities.logger.d("QuerySnapshot is not empty");
         for (var documentSnapshot in querySnapshot.docs) {
           if(orderIds.contains(documentSnapshot.id)){
-            AppUtilities.logger.d("DocumentSnapshot with ${documentSnapshot.id} about to be parsed");
+            AppUtilities.logger.t("DocumentSnapshot with ${documentSnapshot.id} about to be parsed");
             AppOrder order = AppOrder.fromJSON(documentSnapshot.data());
             order.id = documentSnapshot.id;
             AppUtilities.logger.t("Order ${order.id} was retrieved with details");

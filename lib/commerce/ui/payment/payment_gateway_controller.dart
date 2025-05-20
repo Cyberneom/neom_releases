@@ -1,16 +1,10 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_stripe/flutter_stripe.dart' as stripe;
 import 'package:get/get.dart';
-import 'package:http/http.dart' as http;
 import 'package:intl_phone_field/countries.dart';
-import 'package:neom_commons/core/app_flavour.dart';
 import 'package:neom_commons/core/data/firestore/app_release_item_firestore.dart';
-import 'package:neom_commons/core/data/firestore/bank_firestore.dart';
-import 'package:neom_commons/core/data/firestore/profile_firestore.dart';
 import 'package:neom_commons/core/data/firestore/user_firestore.dart';
 import 'package:neom_commons/core/data/implementations/user_controller.dart';
 import 'package:neom_commons/core/domain/model/address.dart';
@@ -35,13 +29,10 @@ import '../../../bank/data/transaction_firestore.dart';
 import '../../../bank/data/wallet_firestore.dart';
 import '../../domain/models/app_transaction.dart';
 import '../../domain/models/invoice.dart';
-import '../../domain/models/payment.dart';
 import '../../domain/models/app_order.dart';
 import '../../domain/models/wallet.dart';
 import '../../domain/use_cases/payment_gateway_service.dart';
-import '../../utils/constants/payment_gateway_constants.dart';
 import '../../utils/enums/payment_status.dart';
-import '../../utils/enums/transaction_type.dart';
 
 
 class PaymentGatewayController extends GetxController with GetTickerProviderStateMixin implements PaymentGatewayService {
@@ -69,9 +60,7 @@ class PaymentGatewayController extends GetxController with GetTickerProviderStat
 
   AppBankController appBankController = AppBankController();
   AppStripeController appStripeController = AppStripeController();
-  // // If you are using a real device to test the integration replace this url
-  // // with the endpoint of your test server (it usually should be the IP of your computer)
-  // String kApiUrl = Platform.isAndroid ? 'http://10.0.2.2:4242' : 'http://localhost:4242';
+
   stripe.CardFieldInputDetails? cardFieldInputDetails;
   stripe.CardFormEditController cardEditController = stripe.CardFormEditController();
 

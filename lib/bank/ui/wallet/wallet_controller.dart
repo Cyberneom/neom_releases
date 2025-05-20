@@ -15,18 +15,19 @@ import '../../../commerce/domain/models/app_product.dart';
 import '../../../commerce/domain/models/app_transaction.dart';
 import '../../../commerce/domain/models/wallet.dart';
 import '../../../commerce/domain/use_cases/wallet_service.dart';
+import '../../data/wallet_firestore.dart';
 
-class WalletController extends GetxController with GetTickerProviderStateMixin implements WalletService  {
+class WalletController extends GetxController implements WalletService  {
 
   final userController = Get.find<UserController>();
 
   RxBool isLoading = true.obs;
 
-  Wallet wallet = Wallet();
+  Wallet? wallet;
   List<AppTransaction> transactions = [];
   Map<String, AppOrder> orders = {};
 
-  late TabController tabController;
+  /// late TabController tabController;
 
   Rx<AppProduct> appCoinProduct = AppProduct().obs;
   List<AppProduct> appCoinProducts = [];
@@ -35,7 +36,8 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
 
   Rx<AppCurrency> paymentCurrency = AppCurrency.mxn.obs;
 
-  bool isButtonDisabled = false;
+  RxBool isButtonDisabled = false.obs;
+  bool sellAppCoins = false;
   
   AppTransaction? transaction;
 
@@ -44,13 +46,13 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
     super.onInit();
     AppUtilities.logger.d("Wallet Controller");
     try {
-      loadWallet();
-
-      tabController = TabController(
-        length: 3,
-        vsync: this,
-      );
-      tabController.addListener(_tabChanged);
+      loadWalletInfo();
+      // loadOrders();
+      /// tabController = TabController(
+      //   length: 3,
+      //   vsync: this,
+      // );
+      // tabController.addListener(_tabChanged);
       transaction?.senderId = userController.user.email;
     } catch (e) {
       AppUtilities.logger.e(e);
@@ -61,32 +63,17 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
 
   @override
   void onReady() async {
-
     try {
-      appCoinProducts = await ProductFirestore().retrieveProductsByType(
-          type: ProductType.appCoin
-      );
+    } catch (e) {
+      AppUtilities.logger.e(e.toString());
+    }
+  }
 
-      appCoinStaticProducts =  await ProductFirestore().retrieveProductsByType(
-          type: ProductType.appCoin
-      );
-      
-      if(appCoinProducts.isNotEmpty) {
-        appCoinProducts.sort((a, b) => a.qty.compareTo(b.qty));
-        appCoinProduct.value = appCoinProducts.first;
-
-        paymentCurrency.value = appCoinProduct.value.salePrice?.currency ?? AppCurrency.mxn;
-        paymentAmount.value = appCoinProduct.value.salePrice?.amount ?? 0;
-      }
-
-
-      orders = await OrderFirestore().retrieveFromList(userController.user.orderIds);
-      List<AppOrder> ordersToSort = orders.values.toList();
-      ordersToSort.sort((a, b) => a.createdTime.compareTo(b.createdTime));
-      orders.clear();
-      for(AppOrder order in ordersToSort.reversed) {
-        orders[order.id] = order;
-      }
+  Future<void> loadWalletInfo() async {
+    try {
+      await loadWallet();
+      await loadOrders();
+      // await loadCoinProducts();
 
     } catch (e) {
       AppUtilities.logger.e(e.toString());
@@ -95,25 +82,50 @@ class WalletController extends GetxController with GetTickerProviderStateMixin i
     isLoading.value = false;
     update([AppPageIdConstants.walletHistory]);
   }
-
   Future<void> loadWallet() async {
     //load WalletFirestore
-    // wallet = userController.user.wallet;
+    wallet = await WalletFirestore().getOrCreate(userController.user.email);
     //load TransactionsFirestore
+  }
+
+  Future<void> loadOrders() async {
+    orders = await OrderFirestore().retrieveFromList(userController.user.orderIds);
+    List<AppOrder> ordersToSort = orders.values.toList();
+    ordersToSort.sort((a, b) => a.createdTime.compareTo(b.createdTime));
+    orders.clear();
+    for(AppOrder order in ordersToSort.reversed) {
+      orders[order.id] = order;
+    }
+  }
+
+  Future<void> loadCoinProducts() async {
+    appCoinProducts = await ProductFirestore()
+        .retrieveProductsByType(type: ProductType.appCoin);
+
+    appCoinStaticProducts =  await ProductFirestore()
+        .retrieveProductsByType(type: ProductType.appCoin);
+
+    if(appCoinProducts.isNotEmpty) {
+      appCoinProducts.sort((a, b) => a.qty.compareTo(b.qty));
+      appCoinProduct.value = appCoinProducts.first;
+
+      paymentCurrency.value = appCoinProduct.value.salePrice?.currency ?? AppCurrency.mxn;
+      paymentAmount.value = appCoinProduct.value.salePrice?.amount ?? 0;
+    }
   }
 
   @override
   void dispose() {
-    tabController.dispose();
+    /// tabController.dispose();
     super.dispose();
   }
 
 
-  void _tabChanged() {
-    if (tabController.indexIsChanging) {
-      AppUtilities.logger.d('tabChanged: ${tabController.index}');
-    }
-  }
+  /// void _tabChanged() {
+  //   if (tabController.indexIsChanging) {
+  //     AppUtilities.logger.d('tabChanged: ${tabController.index}');
+  //   }
+  // }
 
   @override
   void changeAppCoinProduct(AppProduct selectedProduct) {

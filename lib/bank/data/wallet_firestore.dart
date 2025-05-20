@@ -14,6 +14,24 @@ class WalletFirestore {
 
   final walletReference = FirebaseFirestore.instance.collection(AppFirestoreCollectionConstants.wallets);
 
+  Future<Wallet?> getOrCreate(String walletId) async {
+    AppUtilities.logger.t("Retrieving or creating wallet: $walletId");
+    Wallet? wallet;
+    try {
+      wallet = await getWallet(walletId);
+
+      if(wallet != null) {
+        AppUtilities.logger.d("Wallet $walletId retrieved successfully.");
+        return wallet;
+      } else {
+        createWallet(walletId);
+      }
+    } catch (e) {
+      AppUtilities.logger.e("Error retrieving or creating wallet $walletId: ${e.toString()}");
+      return null;
+    }
+  }
+
   /// Recupera una billetera por su ID (ej. email).
   Future<Wallet?> getWallet(String walletId) async {
     if (walletId.isEmpty) {
@@ -38,19 +56,19 @@ class WalletFirestore {
     }
   }
 
-  /// Obtiene una billetera por email o la crea si no existe.
   /// Útil para asegurar que una billetera exista antes de, por ejemplo, depositar regalías.
-  Future<bool> createWallet(String email) async {
+  Future<Wallet?> createWallet(String email) async {
     AppUtilities.logger.d("Entering createWalletMethod");
+    Wallet? wallet;
 
     try {
       if (email.isEmpty) {
         AppUtilities.logger.e("Email cannot be empty for wallet creation.");
-        return false;
+        return null;
       }
 
       AppUtilities.logger.i("Wallet for $email not found, creating new one.");
-      Wallet wallet = Wallet(
+      wallet = Wallet(
           id: email, // El email es el ID de la billetera
           createdTime: DateTime.now().millisecondsSinceEpoch,
           lastUpdated: DateTime.now().millisecondsSinceEpoch
@@ -58,13 +76,15 @@ class WalletFirestore {
 
       await walletReference.doc(wallet.id).set(wallet.toJSON());
       AppUtilities.logger.i("Wallet for $email created successfully.");
+      return wallet;
     } catch (e) {
       AppUtilities.logger.e("Error checking wallet existence for $email: ${e.toString()}");
-      return false;
     }
 
-    return true;
+    return wallet;
   }
+
+
 
   /// Elimina una billetera y todas sus transacciones (¡USAR CON PRECAUCIÓN!).
   /// Esto podría ser complejo de implementar correctamente para eliminar subcolecciones de forma masiva desde el cliente.

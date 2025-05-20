@@ -47,7 +47,7 @@ class OrderDetailsPage extends StatelessWidget {
                          child: _.order.product?.type == ProductType.appCoin
                              ? Image.asset(AppAssets.appCoins13)
                              : Image.network(_.product?.imgUrl.isNotEmpty ?? false ? _.product!.imgUrl
-                             : AppFlavour.getNoImageUrl()
+                             : AppFlavour.getAppLogoUrl()
                          ),
                        ),
                        SizedBox(

@@ -11,6 +11,7 @@ import 'package:neom_commons/neom_commons.dart'; // Assuming this imports AppThe
 // import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
 
 
+import '../widgets/bank_widgets.dart';
 import 'wallet_controller.dart'; // Your WalletController
 import 'package:get/get.dart'; // For GetBuilder
 
@@ -26,7 +27,7 @@ class WalletCard extends StatelessWidget {
       // init: WalletController(), // init is usually not needed here if controller is already initialized by the page
       builder: (_) => Container(
         width: double.infinity,
-        height: MediaQuery.of(context).size.width / 1.8, // Slightly taller for more content space
+        height: MediaQuery.of(context).size.width / 2, // Slightly taller for more content space
         decoration: BoxDecoration(
           borderRadius: const BorderRadius.all(Radius.circular(20.0)), // Slightly less rounded
           gradient: LinearGradient(
@@ -76,33 +77,47 @@ class WalletCard extends StatelessWidget {
                     ),
                   ),
                   Icon(
-                    Icons.memory, // Material chip icon
+                    Icons.wallet_rounded, // Material chip icon
                     color: Colors.white.withOpacity(0.7),
                     size: 30,
                   ),
+                  if(_.sellAppCoins) IconButton(
+                    iconSize: 30,
+                    icon: CircleAvatar(
+                      radius: 15,
+                      backgroundColor: Colors.white.withOpacity(0.7),
+                      child: Icon(
+                        Icons.add,
+                        color: Colors.black38,
+                        size: 30,
+                      ),
+                    ),
+                    onPressed: () {
+                      showGetAppcoinsAlert(context, _);
+                    },
+                  ),
                 ],
               ),
-
-              // Middle: Icon and Balance (centered within its available space)
+              AppTheme.heightSpace10,
               Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     SizedBox(
-                      width: AppTheme.fullWidth(context) / 7.5, // Adjusted icon size
-                      height: AppTheme.fullWidth(context) / 7.5,
+                      width: AppTheme.fullWidth(context) / 7, // Adjusted icon size
+                      height: AppTheme.fullWidth(context) / 7,
                       child: ClipRRect(
                         borderRadius: const BorderRadius.all(Radius.circular(12.0)),
                         child: Image.asset(AppAssets.appCoin, fit: BoxFit.contain),
                       ),
                     ),
-                    AppTheme.heightSpace20, // Increased space
+                    AppTheme.heightSpace10, // Increased space
                     Text(
-                      // Ensure _.wallet.amount is available and is a number
-                      _.wallet.balance.truncate().toString().replaceAllMapped(
+                      // Ensure _.wallet.balance is available and is a number
+                      (_.wallet?.balance.truncate() ?? 0).toString().replaceAllMapped(
                           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},'),
                       style: const TextStyle(
-                        fontSize: 44, // Prominent balance
+                        fontSize: 40, // Prominent balance
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                         letterSpacing: 0.5,
@@ -113,15 +128,15 @@ class WalletCard extends StatelessWidget {
               ),
 
               // Bottom Row: Dummy Card Number
-              Text(
-                "**** **** **** ${_.wallet.id.isNotEmpty ? _.wallet.id.substring(_.wallet.id.length - min(4,_.wallet.id.length)) : '****'}", // Display last 4 digits of wallet ID or a placeholder
-                style: TextStyle(
-                  fontSize: 15,
-                  color: Colors.white.withOpacity(0.75),
-                  letterSpacing: 2.5, // Wider spacing for card number feel
-                  fontFamily: 'monospace', // Monospace font for card numbers
-                ),
-              ),
+              // Text(
+              //   "**** **** **** ${_.wallet.id.isNotEmpty ? _.wallet.id.substring(_.wallet.id.length - min(4,_.wallet.id.length)) : '****'}", // Display last 4 digits of wallet ID or a placeholder
+              //   style: TextStyle(
+              //     fontSize: 15,
+              //     color: Colors.white.withOpacity(0.75),
+              //     letterSpacing: 2.5, // Wider spacing for card number feel
+              //     fontFamily: 'monospace', // Monospace font for card numbers
+              //   ),
+              // ),
             ],
           ),
         ),
