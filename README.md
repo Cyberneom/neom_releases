@@ -1,2 +1,2 @@
-# neom_commerce
-Commerce for Cyberneom
+# neom_releases
+Release Upload for Cyberneom

@@ -14,7 +14,7 @@ import 'package:neom_commons/core/utils/constants/app_translation_constants.dart
 import 'package:neom_commons/core/utils/enums/app_in_use.dart';
 import 'package:neom_commons/core/utils/enums/release_type.dart';
 
-import '../../../../utils/constants/app_commerce_constants.dart';
+import '../../utils/constants/releases_constants.dart';
 import '../release_upload_controller.dart';
 
 class ReleaseUploadType extends StatelessWidget {
@@ -76,7 +76,7 @@ class ReleaseUploadType extends StatelessWidget {
                         AppTheme.widthSpace10,
                         DropdownButton<int>(
                           borderRadius: BorderRadius.circular(10.0),
-                          items: AppCommerceConstants.appReleaseItemsQty
+                          items: ReleasesConstants.appReleaseItemsQty
                             .where((itemsQty) => itemsQty >= (_.appReleaseItem.value.type == ReleaseType.demo ? 1
                               : _.appReleaseItem.value.type == ReleaseType.ep ? 2 : 4)
                               && itemsQty <= (_.appReleaseItem.value.type == ReleaseType.demo ? 4 :
