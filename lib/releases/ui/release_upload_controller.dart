@@ -412,11 +412,12 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
           }
         }
 
-        FirebaseMessagingCalls.sendGlobalPushNotification(
+        FirebaseMessagingCalls.sendPublicPushNotification(
             fromProfile: profile,
             notificationType: PushNotificationType.releaseAppItemAdded,
             referenceId: appReleaseItem.value.id,
             imgUrl: appReleaseItem.value.imgUrl
+
         );
       }
     } catch (e) {
