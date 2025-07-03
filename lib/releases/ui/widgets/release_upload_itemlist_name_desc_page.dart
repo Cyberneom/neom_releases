@@ -1,16 +1,17 @@
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:neom_commons/core/app_flavour.dart';
-import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
-import 'package:neom_commons/core/ui/widgets/header_intro.dart';
-import 'package:neom_commons/core/ui/widgets/title_subtitle_row.dart';
-import 'package:neom_commons/core/utils/app_color.dart';
-import 'package:neom_commons/core/utils/app_theme.dart';
-import 'package:neom_commons/core/utils/constants/app_hero_tag_constants.dart';
-import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
-import 'package:neom_commons/core/utils/enums/app_in_use.dart';
+import 'package:neom_commons/commons/app_flavour.dart';
+import 'package:neom_commons/commons/ui/theme/app_color.dart';
+import 'package:neom_commons/commons/ui/theme/app_theme.dart';
+import 'package:neom_commons/commons/ui/widgets/appbar_child.dart';
+import 'package:neom_commons/commons/ui/widgets/header_intro.dart';
+import 'package:neom_commons/commons/ui/widgets/title_subtitle_row.dart';
+import 'package:neom_commons/commons/utils/constants/app_hero_tag_constants.dart';
+import 'package:neom_commons/commons/utils/constants/app_page_id_constants.dart';
+import 'package:neom_commons/commons/utils/constants/app_translation_constants.dart';
+import 'package:neom_core/core/app_properties.dart';
+import 'package:neom_core/core/utils/enums/app_in_use.dart';
 
 import '../release_upload_controller.dart';
 
@@ -70,7 +71,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                   ),
                   TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20,
                       subtitle: AppTranslationConstants.releasePriceMsg.tr,
-                      url: AppFlavour.getDigitalPositioningUrl()
+                      url: AppProperties.getDigitalPositioningUrl()
                   ),
                   AppTheme.heightSpace10,
                 ],

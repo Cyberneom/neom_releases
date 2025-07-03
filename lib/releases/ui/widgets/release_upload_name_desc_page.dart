@@ -2,19 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:neom_commons/core/app_flavour.dart';
-import 'package:neom_commons/core/ui/widgets/appbar_child.dart';
-import 'package:neom_commons/core/ui/widgets/header_intro.dart';
-import 'package:neom_commons/core/ui/widgets/number_limit_input_formatter.dart';
-import 'package:neom_commons/core/ui/widgets/title_subtitle_row.dart';
-import 'package:neom_commons/core/utils/app_color.dart';
-import 'package:neom_commons/core/utils/app_theme.dart';
-import 'package:neom_commons/core/utils/app_utilities.dart';
-import 'package:neom_commons/core/utils/constants/app_hero_tag_constants.dart';
-import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
-import 'package:neom_commons/core/utils/enums/app_currency.dart';
-import 'package:neom_commons/core/utils/enums/app_in_use.dart';
+import 'package:neom_commons/commons/app_flavour.dart';
+import 'package:neom_commons/commons/ui/theme/app_color.dart';
+import 'package:neom_commons/commons/ui/theme/app_theme.dart';
+import 'package:neom_commons/commons/ui/widgets/appbar_child.dart';
+import 'package:neom_commons/commons/ui/widgets/header_intro.dart';
+import 'package:neom_commons/commons/ui/widgets/number_limit_input_formatter.dart';
+import 'package:neom_commons/commons/ui/widgets/title_subtitle_row.dart';
+import 'package:neom_commons/commons/utils/app_utilities.dart';
+import 'package:neom_commons/commons/utils/constants/app_hero_tag_constants.dart';
+import 'package:neom_commons/commons/utils/constants/app_page_id_constants.dart';
+import 'package:neom_commons/commons/utils/constants/app_translation_constants.dart';
+import 'package:neom_core/core/app_properties.dart';
+import 'package:neom_core/core/utils/enums/app_currency.dart';
+import 'package:neom_core/core/utils/enums/app_in_use.dart';
 
 import '../release_upload_controller.dart';
 
@@ -169,7 +170,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                     ],),
                   ) : const SizedBox.shrink(),
                   if(_.releaseItemsQty.value == 1) TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20, subtitle: AppTranslationConstants.releasePriceMsg.tr, titleFontSize: 14, subTitleFontSize: 12,
-                  url: AppFlavour.getDigitalPositioningUrl()),
+                  url: AppProperties.getDigitalPositioningUrl()),
                   AppTheme.heightSpace10,
                   GestureDetector(
                     child: Row(

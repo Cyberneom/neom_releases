@@ -4,20 +4,21 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:neom_commons/core/app_flavour.dart';
-import 'package:neom_commons/core/domain/model/app_release_item.dart';
-import 'package:neom_commons/core/ui/widgets/genres_grid_view.dart';
-import 'package:neom_commons/core/ui/widgets/read_more_container.dart';
-import 'package:neom_commons/core/ui/widgets/submit_button.dart';
-import 'package:neom_commons/core/ui/widgets/title_subtitle_row.dart';
-import 'package:neom_commons/core/utils/app_color.dart';
-import 'package:neom_commons/core/utils/app_theme.dart';
-import 'package:neom_commons/core/utils/app_utilities.dart';
-import 'package:neom_commons/core/utils/constants/app_constants.dart';
-import 'package:neom_commons/core/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/core/utils/constants/app_translation_constants.dart';
-import 'package:neom_commons/core/utils/enums/app_in_use.dart';
-import 'package:neom_commons/core/utils/enums/itemlist_type.dart';
+import 'package:neom_commons/commons/app_flavour.dart';
+import 'package:neom_commons/commons/ui/theme/app_color.dart';
+import 'package:neom_commons/commons/ui/theme/app_theme.dart';
+import 'package:neom_commons/commons/ui/widgets/genres_grid_view.dart';
+import 'package:neom_commons/commons/ui/widgets/read_more_container.dart';
+import 'package:neom_commons/commons/ui/widgets/submit_button.dart';
+import 'package:neom_commons/commons/ui/widgets/title_subtitle_row.dart';
+import 'package:neom_commons/commons/utils/app_utilities.dart';
+import 'package:neom_commons/commons/utils/constants/app_constants.dart';
+import 'package:neom_commons/commons/utils/constants/app_page_id_constants.dart';
+import 'package:neom_commons/commons/utils/constants/app_translation_constants.dart';
+import 'package:neom_core/core/app_properties.dart';
+import 'package:neom_core/core/domain/model/app_release_item.dart';
+import 'package:neom_core/core/utils/enums/app_in_use.dart';
+import 'package:neom_core/core/utils/enums/itemlist_type.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:rubber/rubber.dart';
 
@@ -83,7 +84,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                             child: CachedNetworkImage(
                               imageUrl: _.profile.photoUrl.isNotEmpty
                                   ? _.profile.photoUrl
-                                  : AppFlavour.getNoImageUrl(),
+                                  : AppProperties.getNoImageUrl(),
                               width: (AppTheme.fullWidth(context)/7)*2, /// Set the width to twice the radius
                               height: (AppTheme.fullWidth(context)/7)*2, /// Set the height to twice the radius
                               fit: BoxFit.cover, /// You can adjust the fit mode as needed
@@ -115,28 +116,6 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                                   ),
                                 ],
                               ) : const SizedBox.shrink(),
-                              ///DEPRECATED
-                              // (_.appReleaseItem.value.digitalPrice!.amount != 0) ?
-                              // Row(
-                              //   mainAxisAlignment: MainAxisAlignment.center,
-                              //   crossAxisAlignment: CrossAxisAlignment.center,
-                              //   children: [
-                              //     Text("${AppTranslationConstants.digitalReleasePrice.tr}: \$${_.appReleaseItem.value.digitalPrice!.amount.truncate().toString()} MXN ",
-                              //       style: const TextStyle(fontSize: 15),
-                              //     ),
-                              //   ],
-                              // ) : const SizedBox.shrink(),
-                              // (_.appReleaseItem.value.digitalPrice!.amount != 0 &&
-                              //     _.appReleaseItem.value.digitalPrice!.amount != double.parse(AppFlavour.getInitialPrice())
-                              // ) ? Row(
-                              //   mainAxisAlignment: MainAxisAlignment.center,
-                              //   crossAxisAlignment: CrossAxisAlignment.center,
-                              //   children: [
-                              //     Text("(${AppTranslationConstants.initialPrice.tr}: \$${AppFlavour.getInitialPrice()} MXN)",
-                              //       style: const TextStyle(fontSize: 15, decoration: TextDecoration.underline),
-                              //     ),
-                              //   ],
-                              // ) : const SizedBox.shrink()
                             ]
                         ),
                         GenresGridView(_.appReleaseItem.value.categories, AppColor.yellow),
