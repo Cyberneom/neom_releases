@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:neom_commons/commons/app_flavour.dart';
-import 'package:neom_commons/commons/ui/theme/app_color.dart';
-import 'package:neom_commons/commons/ui/theme/app_theme.dart';
-import 'package:neom_commons/commons/ui/widgets/appbar_child.dart';
-import 'package:neom_commons/commons/ui/widgets/header_intro.dart';
-import 'package:neom_commons/commons/ui/widgets/summary_button.dart';
-import 'package:neom_commons/commons/ui/widgets/title_subtitle_row.dart';
-import 'package:neom_commons/commons/utils/constants/app_assets.dart';
-import 'package:neom_commons/commons/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/commons/utils/constants/app_translation_constants.dart';
-import 'package:neom_core/core/utils/constants/app_route_constants.dart';
-import 'package:neom_core/core/utils/enums/app_in_use.dart';
+import 'package:neom_commons/ui/theme/app_color.dart';
+import 'package:neom_commons/ui/theme/app_theme.dart';
+import 'package:neom_commons/ui/widgets/appbar_child.dart';
+import 'package:neom_commons/ui/widgets/buttons/summary_button.dart';
+import 'package:neom_commons/ui/widgets/header_intro.dart';
+import 'package:neom_commons/ui/widgets/title_subtitle_row.dart';
+import 'package:neom_commons/utils/constants/app_assets.dart';
+import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
+import 'package:neom_commons/utils/constants/translations/app_translation_constants.dart';
+import 'package:neom_core/app_config.dart';
+import 'package:neom_core/utils/constants/app_route_constants.dart';
+import 'package:neom_core/utils/enums/app_in_use.dart';
 
+import '../utils/constants/release_translation_constants.dart';
 import 'release_upload_controller.dart';
 
 class ReleaseUploadPage extends StatelessWidget {
@@ -37,19 +38,19 @@ class ReleaseUploadPage extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     AppTheme.heightSpace30,
-                    HeaderIntro(subtitle: AppTranslationConstants.releaseUpload.tr, showPreLogo: AppFlavour.appInUse != AppInUse.e),
+                    HeaderIntro(subtitle: ReleaseTranslationConstants.releaseUpload.tr, showPreLogo: AppConfig.instance.appInUse != AppInUse.e),
                     AppTheme.heightSpace10,
-                    TitleSubtitleRow(AppTranslationConstants.digitalPositioning.tr,
-                      subtitle: AppTranslationConstants.releaseUploadIntro.tr,
+                    TitleSubtitleRow(ReleaseTranslationConstants.digitalPositioning.tr,
+                      subtitle: ReleaseTranslationConstants.releaseUploadIntro.tr,
                       showDivider: false,
                     ),
                     AppTheme.heightSpace10,
-                    if(AppFlavour.appInUse == AppInUse.e)
+                    if(AppConfig.instance.appInUse == AppInUse.e)
                       Column(
                         children: [
-                          TitleSubtitleRow(AppTranslationConstants.digitalSalesModel.tr,
+                          TitleSubtitleRow(ReleaseTranslationConstants.digitalSalesModel.tr,
                             titleFontSize: 14, subTitleFontSize: 12,
-                            subtitle: AppTranslationConstants.digitalSalesModelMsg.tr,
+                            subtitle: ReleaseTranslationConstants.digitalSalesModelMsg.tr,
                             showDivider: false,
                           ),
                           AppTheme.heightSpace10,
@@ -62,8 +63,8 @@ class ReleaseUploadPage extends StatelessWidget {
                             ),
                           ),
                           AppTheme.heightSpace10,
-                          TitleSubtitleRow(AppTranslationConstants.physicalSalesModel.tr,
-                              subtitle: AppTranslationConstants.physicalSalesModelMsg.tr,
+                          TitleSubtitleRow(ReleaseTranslationConstants.physicalSalesModel.tr,
+                              subtitle: ReleaseTranslationConstants.physicalSalesModelMsg.tr,
                               titleFontSize: 14, subTitleFontSize: 12,
                               showDivider: false
                           ),

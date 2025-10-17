@@ -4,24 +4,25 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:neom_commons/commons/app_flavour.dart';
-import 'package:neom_commons/commons/ui/theme/app_color.dart';
-import 'package:neom_commons/commons/ui/theme/app_theme.dart';
-import 'package:neom_commons/commons/ui/widgets/genres_grid_view.dart';
-import 'package:neom_commons/commons/ui/widgets/read_more_container.dart';
-import 'package:neom_commons/commons/ui/widgets/submit_button.dart';
-import 'package:neom_commons/commons/ui/widgets/title_subtitle_row.dart';
-import 'package:neom_commons/commons/utils/app_utilities.dart';
-import 'package:neom_commons/commons/utils/constants/app_constants.dart';
-import 'package:neom_commons/commons/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/commons/utils/constants/app_translation_constants.dart';
-import 'package:neom_core/core/app_properties.dart';
-import 'package:neom_core/core/domain/model/app_release_item.dart';
-import 'package:neom_core/core/utils/enums/app_in_use.dart';
-import 'package:neom_core/core/utils/enums/itemlist_type.dart';
+import 'package:neom_commons/ui/theme/app_color.dart';
+import 'package:neom_commons/ui/theme/app_theme.dart';
+import 'package:neom_commons/ui/widgets/buttons/submit_button.dart';
+import 'package:neom_commons/ui/widgets/genres_grid_view.dart';
+import 'package:neom_commons/ui/widgets/read_more_container.dart';
+import 'package:neom_commons/ui/widgets/title_subtitle_row.dart';
+import 'package:neom_commons/utils/constants/app_constants.dart';
+import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
+import 'package:neom_commons/utils/constants/translations/app_translation_constants.dart';
+import 'package:neom_commons/utils/datetime_utilities.dart';
+import 'package:neom_core/app_config.dart';
+import 'package:neom_core/app_properties.dart';
+import 'package:neom_core/domain/model/app_release_item.dart';
+import 'package:neom_core/utils/enums/app_in_use.dart';
+import 'package:neom_core/utils/enums/itemlist_type.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:rubber/rubber.dart';
 
+import '../../utils/constants/release_translation_constants.dart';
 import '../release_upload_controller.dart';
 
 class ReleaseUploadSummaryRubberPage extends StatelessWidget {
@@ -99,7 +100,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                         AppTheme.heightSpace10,
                         Text(!_.isAutoPublished.value || (_.appReleaseItem.value.place?.name.isNotEmpty ?? false)
                             ? (_.appReleaseItem.value.place?.name ?? "")
-                            : AppTranslationConstants.autoPublishing.tr,
+                            : ReleaseTranslationConstants.autoPublishing.tr,
                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
                         ),
@@ -111,7 +112,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Text("${AppTranslationConstants.physicalReleasePrice.tr}: \$${_.appReleaseItem.value.physicalPrice?.amount.truncate().toString()} MXN ",
+                                  Text("${ReleaseTranslationConstants.physicalReleasePrice.tr}: \$${_.appReleaseItem.value.physicalPrice?.amount.truncate().toString()} MXN ",
                                     style: const TextStyle(fontSize: 15),
                                   ),
                                 ],
@@ -120,7 +121,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                         ),
                         GenresGridView(_.appReleaseItem.value.categories, AppColor.yellow),
                         AppTheme.heightSpace10,
-                        if(AppFlavour.appInUse == AppInUse.g && _.appReleaseItems.isNotEmpty)
+                        if(AppConfig.instance.appInUse == AppInUse.g && _.appReleaseItems.isNotEmpty)
                           Column(
                             children: <Widget>[
                               Row(
@@ -144,14 +145,14 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                           lineHeight: AppTheme.fullHeight(context) /15,
                           percent: _.releaseItemIndex/_.releaseItemsQty.value,
                           center: Text("${AppTranslationConstants.adding.tr} "
-                              "${_.releaseItemIndex} ${AppTranslationConstants.outOf.tr} ${_.releaseItemsQty.value}"
+                              "${_.releaseItemIndex} ${ReleaseTranslationConstants.outOf.tr} ${_.releaseItemsQty.value}"
                           ),
                           progressColor: AppColor.bondiBlue,
-                        ),) : SubmitButton(context, text: AppTranslationConstants.submitRelease.tr,
+                        ),) : SubmitButton(context, text: ReleaseTranslationConstants.submitRelease.tr,
                           isLoading: _.isLoading.value, isEnabled: !_.isButtonDisabled.value,
                           onPressed: () => _.submitRelease(context),
                         ),
-                        if(_.releaseItemIndex.value == 0) TitleSubtitleRow("", showDivider: false, subtitle: AppTranslationConstants.submitReleaseMsg.tr, titleFontSize: 14, subTitleFontSize: 12,),
+                        if(_.releaseItemIndex.value == 0) TitleSubtitleRow("", showDivider: false, subtitle: ReleaseTranslationConstants.submitReleaseMsg.tr, titleFontSize: 14, subTitleFontSize: 12,),
                       ],
                     ),
                   ),
@@ -162,7 +163,6 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
         ),
     );
   }
-
 
   ///ONLY OF USE FOR APPINUSE.G
   Widget buildReleaseItems(BuildContext context, ReleaseUploadController _) {
@@ -183,7 +183,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
           subtitle: Row(children: [Text(ownerName.isEmpty ? ""
               : ownerName.length > AppConstants.maxArtistNameLength ? "${ownerName.substring(0,AppConstants.maxArtistNameLength)}...": ownerName), const SizedBox(width:5,),
               ]),
-          trailing: Text(AppUtilities.secondsToMinutes(releaseItem.duration,)),
+          trailing: Text(DateTimeUtilities.secondsToMinutes(releaseItem.duration,)),
           ///FEATURE
           onTap: () async {
             await _.playPreview(releaseItem);

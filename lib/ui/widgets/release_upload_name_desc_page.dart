@@ -2,24 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:get/get.dart';
-import 'package:neom_commons/commons/app_flavour.dart';
-import 'package:neom_commons/commons/ui/theme/app_color.dart';
-import 'package:neom_commons/commons/ui/theme/app_theme.dart';
-import 'package:neom_commons/commons/ui/widgets/appbar_child.dart';
-import 'package:neom_commons/commons/ui/widgets/header_intro.dart';
-import 'package:neom_commons/commons/ui/widgets/number_limit_input_formatter.dart';
-import 'package:neom_commons/commons/ui/widgets/title_subtitle_row.dart';
-import 'package:neom_commons/commons/utils/app_utilities.dart';
-import 'package:neom_commons/commons/utils/constants/app_hero_tag_constants.dart';
-import 'package:neom_commons/commons/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/commons/utils/constants/app_translation_constants.dart';
-import 'package:neom_core/core/app_properties.dart';
-import 'package:neom_core/core/utils/enums/app_currency.dart';
-import 'package:neom_core/core/utils/enums/app_in_use.dart';
+import 'package:neom_commons/ui/theme/app_color.dart';
+import 'package:neom_commons/ui/theme/app_theme.dart';
+import 'package:neom_commons/ui/widgets/appbar_child.dart';
+import 'package:neom_commons/ui/widgets/header_intro.dart';
+import 'package:neom_commons/ui/widgets/number_limit_input_formatter.dart';
+import 'package:neom_commons/ui/widgets/title_subtitle_row.dart';
+import 'package:neom_commons/utils/constants/app_hero_tag_constants.dart';
+import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
+import 'package:neom_commons/utils/constants/translations/app_translation_constants.dart';
+import 'package:neom_commons/utils/datetime_utilities.dart';
+import 'package:neom_core/app_config.dart';
+import 'package:neom_core/app_properties.dart';
+import 'package:neom_core/utils/enums/app_currency.dart';
+import 'package:neom_core/utils/enums/app_in_use.dart';
 
+import '../../utils/constants/release_translation_constants.dart';
 import '../release_upload_controller.dart';
 
 class ReleaseUploadNameDescPage extends StatelessWidget {
+
   const ReleaseUploadNameDescPage({super.key});
   
   @override
@@ -29,7 +31,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
       builder: (_) {
          return WillPopScope(
            onWillPop: () async {
-             if(AppFlavour.appInUse != AppInUse.g) return true;
+             if(AppConfig.instance.appInUse != AppInUse.g) return true;
 
              if(_.releaseItemsQty.value > 1 && _.appReleaseItems.isNotEmpty) {
                _.removeLastReleaseItem();
@@ -53,7 +55,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                 children: <Widget>[
                   AppTheme.heightSpace100,
                   HeaderIntro(
-                    subtitle: AppTranslationConstants.releaseUploadNameDesc.tr,
+                    subtitle: ReleaseTranslationConstants.releaseUploadNameDesc.tr,
                     showPreLogo: false,
                   ),
                   AppTheme.heightSpace10,
@@ -64,7 +66,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                       onChanged:(text) => _.setReleaseName() ,
                       decoration: InputDecoration(
                         filled: true,
-                        labelText: AppTranslationConstants.releaseTitle.tr,
+                        labelText: ReleaseTranslationConstants.releaseTitle.tr,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -80,14 +82,14 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                       onChanged:(text) => _.setReleaseDesc(),
                       decoration: InputDecoration(
                         filled: true,
-                        labelText: AppTranslationConstants.releaseDesc.tr,
+                        labelText: ReleaseTranslationConstants.releaseDesc.tr,
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
                       ),
                     ),
                   ),
-                  AppFlavour.appInUse == AppInUse.e ?
+                  AppConfig.instance.appInUse == AppInUse.e ?
                   Padding(
                    padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                    child: Row(
@@ -100,7 +102,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                            keyboardType: TextInputType.number,
                            decoration: InputDecoration(
                                filled: true,
-                               labelText: AppTranslationConstants.appItemDurationShort.tr,
+                               labelText: ReleaseTranslationConstants.appItemDurationShort.tr,
                                border: OutlineInputBorder(
                                  borderRadius: BorderRadius.circular(10),
                                )
@@ -127,7 +129,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                            ),
                          ],
                        ),
-                      AppFlavour.appInUse != AppInUse.e ? Container(
+                      AppConfig.instance.appInUse != AppInUse.e ? Container(
                            width: AppTheme.fullWidth(context) / 2.75,
                            alignment: Alignment.centerRight,
                            child:
@@ -135,7 +137,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                              mainAxisAlignment: MainAxisAlignment.center,
                              crossAxisAlignment: CrossAxisAlignment.center,
                              children: [
-                               Text(AppUtilities.secondsToMinutes(
+                               Text(DateTimeUtilities.secondsToMinutes(
                                  int.parse(_.durationController.text.isNotEmpty ? _.durationController.text : "0"),),
                                  style: const TextStyle(fontSize: 40),
                                ),
@@ -157,7 +159,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                                suffixText: AppCurrency.mxn.value.tr.toUpperCase(),
                                filled: true,
                                hintText: "(${AppTranslationConstants.optional.tr})",
-                               labelText: AppTranslationConstants.physicalReleasePrice.tr,
+                               labelText: ReleaseTranslationConstants.physicalReleasePrice.tr,
                                border: OutlineInputBorder(
                                  borderRadius: BorderRadius.circular(10),
                                )
@@ -169,7 +171,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                         ),
                     ],),
                   ) : const SizedBox.shrink(),
-                  if(_.releaseItemsQty.value == 1) TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20, subtitle: AppTranslationConstants.releasePriceMsg.tr, titleFontSize: 14, subTitleFontSize: 12,
+                  if(_.releaseItemsQty.value == 1) TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20, subtitle: ReleaseTranslationConstants.releasePriceMsg.tr, titleFontSize: 14, subTitleFontSize: 12,
                   url: AppProperties.getDigitalPositioningUrl()),
                   AppTheme.heightSpace10,
                   GestureDetector(
@@ -179,8 +181,8 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                         const Icon(FontAwesomeIcons.file, size: 20),
                         AppTheme.widthSpace5,
                         Text(_.releaseFilePreviewURL.isEmpty
-                            ? AppTranslationConstants.addReleaseFile.tr
-                            : AppTranslationConstants.changeReleaseFile.tr,
+                            ? ReleaseTranslationConstants.addReleaseFile.tr
+                            : ReleaseTranslationConstants.changeReleaseFile.tr,
                           style: const TextStyle(color: Colors.white70,),
                         ),
                       ],

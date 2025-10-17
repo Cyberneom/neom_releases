@@ -1,13 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:neom_commons/commons/app_flavour.dart';
-import 'package:neom_commons/commons/ui/theme/app_theme.dart';
-import 'package:neom_commons/commons/utils/constants/app_page_id_constants.dart';
-import 'package:neom_core/core/utils/enums/app_in_use.dart';
+import 'package:neom_commons/app_flavour.dart';
+import 'package:neom_commons/ui/theme/app_theme.dart';
+import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
+import 'package:neom_core/app_config.dart';
+import 'package:neom_core/utils/enums/app_in_use.dart';
 import '../release_upload_controller.dart';
 
 class OnlinePositioningSummaryBackground extends StatelessWidget {
+
   const OnlinePositioningSummaryBackground({super.key});
 
   @override
@@ -31,7 +33,7 @@ class OnlinePositioningSummaryBackground extends StatelessWidget {
             child: _.appReleaseItem.value.imgUrl.isNotEmpty ? CachedNetworkImage(imageUrl: _.appReleaseItem.value.imgUrl,
               width: AppTheme.fullWidth(context), height: AppTheme.fullHeight(context),
               fit: BoxFit.fitWidth,
-            ) : Image.asset(AppFlavour.appInUse == AppInUse.g ? AppFlavour.getAppLogoPath() : AppFlavour.getAppPreLogoPath(),
+            ) : Image.asset(AppConfig.instance.appInUse == AppInUse.g ? AppFlavour.getAppLogoPath() : AppFlavour.getAppPreLogoPath(),
               width: AppTheme.fullWidth(context), height: AppTheme.fullHeight(context),
               fit: BoxFit.fitWidth,
             ),

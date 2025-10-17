@@ -1,17 +1,17 @@
 import 'package:get/get.dart';
-import 'package:neom_core/core/utils/constants/app_route_constants.dart';
-import 'releases/ui/release_upload_page.dart';
-import 'releases/ui/widgets/release_upload_band_or_solo_page.dart';
-import 'releases/ui/widgets/release_upload_genres_page.dart';
-import 'releases/ui/widgets/release_upload_info_page.dart';
-import 'releases/ui/widgets/release_upload_instr_page.dart';
-import 'releases/ui/widgets/release_upload_itemlist_name_desc_page.dart';
-import 'releases/ui/widgets/release_upload_name_desc_page.dart';
-import 'releases/ui/widgets/release_upload_summary_page.dart';
-import 'releases/ui/widgets/release_upload_type_page.dart';
+import 'package:neom_core/utils/constants/app_route_constants.dart';
 
+import 'ui/release_upload_page.dart';
+import 'ui/widgets/release_upload_band_or_solo_page.dart';
+import 'ui/widgets/release_upload_genres_page.dart';
+import 'ui/widgets/release_upload_info_page.dart';
+import 'ui/widgets/release_upload_instr_page.dart';
+import 'ui/widgets/release_upload_itemlist_name_desc_page.dart';
+import 'ui/widgets/release_upload_name_desc_page.dart';
+import 'ui/widgets/release_upload_summary_page.dart';
+import 'ui/widgets/release_upload_type_page.dart';
 
-class ReleasesRoutes {
+class ReleaseRoutes {
 
   static final List<GetPage<dynamic>> routes = [
     GetPage(

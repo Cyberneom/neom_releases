@@ -12,21 +12,12 @@ dependencies:
   flutter:
     sdk: flutter
 
-  neom_bands:
-    git:
-      url: git@github.com:Cyberneom/neom_bands.git
   neom_core:
     git:
       url: git@github.com:Cyberneom/neom_core.git
   neom_commons:
     git:
       url: git@github.com:Cyberneom/neom_commons.git
-  neom_posts:
-    git:
-      url: git@github.com:Cyberneom/neom_posts.git
-  neom_woo:
-    git:
-      url: git@github.com:Cyberneom/neom_woo.git
 
   percent_indicator: ^4.2.5
 

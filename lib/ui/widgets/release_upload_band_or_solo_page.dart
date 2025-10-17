@@ -3,19 +3,19 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:neom_commons/commons/app_flavour.dart';
-import 'package:neom_commons/commons/ui/theme/app_color.dart';
-import 'package:neom_commons/commons/ui/theme/app_theme.dart';
-import 'package:neom_commons/commons/ui/widgets/appbar_child.dart';
-import 'package:neom_commons/commons/ui/widgets/header_intro.dart';
-import 'package:neom_commons/commons/utils/constants/app_constants.dart';
-import 'package:neom_commons/commons/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/commons/utils/constants/app_translation_constants.dart';
-import 'package:neom_core/core/domain/model/band.dart';
-import 'package:neom_core/core/domain/model/band_member.dart';
-import 'package:neom_core/core/utils/core_utilities.dart';
-import 'package:neom_core/core/utils/enums/band_member_role.dart';
+import 'package:neom_commons/app_flavour.dart';
+import 'package:neom_commons/ui/theme/app_color.dart';
+import 'package:neom_commons/ui/theme/app_theme.dart';
+import 'package:neom_commons/ui/widgets/appbar_child.dart';
+import 'package:neom_commons/ui/widgets/header_intro.dart';
+import 'package:neom_commons/utils/constants/app_constants.dart';
+import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
+import 'package:neom_core/domain/model/band.dart';
+import 'package:neom_core/domain/model/band_member.dart';
+import 'package:neom_core/utils/core_utilities.dart';
+import 'package:neom_core/utils/enums/band_member_role.dart';
 
+import '../../utils/constants/release_translation_constants.dart';
 import '../release_upload_controller.dart';
 
 class ReleaseUploadBandOrSoloPage extends StatelessWidget {
@@ -37,16 +37,16 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
             child: Column(
               children: [
               AppTheme.heightSpace30,
-              HeaderIntro(subtitle: AppTranslationConstants.releaseUploadBandSelection.tr),
+              HeaderIntro(subtitle: ReleaseTranslationConstants.releaseUploadBandSelection.tr),
               AppTheme.heightSpace20,
               _.isLoading.value ? const Center(child: CircularProgressIndicator())
               : SizedBox(
                 height: AppTheme.fullHeight(context)*0.60,
                 child: Obx(()=> ListView.builder(
                   padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                  itemCount: _.bandController.bands.length,
+                  itemCount: _.bandServiceImpl.bands.length,
                   itemBuilder: (context, index) {
-                    Band band = _.bandController.bands.values.elementAt(index);
+                    Band band = _.bandServiceImpl.bands.values.elementAt(index);
                     BandMember profileMember = band.members!.values.firstWhere((element) => element.profileId == _.profile.id);
                     bool canUploadItems = profileMember.role != BandMemberRole.member; ///VERIFY IF IS MORE THAN JUST A MEMBER
 
@@ -112,7 +112,7 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
 
           ),
               icon: const Icon(CupertinoIcons.music_mic),
-              label: Text(AppTranslationConstants.publishAsSoloist.tr, style: const TextStyle(fontSize: 18),),
+              label: Text(ReleaseTranslationConstants.publishAsSoloist.tr, style: const TextStyle(fontSize: 18),),
               onPressed: () => _.setAsSolo(),
             ),
           ),

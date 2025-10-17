@@ -1,21 +1,22 @@
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:neom_commons/commons/app_flavour.dart';
-import 'package:neom_commons/commons/ui/theme/app_color.dart';
-import 'package:neom_commons/commons/ui/theme/app_theme.dart';
-import 'package:neom_commons/commons/ui/widgets/appbar_child.dart';
-import 'package:neom_commons/commons/ui/widgets/header_intro.dart';
-import 'package:neom_commons/commons/ui/widgets/title_subtitle_row.dart';
-import 'package:neom_commons/commons/utils/constants/app_hero_tag_constants.dart';
-import 'package:neom_commons/commons/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/commons/utils/constants/app_translation_constants.dart';
-import 'package:neom_core/core/app_properties.dart';
-import 'package:neom_core/core/utils/enums/app_in_use.dart';
+import 'package:neom_commons/ui/theme/app_color.dart';
+import 'package:neom_commons/ui/theme/app_theme.dart';
+import 'package:neom_commons/ui/widgets/appbar_child.dart';
+import 'package:neom_commons/ui/widgets/header_intro.dart';
+import 'package:neom_commons/ui/widgets/title_subtitle_row.dart';
+import 'package:neom_commons/utils/constants/app_hero_tag_constants.dart';
+import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
+import 'package:neom_commons/utils/constants/translations/app_translation_constants.dart';
+import 'package:neom_core/app_config.dart';
+import 'package:neom_core/app_properties.dart';
+import 'package:neom_core/utils/enums/app_in_use.dart';
 
+import '../../utils/constants/release_translation_constants.dart';
 import '../release_upload_controller.dart';
 
 class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
+
   const ReleaseUploadItemlistNameDescPage({super.key});
   
   @override
@@ -33,11 +34,11 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
              child: SingleChildScrollView(
                child: Column(
                 children: <Widget>[
-                  AppFlavour.appInUse == AppInUse.g ? AppTheme.heightSpace100 : const SizedBox.shrink(),
+                  AppConfig.instance.appInUse == AppInUse.g ? AppTheme.heightSpace100 : const SizedBox.shrink(),
                   HeaderIntro(
-                    subtitle: '${AppTranslationConstants.releaseUploadItemlistNameDesc1.tr} ${_.appReleaseItem.value.type.value.tr.toUpperCase()}? '
-                        '${AppTranslationConstants.releaseUploadItemlistNameDesc2.tr}',
-                    showLogo: AppFlavour.appInUse == AppInUse.g,
+                    subtitle: '${ReleaseTranslationConstants.releaseUploadItemlistNameDesc1.tr} ${_.appReleaseItem.value.type.value.tr.toUpperCase()}? '
+                        '${ReleaseTranslationConstants.releaseUploadItemlistNameDesc2.tr}',
+                    showLogo: AppConfig.instance.appInUse == AppInUse.g,
                   ),
                   AppTheme.heightSpace10,
                   Padding(
@@ -47,7 +48,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                       onChanged:(text) => _.setItemlistName() ,
                       decoration: InputDecoration(
                         filled: true,
-                        labelText: '${AppTranslationConstants.releaseItemlistTitle.tr} ${_.appReleaseItem.value.type.value.tr.toLowerCase()}',
+                        labelText: '${ReleaseTranslationConstants.releaseItemlistTitle.tr} ${_.appReleaseItem.value.type.value.tr.toLowerCase()}',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -62,7 +63,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                       onChanged:(text) => _.setItemlistDesc() ,
                       decoration: InputDecoration(
                         filled: true,
-                        labelText: '${AppTranslationConstants.releaseItemlistDesc.tr} ${_.appReleaseItem.value.type.value.tr.toLowerCase()}',
+                        labelText: '${ReleaseTranslationConstants.releaseItemlistDesc.tr} ${_.appReleaseItem.value.type.value.tr.toLowerCase()}',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -70,7 +71,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                     ),
                   ),
                   TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20,
-                      subtitle: AppTranslationConstants.releasePriceMsg.tr,
+                      subtitle: ReleaseTranslationConstants.releasePriceMsg.tr,
                       url: AppProperties.getDigitalPositioningUrl()
                   ),
                   AppTheme.heightSpace10,

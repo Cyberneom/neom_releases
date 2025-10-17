@@ -1,14 +1,5 @@
 dependency_overrides:
-  neom_bands:
-    path: ../neom_bands
   neom_core:
     path: ../neom_core
-  neom_commerce:
-    path: ../neom_commerce
   neom_commons:
     path: ../neom_commons
-  neom_posts:
-    path: ../neom_posts
-  neom_woo:
-    path: ../neom_woo
-

@@ -2,70 +2,75 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:just_audio/just_audio.dart';
-import 'package:neom_bands/bands/ui/band_controller.dart';
-import 'package:neom_commons/commons/app_flavour.dart';
-import 'package:neom_commons/commons/ui/theme/app_color.dart';
-import 'package:neom_commons/commons/ui/theme/app_theme.dart';
-import 'package:neom_commons/commons/utils/app_alerts.dart';
-import 'package:neom_commons/commons/utils/app_utilities.dart';
-import 'package:neom_commons/commons/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/commons/utils/constants/app_translation_constants.dart';
-import 'package:neom_core/core/app_config.dart';
-import 'package:neom_core/core/app_properties.dart';
-import 'package:neom_core/core/data/api_services/push_notification/firebase_messaging_calls.dart';
-import 'package:neom_core/core/data/firestore/app_release_item_firestore.dart';
-import 'package:neom_core/core/data/firestore/app_upload_firestore.dart';
-import 'package:neom_core/core/data/firestore/itemlist_firestore.dart';
-import 'package:neom_core/core/data/firestore/post_firestore.dart';
-import 'package:neom_core/core/data/firestore/user_firestore.dart';
-import 'package:neom_core/core/data/implementations/geolocator_controller.dart';
-import 'package:neom_core/core/data/implementations/maps_controller.dart';
-import 'package:neom_core/core/data/implementations/subscription_controller.dart';
-import 'package:neom_core/core/data/implementations/user_controller.dart';
-import 'package:neom_core/core/domain/model/app_profile.dart';
-import 'package:neom_core/core/domain/model/app_release_item.dart';
-import 'package:neom_core/core/domain/model/app_user.dart';
-import 'package:neom_core/core/domain/model/band.dart';
-import 'package:neom_core/core/domain/model/genre.dart';
-import 'package:neom_core/core/domain/model/instrument.dart';
-import 'package:neom_core/core/domain/model/item_list.dart';
-import 'package:neom_core/core/domain/model/place.dart';
-import 'package:neom_core/core/domain/model/post.dart';
-import 'package:neom_core/core/domain/model/price.dart';
-import 'package:neom_core/core/domain/use_cases/release_upload_service.dart';
-import 'package:neom_core/core/utils/constants/app_route_constants.dart';
-import 'package:neom_core/core/utils/constants/core_constants.dart';
-import 'package:neom_core/core/utils/core_utilities.dart';
-import 'package:neom_core/core/utils/enums/app_currency.dart';
-import 'package:neom_core/core/utils/enums/app_in_use.dart';
-import 'package:neom_core/core/utils/enums/app_media_type.dart';
-import 'package:neom_core/core/utils/enums/itemlist_type.dart';
-import 'package:neom_core/core/utils/enums/owner_type.dart';
-import 'package:neom_core/core/utils/enums/post_type.dart';
-import 'package:neom_core/core/utils/enums/push_notification_type.dart';
-import 'package:neom_core/core/utils/enums/release_status.dart';
-import 'package:neom_core/core/utils/enums/release_type.dart';
-import 'package:neom_core/core/utils/enums/subscription_status.dart';
-import 'package:neom_core/core/utils/enums/upload_image_type.dart';
-import 'package:neom_core/core/utils/enums/verification_level.dart';
-import 'package:neom_instruments/instruments/ui/instrument_controller.dart';
+import 'package:neom_commons/ui/theme/app_color.dart';
+import 'package:neom_commons/ui/theme/app_theme.dart';
+import 'package:neom_commons/utils/app_alerts.dart';
+import 'package:neom_commons/utils/app_utilities.dart';
+import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
+import 'package:neom_commons/utils/constants/translations/app_translation_constants.dart';
+import 'package:neom_commons/utils/file_system_utilities.dart';
+import 'package:neom_core/app_config.dart';
+import 'package:neom_core/app_properties.dart';
+import 'package:neom_core/data/api_services/push_notification/firebase_messaging_calls.dart';
+import 'package:neom_core/data/firestore/app_release_item_firestore.dart';
+import 'package:neom_core/data/firestore/app_upload_firestore.dart';
+import 'package:neom_core/data/firestore/itemlist_firestore.dart';
+import 'package:neom_core/data/firestore/post_firestore.dart';
+import 'package:neom_core/data/firestore/user_firestore.dart';
+import 'package:neom_core/data/implementations/geolocator_controller.dart';
+import 'package:neom_core/domain/model/app_profile.dart';
+import 'package:neom_core/domain/model/app_release_item.dart';
+import 'package:neom_core/domain/model/app_user.dart';
+import 'package:neom_core/domain/model/band.dart';
+import 'package:neom_core/domain/model/genre.dart';
+import 'package:neom_core/domain/model/instrument.dart';
+import 'package:neom_core/domain/model/item_list.dart';
+import 'package:neom_core/domain/model/place.dart';
+import 'package:neom_core/domain/model/post.dart';
+import 'package:neom_core/domain/model/price.dart';
+import 'package:neom_core/domain/use_cases/audio_lite_player_service.dart';
+import 'package:neom_core/domain/use_cases/band_service.dart';
+import 'package:neom_core/domain/use_cases/instrument_service.dart';
+import 'package:neom_core/domain/use_cases/maps_service.dart';
+import 'package:neom_core/domain/use_cases/media_player_service.dart';
+import 'package:neom_core/domain/use_cases/media_upload_service.dart';
+import 'package:neom_core/domain/use_cases/release_upload_service.dart';
+import 'package:neom_core/domain/use_cases/subscription_service.dart';
+import 'package:neom_core/domain/use_cases/timeline_service.dart';
+import 'package:neom_core/domain/use_cases/user_service.dart';
+import 'package:neom_core/domain/use_cases/woo_media_service.dart';
+import 'package:neom_core/utils/constants/app_route_constants.dart';
+import 'package:neom_core/utils/constants/core_constants.dart';
+import 'package:neom_core/utils/core_utilities.dart';
+import 'package:neom_core/utils/enums/app_currency.dart';
+import 'package:neom_core/utils/enums/app_in_use.dart';
+import 'package:neom_core/utils/enums/app_media_type.dart';
+import 'package:neom_core/utils/enums/itemlist_type.dart';
+import 'package:neom_core/utils/enums/media_upload_destination.dart';
+import 'package:neom_core/utils/enums/owner_type.dart';
+import 'package:neom_core/utils/enums/post_type.dart';
+import 'package:neom_core/utils/enums/push_notification_type.dart';
+import 'package:neom_core/utils/enums/release_status.dart';
+import 'package:neom_core/utils/enums/release_type.dart';
+import 'package:neom_core/utils/enums/subscription_status.dart';
+import 'package:neom_core/utils/enums/verification_level.dart';
 import 'package:neom_maps_services/places.dart';
-import 'package:neom_posts/posts/ui/upload/post_upload_controller.dart';
-import 'package:neom_timeline/neom_timeline.dart';
-import 'package:neom_woo/woo/data/api_services/woo_media_api.dart';
 import 'package:rubber/rubber.dart';
+
+import '../utils/constants/release_translation_constants.dart';
 
 class ReleaseUploadController extends GetxController with GetTickerProviderStateMixin implements ReleaseUploadService {
 
-  final userController = Get.find<UserController>();
-  final instrumentController = Get.put(InstrumentController());
-  final bandController = Get.put(BandController());
-  final mapsController = Get.put(MapsController());
-  final postUploadController = Get.put(PostUploadController());
+  final userServiceImpl = Get.find<UserService>();
+  final mapsServiceImpl = Get.find<MapsService>();
+  final instrumentServiceImpl = Get.find<InstrumentService>();
+  final bandServiceImpl = Get.find<BandService>();
+  final mediaUploadServiceImpl = Get.find<MediaUploadService>();
+  final mediaPlayerServiceImpl = Get.find<MediaPlayerService>();
+  final wooMediaServiceImpl = Get.find<WooMediaService>();
+  final audioLitePlayerServiceImpl = Get.find<AudioLitePlayerService>();
 
   AppProfile profile = AppProfile();
   AppUser user = AppUser();
@@ -103,7 +108,6 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   final Rx<int> releaseItemsQty = 0.obs;
   final Rx<int> releaseItemIndex = 0.obs;
   final Rx<Place> publisherPlace = Place().obs;
-  final Rx<FilePickerResult?> releaseFile = const FilePickerResult([]).obs;
 
   final RxString releaseFilePreviewURL = "".obs;
   final RxString releaseCoverImgPath = "".obs;
@@ -116,13 +120,10 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   Itemlist releaseItemlist = Itemlist();
 
   bool durationIsSelected = true;
-  AudioPlayer audioPlayer = AudioPlayer();
 
   String previousItemName = '';
   bool isPlaying = false;
   String previewPath = '';
-
-  late SubscriptionController subscriptionController;
 
   @override
   void onInit() async {
@@ -131,8 +132,8 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     AppConfig.logger.d("Release Upload Controller Init");
 
     try {
-      user = userController.user;
-      profile = userController.profile;
+      user = userServiceImpl.user;
+      profile = userServiceImpl.profile;
 
       scrollController = ScrollController();
       rubberAnimationController = RubberAnimationController(vsync: this, duration: const Duration(milliseconds: 20));
@@ -141,7 +142,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       ///DEPRECATED
       // digitalPriceController.text = AppFlavour.getInitialPrice();
 
-      mapsController.goToPosition(profile.position!);
+      mapsServiceImpl.goToPosition(profile.position!);
     } catch(e) {
       AppConfig.logger.e(e.toString());
     }
@@ -161,7 +162,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       appReleaseItem.value.galleryUrls = [profile.photoUrl];
       appReleaseItem.value.categories = [];
       appReleaseItem.value.instruments = [];
-      appReleaseItem.value.metaOwnerId = userController.user.email;
+      appReleaseItem.value.metaOwnerId = userServiceImpl.user.email;
 
       genres.value = await CoreUtilities.loadGenres();
     } catch (e) {
@@ -186,7 +187,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       releaseUploadDetailsAnimationController.dispose();
     }
 
-    audioPlayer.dispose();
+    audioLitePlayerServiceImpl.clear();
   }
 
   @override
@@ -195,19 +196,17 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     appReleaseItem.value.type = releaseType;
     appReleaseItem.value.imgUrl == "";
 
-    ///DEPRECATED itemsToRelease.clear();///TODO VERIFY IF NEEDED
-
     if(profile.verificationLevel == VerificationLevel.none) {
       if(releaseType != ReleaseType.single) {
         AppUtilities.showSnackBar(
-            title: AppTranslationConstants.digitalPositioning,
-            message: AppTranslationConstants.freeSingleReleaseUploadMsg.tr
+            title: ReleaseTranslationConstants.digitalPositioning,
+            message: ReleaseTranslationConstants.freeSingleReleaseUploadMsg.tr
         );
         return;
-      } else if(userController.user.releaseItemIds?.isNotEmpty ?? false) {
+      } else if(userServiceImpl.user.releaseItemIds?.isNotEmpty ?? false) {
         AppUtilities.showSnackBar(
-            title: AppTranslationConstants.digitalPositioning,
-            message: AppTranslationConstants.freeSingleReleaseUploadMsg.tr
+            title: ReleaseTranslationConstants.digitalPositioning,
+            message: ReleaseTranslationConstants.freeSingleReleaseUploadMsg.tr
         );
         return;
       }
@@ -241,11 +240,11 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     }
 
     appReleaseItems.clear();
-    if(AppFlavour.appInUse == AppInUse.g) {
+    if(AppConfig.instance.appInUse == AppInUse.g) {
       if(appReleaseItem.value.type == ReleaseType.single) {
         releaseItemsQty.value = 1;
         showItemsQtyDropDown.value = false;
-        if(bandController.bands.isNotEmpty) {
+        if(bandServiceImpl.bands.isNotEmpty) {
           Get.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
         } else {
           setAsSolo();
@@ -273,7 +272,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   @override
   void addInstrument(int index) {
     AppConfig.logger.t("Adding instrument to required ones");
-    Instrument instrument = instrumentController.instruments.values.elementAt(index);
+    Instrument instrument = instrumentServiceImpl.instruments.values.elementAt(index);
     instrumentsUsed.add(instrument.name);
     update([AppPageIdConstants.releaseUpload]);
   }
@@ -281,7 +280,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   @override
   void removeInstrument(int index) {
     AppConfig.logger.t("Removing instrument from required ones");
-    Instrument instrument = instrumentController.instruments.values.elementAt(index);
+    Instrument instrument = instrumentServiceImpl.instruments.values.elementAt(index);
     instrumentsUsed.remove(instrument.name);
     update([AppPageIdConstants.releaseUpload]);
   }
@@ -314,11 +313,9 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
     try {
 
-      if(postUploadController.croppedImageFile.value.path.isNotEmpty) {
-        AppConfig.logger.d("Uploading releaseCoverImg from: ${postUploadController.croppedImageFile.value.path}");
-        releaseCoverImgURL = await WooMediaAPI.uploadMediaToWordPress(postUploadController.croppedImageFile.value, fileName: releaseItemlist.name);
-        // releaseCoverImgURL = await AppUploadFirestore().uploadImage(releaseItemlist.name,
-        //     postUploadController.croppedImageFile.value, UploadImageType.releaseItem);
+      if(mediaUploadServiceImpl.mediaFileExists()) {
+        AppConfig.logger.d("Uploading releaseCoverImg from: ${mediaUploadServiceImpl.getMediaFile().path}");
+        releaseCoverImgURL = await wooMediaServiceImpl.uploadMediaToWordPress(mediaUploadServiceImpl.getMediaFile(), fileName: releaseItemlist.name);
         releaseItemlist.imgUrl = releaseCoverImgURL;
       }
 
@@ -333,7 +330,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         releaseItem.metaId = releaseItemlist.id;
         releaseItem.state = 5;
 
-        if(userController.user.releaseItemIds?.isEmpty ?? true) {
+        if(userServiceImpl.user.releaseItemIds?.isEmpty ?? true) {
           releaseItem.status = ReleaseStatus.publish;
         }
 
@@ -350,9 +347,9 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
           String filePath = releaseFilePaths.elementAt(releaseItemIndex.value);
 
-          File fileToUpload = await AppUtilities.getFileFromPath(filePath);
+          File fileToUpload = await FileSystemUtilities.getFileFromPath(filePath);
           if(AppProperties.mediaToWordpressFlag()) {
-            releaseItem.previewUrl = await WooMediaAPI.uploadMediaToWordPress(fileToUpload, fileName: releaseItem.name);
+            releaseItem.previewUrl = await wooMediaServiceImpl.uploadMediaToWordPress(fileToUpload, fileName: releaseItem.name);
           } else {
             releaseItem.previewUrl = await AppUploadFirestore().uploadReleaseItem(releaseItem.name, fileToUpload, mediaType);
           }
@@ -380,19 +377,17 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       await createReleasePost();
 
-      if (Get.isRegistered<TimelineController>()) {
-        await Get.find<TimelineController>().getTimeline();
-      } else {
-        await Get.put(TimelineController()).getTimeline();
+      if (Get.isRegistered<TimelineService>()) {
+        await Get.find<TimelineService>().getTimeline();
       }
 
       AppUtilities.showSnackBar(
-          title: AppTranslationConstants.digitalPositioning,
-          message: AppTranslationConstants.digitalPositioningSuccess.tr
+          title: ReleaseTranslationConstants.digitalPositioning,
+          message: ReleaseTranslationConstants.digitalPositioningSuccess.tr
       );
     } catch (e) {
       AppConfig.logger.e(e.toString());
-      AppUtilities.showSnackBar(title: AppTranslationConstants.digitalPositioning, message: e.toString());
+      AppUtilities.showSnackBar(title: ReleaseTranslationConstants.digitalPositioning, message: e.toString());
       isButtonDisabled.value = false;
       isLoading.value = false;
     }
@@ -410,12 +405,12 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     String postCaption = '';
 
     if(releaseItemlist.ownerType == OwnerType.profile) {
-      postCaption = '${AppTranslationConstants.releaseUploadPostCaptionMsg1.tr} "${releaseItemlist.name}"'
-          ' ${AppTranslationConstants.releaseUploadPostCaptionMsg2.tr}';
+      postCaption = '${ReleaseTranslationConstants.releaseUploadPostCaptionMsg1.tr} "${releaseItemlist.name}"'
+          ' ${ReleaseTranslationConstants.releaseUploadPostCaptionMsg2.tr}';
     } else {
-      postCaption = '${AppTranslationConstants.releaseUploadPostCaptionMsg1.tr} "${releaseItemlist.name}",'
-          ' ${AppTranslationConstants.of.tr} ${AppTranslationConstants.myProject.tr} "${selectedBand.value.name}",'
-          ' ${AppTranslationConstants.releaseUploadPostCaptionMsg2.tr}';
+      postCaption = '${ReleaseTranslationConstants.releaseUploadPostCaptionMsg1.tr} "${releaseItemlist.name}",'
+          ' ${AppTranslationConstants.of.tr} ${ReleaseTranslationConstants.myProject.tr} "${selectedBand.value.name}",'
+          ' ${ReleaseTranslationConstants.releaseUploadPostCaptionMsg2.tr}';
     }
 
     try {
@@ -438,11 +433,11 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       post.id = await PostFirestore().insert(post);
 
       if(post.id.isNotEmpty){
-        if(await UserFirestore().addReleaseItem(userId: userController.user.id, releaseItemId: appReleaseItem.value.id)) {
-          if(userController.user.releaseItemIds != null) {
-            userController.user.releaseItemIds!.add(appReleaseItem.value.id);
+        if(await UserFirestore().addReleaseItem(userId: userServiceImpl.user.id, releaseItemId: appReleaseItem.value.id)) {
+          if(userServiceImpl.user.releaseItemIds != null) {
+            userServiceImpl.user.releaseItemIds!.add(appReleaseItem.value.id);
           } else {
-            userController.user.releaseItemIds = [appReleaseItem.value.id];
+            userServiceImpl.user.releaseItemIds = [appReleaseItem.value.id];
           }
         }
 
@@ -450,7 +445,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
             fromProfile: profile,
             toProfileId: '',
             notificationType: PushNotificationType.releaseAppItemAdded,
-            title: AppTranslationConstants.addedReleaseAppItem,
+            title: ReleaseTranslationConstants.addedReleaseAppItem,
             referenceId: appReleaseItem.value.id,
             imgUrl: appReleaseItem.value.imgUrl
         );
@@ -466,9 +461,9 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     AppConfig.logger.t("");
 
     try {
-      Prediction prediction = await mapsController.placeAutoComplete(context, placeController.text);
-      publisherPlace.value = await mapsController.predictionToGooglePlace(prediction);
-      mapsController.goToPosition(publisherPlace.value.position!);
+      Prediction prediction = await mapsServiceImpl.placeAutoComplete(context, placeController.text);
+      publisherPlace.value = await mapsServiceImpl.predictionToGooglePlace(prediction);
+      mapsServiceImpl.goToPosition(publisherPlace.value.position!);
       placeController.text = publisherPlace.value.name;
       FocusScope.of(context).requestFocus(FocusNode()); //remove focus
     } catch (e) {
@@ -483,7 +478,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   bool validateInfo(){
     AppConfig.logger.t("validateInfo");
     return ((isAutoPublished.value || placeController.text.isNotEmpty)
-        && postUploadController.croppedImageFile.value.path.isNotEmpty);
+        && mediaUploadServiceImpl.mediaFileExists());
   }
 
   @override
@@ -598,13 +593,13 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
   Future<void> addNameDescToReleaseItem() async {
     AppConfig.logger.t("addNameDescToReleaseItem");
-    audioPlayer.stop();
+    audioLitePlayerServiceImpl.stop();
 
     if(appReleaseItems.where((element) => element.name == nameController.text.trim()).isEmpty) {
       setReleaseName();
       setReleaseDesc();
 
-      if(AppFlavour.appInUse == AppInUse.e) {
+      if(AppConfig.instance.appInUse == AppInUse.e) {
         setReleaseDuration();
         setPhysicalReleasePrice();
         ///DEPRECATED setDigitalReleasePrice();
@@ -612,7 +607,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       Get.toNamed(AppRouteConstants.releaseUploadInstr);
     } else {
-      AppUtilities.showSnackBar(title: AppTranslationConstants.releaseUpload, message: AppTranslationConstants.releaseItemNameMsg);
+      AppUtilities.showSnackBar(title: ReleaseTranslationConstants.releaseUpload, message: ReleaseTranslationConstants.releaseItemNameMsg);
     }
 
     update([AppPageIdConstants.releaseUpload]);
@@ -710,13 +705,13 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   Future<void> addReleaseCoverImg() async {
     AppConfig.logger.t("addReleaseCoverImg");
     try {
-      await postUploadController.handleImage(imageType: UploadImageType.releaseItem,
-        ratioX: AppFlavour.appInUse != AppInUse.e ? 1 : 6,
-        ratioY: AppFlavour.appInUse != AppInUse.e ? 1 : 9,
+      await mediaUploadServiceImpl.handleImage(uploadDestination: MediaUploadDestination.releaseItem,
+        ratioX: AppConfig.instance.appInUse != AppInUse.e ? 1 : 6,
+        ratioY: AppConfig.instance.appInUse != AppInUse.e ? 1 : 9,
       );
 
-      if(postUploadController.croppedImageFile.value.path.isNotEmpty) {
-        releaseCoverImgPath.value = postUploadController.croppedImageFile.value.path;
+      if(mediaUploadServiceImpl.mediaFileExists()) {
+        releaseCoverImgPath.value = mediaUploadServiceImpl.getMediaFile().path;
       }
     } catch (e) {
       AppConfig.logger.e(e.toString());
@@ -729,7 +724,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   void clearReleaseCoverImg() {
     AppConfig.logger.d("");
     try {
-      postUploadController.clearMedia();
+      mediaUploadServiceImpl.clearMedia();
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
@@ -784,12 +779,12 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   Widget getCoverImageWidget(BuildContext context) {
 
     Widget cachedNetworkImage;
-    bool containsCroppedImgFile = postUploadController.croppedImageFile.value.path.isNotEmpty;
+    bool containsCroppedImgFile = mediaUploadServiceImpl.mediaFileExists();
     String itemImgUrl = appReleaseItem.value.imgUrl.isNotEmpty ? appReleaseItem.value.imgUrl : AppProperties.getAppLogoUrl();
 
     try {
       if(containsCroppedImgFile) {
-        String croppedImgFilePath = postUploadController.croppedImageFile.value.path;
+        String croppedImgFilePath = mediaUploadServiceImpl.getMediaFile().path;
         cachedNetworkImage = Image.file(
             File(croppedImgFilePath),
             width: AppTheme.fullWidth(context)*0.45
@@ -814,24 +809,20 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
     try {
 
-      releaseFile.value = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: [AppFlavour.appInUse == AppInUse.e ? 'pdf':'mp3'],
-      );
+      mediaUploadServiceImpl.pickMultipleMedia();
 
-      if (releaseFile.value != null && (releaseFile.value?.files.isNotEmpty ?? false)) {
-        String releaseFileFirstName = releaseFile.value?.files.first.name ?? "";
+      if(mediaUploadServiceImpl.releaseFiles.isNotEmpty) {
+        String releaseFileFirstName = FileSystemUtilities.getFileNameWithExtension(mediaUploadServiceImpl.releaseFiles.first.path);
         if(appReleaseItems.where((element) => element.previewUrl == releaseFileFirstName).isNotEmpty) {
           AppUtilities.showSnackBar(
-              title: AppTranslationConstants.releaseUpload,
-              message: AppTranslationConstants.releaseItemFileMsg,
+              title: ReleaseTranslationConstants.releaseUpload,
+              message: ReleaseTranslationConstants.releaseItemFileMsg,
               duration: const Duration(seconds: 5)
           );
           return;
         }
 
-        releaseFilePath = getReleaseFilePath(releaseFile.value);
-
+        releaseFilePath = mediaUploadServiceImpl.getReleaseFilePath();
         appReleaseItem.value.previewUrl = releaseFileFirstName;
         releaseFilePreviewURL.value = releaseFileFirstName;
         
@@ -843,18 +834,18 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
           }
         }
 
-        if(AppFlavour.appInUse == AppInUse.g) {
-          await audioPlayer.stop();
-          audioPlayer.setFilePath(releaseFilePath);
-          await audioPlayer.play();
-          appReleaseItem.value.duration = audioPlayer.duration?.inSeconds ?? 0;
+        if(AppConfig.instance.appInUse == AppInUse.g) {
+          await audioLitePlayerServiceImpl.stop();
+          audioLitePlayerServiceImpl.setFilePath(releaseFilePath);
+          await audioLitePlayerServiceImpl.play();
+          appReleaseItem.value.duration = audioLitePlayerServiceImpl.durationInSeconds;
           durationController.text = appReleaseItem.value.duration.toString();
           if(appReleaseItem.value.duration > 0 && appReleaseItem.value.duration <= CoreConstants.maxAudioDuration) {
             AppConfig.logger.i("Audio duration of ${appReleaseItem.value.duration} seconds");
           } else {
             releaseFilePath = '';
             appReleaseItem.value.previewUrl = '';
-            AppUtilities.showSnackBar(title: AppTranslationConstants.releaseUpload, message: AppTranslationConstants.releaseItemDurationMsg);
+            AppUtilities.showSnackBar(title: ReleaseTranslationConstants.releaseUpload, message: ReleaseTranslationConstants.releaseItemDurationMsg);
           }
 
         }
@@ -866,25 +857,6 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     update([AppPageIdConstants.releaseUpload]);
   }
 
-  String getReleaseFilePath(FilePickerResult? filePickerResult) {
-
-    String releasePath = "";
-
-    try {
-      if(Platform.isIOS) {
-        PlatformFile? file = filePickerResult?.files.first;
-        String uriPath = file?.path ?? "";
-        final fileUri = Uri.parse(uriPath);
-        releasePath = File.fromUri(fileUri).path;
-      } else {
-        releasePath = filePickerResult?.paths.first ?? "";
-      }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
-    }
-
-    return releasePath;
-  }
 
   List<int> getYearsList() {
     int startYear = CoreConstants.firstReleaseYear;
@@ -893,7 +865,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   }
 
   void gotoPdfPreview() {
-    releaseFilePath = getReleaseFilePath(releaseFile.value);
+    releaseFilePath = mediaUploadServiceImpl.getReleaseFilePath();
 
     AppReleaseItem previewItem = AppReleaseItem(
       previewUrl: releaseFilePath,
@@ -1017,7 +989,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   }
 
   void gotoNameDesc() {
-    if(AppFlavour.appInUse != AppInUse.g || appReleaseItem.value.type == ReleaseType.single) {
+    if(AppConfig.instance.appInUse != AppInUse.g || appReleaseItem.value.type == ReleaseType.single) {
       Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
     } else {
       Get.toNamed(AppRouteConstants.releaseUploadItemlistNameDesc);
@@ -1025,11 +997,10 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   }
 
   Future<void> submitRelease(BuildContext context) async {
-   if(userController.userSubscription?.status == SubscriptionStatus.active) {
+   if(userServiceImpl.userSubscription?.status == SubscriptionStatus.active) {
      // uploadMedia();
    } else {
-     subscriptionController = Get.put(SubscriptionController());
-     AppAlerts.getSubscriptionAlert(subscriptionController, context, AppRouteConstants.releaseUpload);
+     AppAlerts.getSubscriptionAlert(Get.find<SubscriptionService>(), context, AppRouteConstants.releaseUpload);
    }
   }
 
@@ -1046,9 +1017,9 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
     try {
 
-      if(postUploadController.croppedImageFile.value.path.isNotEmpty) {
-        AppConfig.logger.d("Uploading releaseCoverImg from: ${postUploadController.croppedImageFile.value.path}");
-        releaseCoverImgURL = await WooMediaAPI.uploadMediaToWordPress(postUploadController.croppedImageFile.value, fileName: releaseItemlist.name);
+      if(mediaUploadServiceImpl.mediaFileExists()) {
+        AppConfig.logger.d("Uploading releaseCoverImg from: ${mediaUploadServiceImpl.getMediaFile().path}");
+        releaseCoverImgURL = await wooMediaServiceImpl.uploadMediaToWordPress(mediaUploadServiceImpl.getMediaFile(), fileName: releaseItemlist.name);
         releaseItemlist.imgUrl = releaseCoverImgURL;
       }
 
@@ -1060,7 +1031,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         releaseItem.metaId = releaseItemlist.id;
         releaseItem.state = 5;
 
-        if(userController.user.releaseItemIds?.isEmpty ?? true) {
+        if(userServiceImpl.user.releaseItemIds?.isEmpty ?? true) {
           releaseItem.status = ReleaseStatus.publish;
         }
 
@@ -1077,10 +1048,10 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
           String filePath = releaseFilePaths.elementAt(releaseItemIndex.value);
 
-          File fileToUpload = await AppUtilities.getFileFromPath(filePath);
+          File fileToUpload = await FileSystemUtilities.getFileFromPath(filePath);
 
           if(AppProperties.mediaToWordpressFlag()) {
-            releaseItem.previewUrl = await WooMediaAPI.uploadMediaToWordPress(fileToUpload, fileName: releaseItem.name);
+            releaseItem.previewUrl = await wooMediaServiceImpl.uploadMediaToWordPress(fileToUpload, fileName: releaseItem.name);
           } else {
             releaseItem.previewUrl = await AppUploadFirestore().uploadReleaseItem(releaseItem.name, fileToUpload, mediaType);
           }
@@ -1093,12 +1064,12 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       }
 
       AppUtilities.showSnackBar(
-          title: AppTranslationConstants.digitalPositioning,
-          message: AppTranslationConstants.digitalPositioningSuccess.tr
+          title: ReleaseTranslationConstants.digitalPositioning,
+          message: ReleaseTranslationConstants.digitalPositioningSuccess.tr
       );
     } catch (e) {
       AppConfig.logger.e(e.toString());
-      AppUtilities.showSnackBar(title: AppTranslationConstants.digitalPositioning, message: e.toString());
+      AppUtilities.showSnackBar(title: ReleaseTranslationConstants.digitalPositioning, message: e.toString());
       isButtonDisabled.value = false;
       isLoading.value = false;
     }
@@ -1108,15 +1079,16 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   }
 
   Future<void> playPreview(AppReleaseItem item) async {
+    AppConfig.logger.d("Playing preview for item: ${item.name} - ${item.previewUrl}");
 
     if(isPlaying && previewPath.contains(item.previewUrl)) {
-      await audioPlayer.stop();
+      await audioLitePlayerServiceImpl.stop();
       isPlaying = false;
     } else {
-      await audioPlayer.stop();
+      await audioLitePlayerServiceImpl.stop();
       previewPath = releaseFilePaths.firstWhere((path) => path.contains(item.previewUrl));
-      await audioPlayer.setFilePath(previewPath);
-      await audioPlayer.play();
+      await audioLitePlayerServiceImpl.setFilePath(previewPath);
+      await audioLitePlayerServiceImpl.play();
       isPlaying = true;
     }
 

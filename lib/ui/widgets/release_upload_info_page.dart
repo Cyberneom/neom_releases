@@ -2,17 +2,18 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:neom_commons/commons/app_flavour.dart';
-import 'package:neom_commons/commons/ui/theme/app_color.dart';
-import 'package:neom_commons/commons/ui/theme/app_theme.dart';
-import 'package:neom_commons/commons/ui/widgets/appbar_child.dart';
-import 'package:neom_commons/commons/ui/widgets/header_intro.dart';
-import 'package:neom_commons/commons/ui/widgets/summary_button.dart';
-import 'package:neom_commons/commons/utils/constants/app_hero_tag_constants.dart';
-import 'package:neom_commons/commons/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/commons/utils/constants/app_translation_constants.dart';
-import 'package:neom_core/core/utils/enums/app_in_use.dart';
+import 'package:neom_commons/ui/theme/app_color.dart';
+import 'package:neom_commons/ui/theme/app_theme.dart';
+import 'package:neom_commons/ui/widgets/appbar_child.dart';
+import 'package:neom_commons/ui/widgets/buttons/summary_button.dart';
+import 'package:neom_commons/ui/widgets/header_intro.dart';
+import 'package:neom_commons/utils/constants/app_hero_tag_constants.dart';
+import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
+import 'package:neom_commons/utils/constants/translations/app_translation_constants.dart';
+import 'package:neom_core/app_config.dart';
+import 'package:neom_core/utils/enums/app_in_use.dart';
 
+import '../../utils/constants/release_translation_constants.dart';
 import '../release_upload_controller.dart';
 
 class ReleaseUploadInfoPage extends StatelessWidget {
@@ -26,7 +27,6 @@ class ReleaseUploadInfoPage extends StatelessWidget {
       builder: (_) {
         return WillPopScope(
           onWillPop: () async {
-            ///DPRECATED
             if(_.releaseItemsQty.value > 1 && _.appReleaseItems.isNotEmpty) {
               _.removeLastReleaseItem();
             }
@@ -45,55 +45,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   AppTheme.heightSpace100,
-                  HeaderIntro(subtitle: AppTranslationConstants.releaseUploadPLaceDate.tr, showPreLogo: false,),
-                  AppTheme.heightSpace10,
-                  ///DEPRECATED
-                  // AppFlavour.appInUse == AppInUse.e ? Row(
-                  //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  //   children: [
-                  //     SizedBox(
-                  //       width: AppTheme.fullWidth(context)/2,
-                  //       child: GestureDetector(
-                  //         child: Row(
-                  //           children: <Widget>[
-                  //             Checkbox(
-                  //               value: _.isPhysical.value,
-                  //               onChanged: (bool? newValue) {
-                  //                 _.setIsPhysical();
-                  //                 },
-                  //             ),
-                  //             Text(AppTranslationConstants.includesPhysical.tr),
-                  //           ],
-                  //         ),
-                  //         onTap: ()=>_.setIsPhysical(),
-                  //       ),
-                  //     ),
-                  //     SizedBox(
-                  //       width: AppTheme.fullWidth(context)/3,
-                  //       child: TextFormField(
-                  //         controller: _.physicalPriceController,
-                  //         enabled: _.isPhysical.value,
-                  //         inputFormatters: [
-                  //           FilteringTextInputFormatter.digitsOnly,
-                  //           NumberLimitInputFormatter(1000),
-                  //         ],
-                  //         keyboardType: TextInputType.number,
-                  //         decoration: InputDecoration(
-                  //             suffixText: AppCurrency.mxn.value.tr.toUpperCase(),
-                  //             filled: true,
-                  //             hintText: "(${AppTranslationConstants.optional.tr})",
-                  //             labelText: AppTranslationConstants.releasePrice.tr,
-                  //             border: OutlineInputBorder(
-                  //               borderRadius: BorderRadius.circular(10),
-                  //             )
-                  //         ),
-                  //         onChanged: (text) {
-                  //           _.setDigitalReleasePrice();
-                  //           },
-                  //       ),
-                  //     ),
-                  //   ],
-                  // ) : const SizedBox.shrink(),
+                  HeaderIntro(subtitle: ReleaseTranslationConstants.releaseUploadPLaceDate.tr, showPreLogo: false,),
                   AppTheme.heightSpace10,
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -109,7 +61,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                                   _.setIsAutoPublished();
                                 },
                               ),
-                              Text(AppTranslationConstants.autoPublishingEditingMsg.tr),
+                              Text(ReleaseTranslationConstants.autoPublishingEditingMsg.tr),
                             ],
                           ),
                           onTap: ()=>_.setIsAutoPublished(),
@@ -118,7 +70,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                       SizedBox(
                         width: AppTheme.fullWidth(context)/2.8,
                         child: DropdownButton<int>(
-                          hint: Text(AppTranslationConstants.publishedYear.tr),
+                          hint: Text(ReleaseTranslationConstants.publishedYear.tr),
                           value: _.publishedYear.value != 0 ? _.publishedYear.value : null,
                           onChanged: (selectedYear) {
                             if(selectedYear != null) {
@@ -152,7 +104,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                     enabled: !_.isAutoPublished.value,
                     decoration: InputDecoration(
                       filled: true,
-                      labelText: AppTranslationConstants.specifyPublishingPlace.tr,
+                      labelText: ReleaseTranslationConstants.specifyPublishingPlace.tr,
                       labelStyle: const TextStyle(fontSize: 15),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -160,8 +112,8 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                     ),
                   ),
                   AppTheme.heightSpace20,
-                  _.releaseCoverImgPath.isNotEmpty && AppFlavour.appInUse == AppInUse.e
-                      ? Text(AppTranslationConstants.tapCoverToPreviewRelease.tr,
+                  _.releaseCoverImgPath.isNotEmpty && AppConfig.instance.appInUse == AppInUse.e
+                      ? Text(ReleaseTranslationConstants.tapCoverToPreviewRelease.tr,
                     style: const TextStyle(decoration: TextDecoration.underline),)
                       : const SizedBox.shrink(),
                   _.releaseCoverImgPath.isNotEmpty ? AppTheme.heightSpace5 : const SizedBox.shrink(),
@@ -172,7 +124,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                         children: [
                           const Icon(Icons.image, size: 20),
                           AppTheme.widthSpace5,
-                          Text(AppTranslationConstants.addReleaseCoverImg.tr,
+                          Text(ReleaseTranslationConstants.addReleaseCoverImg.tr,
                             style: const TextStyle(color: Colors.white70,),
                           ),
                         ],
@@ -190,7 +142,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                               height: 180,
                               width: 180
                             ),
-                            onTap: () => AppFlavour.appInUse == AppInUse.e ? _.gotoPdfPreview() : {}
+                            onTap: () => AppConfig.instance.appInUse == AppInUse.e ? _.gotoPdfPreview() : {}
                           ),
                         ),
                         FloatingActionButton(
@@ -207,7 +159,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                       ]
                   ),
                   AppTheme.heightSpace20,
-                  _.validateInfo() ? SummaryButton(AppTranslationConstants.checkSummary.tr,
+                  _.validateInfo() ? SummaryButton(AppTranslationConstants.viewSummary.tr,
                     onPressed: _.gotoReleaseSummary,
                   ) : const SizedBox.shrink(),
                   AppTheme.heightSpace20
@@ -220,4 +172,5 @@ class ReleaseUploadInfoPage extends StatelessWidget {
       }
     );
   }
+
 }

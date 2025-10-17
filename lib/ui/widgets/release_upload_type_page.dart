@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:neom_commons/commons/app_flavour.dart';
-import 'package:neom_commons/commons/ui/theme/app_color.dart';
-import 'package:neom_commons/commons/ui/theme/app_theme.dart';
-import 'package:neom_commons/commons/ui/widgets/appbar_child.dart';
-import 'package:neom_commons/commons/ui/widgets/core_widgets.dart';
-import 'package:neom_commons/commons/ui/widgets/header_intro.dart';
-import 'package:neom_commons/commons/ui/widgets/title_subtitle_row.dart';
-import 'package:neom_commons/commons/utils/constants/app_page_id_constants.dart';
-import 'package:neom_commons/commons/utils/constants/app_translation_constants.dart';
-import 'package:neom_core/core/utils/constants/app_route_constants.dart';
-import 'package:neom_core/core/utils/enums/app_in_use.dart';
-import 'package:neom_core/core/utils/enums/release_type.dart';
+import 'package:neom_commons/ui/theme/app_color.dart';
+import 'package:neom_commons/ui/theme/app_theme.dart';
+import 'package:neom_commons/ui/widgets/appbar_child.dart';
+import 'package:neom_commons/ui/widgets/core_widgets.dart';
+import 'package:neom_commons/ui/widgets/header_intro.dart';
+import 'package:neom_commons/ui/widgets/title_subtitle_row.dart';
+import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
+import 'package:neom_commons/utils/constants/translations/app_translation_constants.dart';
+import 'package:neom_core/app_config.dart';
+import 'package:neom_core/utils/constants/app_route_constants.dart';
+import 'package:neom_core/utils/enums/app_in_use.dart';
+import 'package:neom_core/utils/enums/release_type.dart';
 
+import '../../utils/constants/release_translation_constants.dart';
 import '../../utils/constants/releases_constants.dart';
 import '../release_upload_controller.dart';
 
@@ -35,7 +36,7 @@ class ReleaseUploadType extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                HeaderIntro(subtitle: AppTranslationConstants.releaseUploadType.tr, showLogo: AppFlavour.appInUse == AppInUse.g),
+                HeaderIntro(subtitle: ReleaseTranslationConstants.releaseUploadType.tr, showLogo: AppConfig.instance.appInUse == AppInUse.g),
                 AppTheme.heightSpace10,
                 Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -71,7 +72,7 @@ class ReleaseUploadType extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text("${AppTranslationConstants.appReleaseItemsQty.tr}:", style: const TextStyle(fontSize: 15),),
+                        Text("${ReleaseTranslationConstants.appReleaseItemsQty.tr}:", style: const TextStyle(fontSize: 15),),
                         AppTheme.widthSpace10,
                         DropdownButton<int>(
                           borderRadius: BorderRadius.circular(10.0),
@@ -96,7 +97,7 @@ class ReleaseUploadType extends StatelessWidget {
                       ],
                     ),
                   ) : const SizedBox.shrink(),
-                  if(AppFlavour.appInUse == AppInUse.e) TitleSubtitleRow("", hPadding: 20,subtitle: AppTranslationConstants.salesModelMsg.tr,showDivider: false,),
+                  if(AppConfig.instance.appInUse == AppInUse.e) TitleSubtitleRow("", hPadding: 20,subtitle: ReleaseTranslationConstants.salesModelMsg.tr,showDivider: false,),
               ],
             ),
           ),
@@ -106,8 +107,8 @@ class ReleaseUploadType extends StatelessWidget {
             elevation: AppTheme.elevationFAB,
             child: const Icon(Icons.navigate_next),
             onPressed: () {
-              if(AppFlavour.appInUse == AppInUse.g) {
-                if(_.bandController.bands.isNotEmpty) {
+              if(AppConfig.instance.appInUse == AppInUse.g) {
+                if(_.bandServiceImpl.bands.isNotEmpty) {
                   Get.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
                 } else {
                   _.setAsSolo();
