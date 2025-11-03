@@ -24,11 +24,11 @@ class ReleaseUploadInfoPage extends StatelessWidget {
 
     return GetBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
-      builder: (_) {
+      builder: (controller) {
         return WillPopScope(
           onWillPop: () async {
-            if(_.releaseItemsQty.value > 1 && _.appReleaseItems.isNotEmpty) {
-              _.removeLastReleaseItem();
+            if(controller.releaseItemsQty.value > 1 && controller.appReleaseItems.isNotEmpty) {
+              controller.removeLastReleaseItem();
             }
             return true; // Return true to allow the back button press to pop the screen
         },
@@ -56,28 +56,28 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                           child: Row(
                             children: <Widget>[
                               Checkbox(
-                                value: _.isAutoPublished.value,
+                                value: controller.isAutoPublished.value,
                                 onChanged: (bool? newValue) {
-                                  _.setIsAutoPublished();
+                                  controller.setIsAutoPublished();
                                 },
                               ),
                               Text(ReleaseTranslationConstants.autoPublishingEditingMsg.tr),
                             ],
                           ),
-                          onTap: ()=>_.setIsAutoPublished(),
+                          onTap: ()=>controller.setIsAutoPublished(),
                         ),
                       ),
                       SizedBox(
                         width: AppTheme.fullWidth(context)/2.8,
                         child: DropdownButton<int>(
                           hint: Text(ReleaseTranslationConstants.publishedYear.tr),
-                          value: _.publishedYear.value != 0 ? _.publishedYear.value : null,
+                          value: controller.publishedYear.value != 0 ? controller.publishedYear.value : null,
                           onChanged: (selectedYear) {
                             if(selectedYear != null) {
-                              _.setPublishedYear(selectedYear);
+                              controller.setPublishedYear(selectedYear);
                             }
                           },
-                          items: _.getYearsList().reversed.map((int year) {
+                          items: controller.getYearsList().reversed.map((int year) {
                             return DropdownMenuItem<int>(
                               alignment: Alignment.center,
                               value: year,
@@ -98,10 +98,10 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                     ],
                   ),
                   AppTheme.heightSpace20,
-                  _.isAutoPublished.value ? const SizedBox.shrink() : TextFormField(
-                    controller: _.placeController,
-                    onTap:() => _.getPublisherPlace(context) ,
-                    enabled: !_.isAutoPublished.value,
+                  controller.isAutoPublished.value ? const SizedBox.shrink() : TextFormField(
+                    controller: controller.placeController,
+                    onTap:() => controller.getPublisherPlace(context) ,
+                    enabled: !controller.isAutoPublished.value,
                     decoration: InputDecoration(
                       filled: true,
                       labelText: ReleaseTranslationConstants.specifyPublishingPlace.tr,
@@ -112,12 +112,12 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                     ),
                   ),
                   AppTheme.heightSpace20,
-                  _.releaseCoverImgPath.isNotEmpty && AppConfig.instance.appInUse == AppInUse.e
+                  controller.releaseCoverImgPath.isNotEmpty && AppConfig.instance.appInUse == AppInUse.e
                       ? Text(ReleaseTranslationConstants.tapCoverToPreviewRelease.tr,
                     style: const TextStyle(decoration: TextDecoration.underline),)
                       : const SizedBox.shrink(),
-                  _.releaseCoverImgPath.isNotEmpty ? AppTheme.heightSpace5 : const SizedBox.shrink(),
-                  _.releaseCoverImgPath.isEmpty ?
+                  controller.releaseCoverImgPath.isNotEmpty ? AppTheme.heightSpace5 : const SizedBox.shrink(),
+                  controller.releaseCoverImgPath.isEmpty ?
                   GestureDetector(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -129,7 +129,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                           ),
                         ],
                       ),
-                      onTap: () => _.addReleaseCoverImg()
+                      onTap: () => controller.addReleaseCoverImg()
                   ) :
                   Stack(
                       alignment: Alignment.bottomRight,
@@ -138,18 +138,18 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                           borderRadius: BorderRadius.circular(5.0),
                           child: GestureDetector(
                             child: Image.file(
-                              File(_.releaseCoverImgPath.value),
+                              File(controller.releaseCoverImgPath.value),
                               height: 180,
                               width: 180
                             ),
-                            onTap: () => AppConfig.instance.appInUse == AppInUse.e ? _.gotoPdfPreview() : {}
+                            onTap: () => AppConfig.instance.appInUse == AppInUse.e ? controller.gotoPdfPreview() : {}
                           ),
                         ),
                         FloatingActionButton(
                           mini: true,
                           heroTag: AppHeroTagConstants.clearImg,
                           backgroundColor: Theme.of(context).primaryColorLight,
-                          onPressed: () => _.clearReleaseCoverImg(),
+                          onPressed: () => controller.clearReleaseCoverImg(),
                           elevation: 10,
                           child: Icon(Icons.close,
                               color: AppColor.white80,
@@ -159,8 +159,8 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                       ]
                   ),
                   AppTheme.heightSpace20,
-                  _.validateInfo() ? SummaryButton(AppTranslationConstants.viewSummary.tr,
-                    onPressed: _.gotoReleaseSummary,
+                  controller.validateInfo() ? SummaryButton(AppTranslationConstants.viewSummary.tr,
+                    onPressed: controller.gotoReleaseSummary,
                   ) : const SizedBox.shrink(),
                   AppTheme.heightSpace20
                 ],

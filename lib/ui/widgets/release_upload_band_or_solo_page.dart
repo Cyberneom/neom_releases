@@ -27,7 +27,7 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
 
     return GetBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
-      builder: (_) => Scaffold(
+      builder: (controller) => Scaffold(
         extendBodyBehindAppBar: true,
         appBar: AppBarChild(color: Colors.transparent),
         backgroundColor: AppColor.main50,
@@ -39,15 +39,15 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
               AppTheme.heightSpace30,
               HeaderIntro(subtitle: ReleaseTranslationConstants.releaseUploadBandSelection.tr),
               AppTheme.heightSpace20,
-              _.isLoading.value ? const Center(child: CircularProgressIndicator())
+              controller.isLoading.value ? const Center(child: CircularProgressIndicator())
               : SizedBox(
                 height: AppTheme.fullHeight(context)*0.60,
                 child: Obx(()=> ListView.builder(
                   padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                  itemCount: _.bandServiceImpl.bands.length,
+                  itemCount: controller.bandServiceImpl.bands.length,
                   itemBuilder: (context, index) {
-                    Band band = _.bandServiceImpl.bands.values.elementAt(index);
-                    BandMember profileMember = band.members!.values.firstWhere((element) => element.profileId == _.profile.id);
+                    Band band = controller.bandServiceImpl.bands.values.elementAt(index);
+                    BandMember profileMember = band.members!.values.firstWhere((element) => element.profileId == controller.profile.id);
                     bool canUploadItems = profileMember.role != BandMemberRole.member; ///VERIFY IF IS MORE THAN JUST A MEMBER
 
                     return canUploadItems ? GestureDetector(
@@ -81,7 +81,7 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
                         ),
                       ),
                       onTap: () async {
-                        _.setSelectedBand(band);
+                        controller.setSelectedBand(band);
                       },
                     ) : const SizedBox.shrink();
                   },
@@ -113,7 +113,7 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
           ),
               icon: const Icon(CupertinoIcons.music_mic),
               label: Text(ReleaseTranslationConstants.publishAsSoloist.tr, style: const TextStyle(fontSize: 18),),
-              onPressed: () => _.setAsSolo(),
+              onPressed: () => controller.setAsSolo(),
             ),
           ),
         ),

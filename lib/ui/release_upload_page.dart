@@ -24,7 +24,7 @@ class ReleaseUploadPage extends StatelessWidget {
     return GetBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
       init: ReleaseUploadController(),
-      builder: (_) {
+      builder: (controller) {
         return Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBarChild(color: Colors.transparent),

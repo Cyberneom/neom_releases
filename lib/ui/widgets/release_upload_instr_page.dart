@@ -19,13 +19,13 @@ class ReleaseUploadInstrPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
-      builder: (_) => SafeArea(
+      builder: (controller) => SafeArea(
         child: Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBarChild(
-            color: _.releaseItemsQty.value > 1 ? null : Colors.transparent,
-            title: _.releaseItemsQty.value > 1  && _.appReleaseItems.length < _.releaseItemsQty.value  ? '${AppTranslationConstants.releaseItem.tr} ${_.appReleaseItems.length+1} '
-                '${AppTranslationConstants.of.tr} ${_.releaseItemsQty.value}' : '',
+            color: controller.releaseItemsQty.value > 1 ? null : Colors.transparent,
+            title: controller.releaseItemsQty.value > 1  && controller.appReleaseItems.length < controller.releaseItemsQty.value  ? '${AppTranslationConstants.releaseItem.tr} ${controller.appReleaseItems.length+1} '
+                '${AppTranslationConstants.of.tr} ${controller.releaseItemsQty.value}' : '',
           ),
           backgroundColor: AppColor.main50,
           body: Container(
@@ -38,13 +38,13 @@ class ReleaseUploadInstrPage extends StatelessWidget {
                 ]
             ),
           ),
-        floatingActionButton: _.instrumentsUsed.value.isNotEmpty ? FloatingActionButton(
+        floatingActionButton: controller.instrumentsUsed.value.isNotEmpty ? FloatingActionButton(
             tooltip: AppTranslationConstants.next.tr,
             elevation: AppTheme.elevationFAB,
             child: const Icon(Icons.navigate_next),
             onPressed: () {
-              if(_.instrumentsUsed.isNotEmpty) {
-                _.addInstrumentsToReleaseItem();
+              if(controller.instrumentsUsed.isNotEmpty) {
+                controller.addInstrumentsToReleaseItem();
               } else {
                 AppUtilities.showSnackBar(
                   title: MessageTranslationConstants.introInstrumentSelection.tr,

@@ -28,23 +28,23 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
-      builder: (_) {
+      builder: (controller) {
          return WillPopScope(
            onWillPop: () async {
              if(AppConfig.instance.appInUse != AppInUse.g) return true;
 
-             if(_.releaseItemsQty.value > 1 && _.appReleaseItems.isNotEmpty) {
-               _.removeLastReleaseItem();
+             if(controller.releaseItemsQty.value > 1 && controller.appReleaseItems.isNotEmpty) {
+               controller.removeLastReleaseItem();
              }
 
-           return _.appReleaseItems.isEmpty; ///If not empty keeps on loop removing previous added songs
+           return controller.appReleaseItems.isEmpty; ///If not empty keeps on loop removing previous added songs
          },
         child: Scaffold(
            extendBodyBehindAppBar: true,
            appBar: AppBarChild(
-             color: _.releaseItemsQty.value > 1 ? null : Colors.transparent,
-             title: _.releaseItemsQty.value > 1  && _.appReleaseItems.length < _.releaseItemsQty.value  ? '${AppTranslationConstants.releaseItem.tr} ${_.appReleaseItems.length+1} '
-                 '${AppTranslationConstants.of.tr} ${_.releaseItemsQty.value}' : '',
+             color: controller.releaseItemsQty.value > 1 ? null : Colors.transparent,
+             title: controller.releaseItemsQty.value > 1  && controller.appReleaseItems.length < controller.releaseItemsQty.value  ? '${AppTranslationConstants.releaseItem.tr} ${controller.appReleaseItems.length+1} '
+                 '${AppTranslationConstants.of.tr} ${controller.releaseItemsQty.value}' : '',
            ),
            backgroundColor: AppColor.main50,
            body: Container(
@@ -62,8 +62,8 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                     child: TextFormField(
-                      controller: _.nameController,
-                      onChanged:(text) => _.setReleaseName() ,
+                      controller: controller.nameController,
+                      onChanged:(text) => controller.setReleaseName() ,
                       decoration: InputDecoration(
                         filled: true,
                         labelText: ReleaseTranslationConstants.releaseTitle.tr,
@@ -78,8 +78,8 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                     child: TextFormField(
                       minLines: 2,
                       maxLines: 8,
-                      controller: _.descController,
-                      onChanged:(text) => _.setReleaseDesc(),
+                      controller: controller.descController,
+                      onChanged:(text) => controller.setReleaseDesc(),
                       decoration: InputDecoration(
                         filled: true,
                         labelText: ReleaseTranslationConstants.releaseDesc.tr,
@@ -98,7 +98,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                        SizedBox(
                          width: AppTheme.fullWidth(context) / 2.75,
                          child: TextFormField(
-                           controller: _.durationController,
+                           controller: controller.durationController,
                            keyboardType: TextInputType.number,
                            decoration: InputDecoration(
                                filled: true,
@@ -112,7 +112,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                              NumberLimitInputFormatter(1000),
                            ],
                            onChanged: (text) {
-                             _.setReleaseDuration();
+                             controller.setReleaseDuration();
                            },
                          ),
                        ),
@@ -121,11 +121,11 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                          children: [
                            IconButton(
                              icon: const Icon(Icons.keyboard_arrow_up),
-                             onPressed: () => _.increase(),
+                             onPressed: () => controller.increase(),
                            ),
                            IconButton(
                              icon: const Icon(Icons.keyboard_arrow_down),
-                             onPressed: () => _.decrease(),
+                             onPressed: () => controller.decrease(),
                            ),
                          ],
                        ),
@@ -138,7 +138,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                              crossAxisAlignment: CrossAxisAlignment.center,
                              children: [
                                Text(DateTimeUtilities.secondsToMinutes(
-                                 int.parse(_.durationController.text.isNotEmpty ? _.durationController.text : "0"),),
+                                 int.parse(controller.durationController.text.isNotEmpty ? controller.durationController.text : "0"),),
                                  style: const TextStyle(fontSize: 40),
                                ),
                                Text('${AppTranslationConstants.minutes.tr} - ${AppTranslationConstants.seconds.tr}',
@@ -149,7 +149,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                       ) : SizedBox(
                         width: AppTheme.fullWidth(context) / 2.75,
                         child: TextFormField(
-                           controller: _.physicalPriceController,
+                           controller: controller.physicalPriceController,
                            inputFormatters: [
                              FilteringTextInputFormatter.digitsOnly,
                              NumberLimitInputFormatter(500),
@@ -165,13 +165,13 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                                )
                            ),
                            onChanged: (text) {
-                             _.setPhysicalReleasePrice();
+                             controller.setPhysicalReleasePrice();
                              },
                          ),
                         ),
                     ],),
                   ) : const SizedBox.shrink(),
-                  if(_.releaseItemsQty.value == 1) TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20, subtitle: ReleaseTranslationConstants.releasePriceMsg.tr, titleFontSize: 14, subTitleFontSize: 12,
+                  if(controller.releaseItemsQty.value == 1) TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20, subtitle: ReleaseTranslationConstants.releasePriceMsg.tr, titleFontSize: 14, subTitleFontSize: 12,
                   url: AppProperties.getDigitalPositioningUrl()),
                   AppTheme.heightSpace10,
                   GestureDetector(
@@ -180,19 +180,19 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                       children: [
                         const Icon(FontAwesomeIcons.file, size: 20),
                         AppTheme.widthSpace5,
-                        Text(_.releaseFilePreviewURL.isEmpty
+                        Text(controller.releaseFilePreviewURL.isEmpty
                             ? ReleaseTranslationConstants.addReleaseFile.tr
                             : ReleaseTranslationConstants.changeReleaseFile.tr,
                           style: const TextStyle(color: Colors.white70,),
                         ),
                       ],
                     ),
-                    onTap: () async {_.addReleaseFile();}
+                    onTap: () async {controller.addReleaseFile();}
                   ),
-                  Obx(() => _.releaseFilePreviewURL.isNotEmpty
+                  Obx(() => controller.releaseFilePreviewURL.isNotEmpty
                       ? Padding(
                       padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
-                      child: Text(_.releaseFilePreviewURL.value,
+                      child: Text(controller.releaseFilePreviewURL.value,
                         style: const TextStyle(color: Colors.white70,),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -205,12 +205,12 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
               ),
              ),
           ),
-           floatingActionButton: _.validateNameDesc() ? FloatingActionButton(
+           floatingActionButton: controller.validateNameDesc() ? FloatingActionButton(
              heroTag: AppHeroTagConstants.clearImg,
              tooltip: AppTranslationConstants.next,
              child: const Icon(Icons.navigate_next),
              onPressed: ()=>{
-               _.addNameDescToReleaseItem()
+               controller.addNameDescToReleaseItem()
              },
            ) : const SizedBox.shrink(),
          ),

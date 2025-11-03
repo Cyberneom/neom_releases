@@ -32,7 +32,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
-      builder: (_) =>
+      builder: (controller) =>
         TweenAnimationBuilder(
           duration: const Duration(milliseconds: 600),
           tween: Tween<double>(begin: AppTheme.fullHeight(context)/2, end: 0),
@@ -43,8 +43,8 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
             );
           },
           child: RubberBottomSheet(
-            scrollController: _.scrollController,
-            animationController: _.releaseUploadDetailsAnimationController,
+            scrollController: controller.scrollController,
+            animationController: controller.releaseUploadDetailsAnimationController,
             lowerLayer: Container(color: Colors.transparent,),
             upperLayer: Column(
               children: [
@@ -54,7 +54,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                         topLeft: Radius.circular(20), /// Adjust the radius here for desired roundness
                         topRight: Radius.circular(20),
                       ),
-                      child: _.getCoverImageWidget(context)
+                      child: controller.getCoverImageWidget(context)
                   ),
                 ),
                 Expanded(
@@ -68,23 +68,23 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                     child: ListView(
                       physics: const NeverScrollableScrollPhysics(),
                       padding: const EdgeInsets.all(AppTheme.padding10),
-                      controller: _.scrollController,
+                      controller: controller.scrollController,
                       children: [
-                        Text(_.releaseItemlist.name.capitalize,
+                        Text(controller.releaseItemlist.name.capitalize,
                           style: const TextStyle(
                             fontSize: 25,
                             fontWeight: FontWeight.bold,),
                           textAlign: TextAlign.center,
                         ),
                         AppTheme.heightSpace10,
-                        ReadMoreContainer(text: _.releaseItemlist.type != ItemlistType.single ? _.releaseItemlist.description : _.appReleaseItem.value.description),
+                        ReadMoreContainer(text: controller.releaseItemlist.type != ItemlistType.single ? controller.releaseItemlist.description : controller.appReleaseItem.value.description),
                         AppTheme.heightSpace10,
                         CircleAvatar(
                           radius: AppTheme.fullWidth(context)/7,
                           child: ClipOval(
                             child: CachedNetworkImage(
-                              imageUrl: _.profile.photoUrl.isNotEmpty
-                                  ? _.profile.photoUrl
+                              imageUrl: controller.profile.photoUrl.isNotEmpty
+                                  ? controller.profile.photoUrl
                                   : AppProperties.getNoImageUrl(),
                               width: (AppTheme.fullWidth(context)/7)*2, /// Set the width to twice the radius
                               height: (AppTheme.fullWidth(context)/7)*2, /// Set the height to twice the radius
@@ -94,12 +94,12 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                         ),
                         AppTheme.heightSpace5,
                         Text(
-                          "${AppTranslationConstants.by.tr.capitalizeFirst}: ${_.profile.name}",
+                          "${AppTranslationConstants.by.tr.capitalizeFirst}: ${controller.profile.name}",
                           textAlign: TextAlign.center, style: const TextStyle(fontSize: 15),
                         ),
                         AppTheme.heightSpace10,
-                        Text(!_.isAutoPublished.value || (_.appReleaseItem.value.place?.name.isNotEmpty ?? false)
-                            ? (_.appReleaseItem.value.place?.name ?? "")
+                        Text(!controller.isAutoPublished.value || (controller.appReleaseItem.value.place?.name.isNotEmpty ?? false)
+                            ? (controller.appReleaseItem.value.place?.name ?? "")
                             : ReleaseTranslationConstants.autoPublishing.tr,
                           style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                           textAlign: TextAlign.center,
@@ -107,21 +107,21 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                         AppTheme.heightSpace10,
                         Column(
                             children: [
-                              (_.isPhysical.value && _.appReleaseItem.value.physicalPrice?.amount != 0) ?
+                              (controller.isPhysical.value && controller.appReleaseItem.value.physicalPrice?.amount != 0) ?
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Text("${ReleaseTranslationConstants.physicalReleasePrice.tr}: \$${_.appReleaseItem.value.physicalPrice?.amount.truncate().toString()} MXN ",
+                                  Text("${ReleaseTranslationConstants.physicalReleasePrice.tr}: \$${controller.appReleaseItem.value.physicalPrice?.amount.truncate().toString()} MXN ",
                                     style: const TextStyle(fontSize: 15),
                                   ),
                                 ],
                               ) : const SizedBox.shrink(),
                             ]
                         ),
-                        GenresGridView(_.appReleaseItem.value.categories, AppColor.yellow),
+                        GenresGridView(controller.appReleaseItem.value.categories, AppColor.yellow),
                         AppTheme.heightSpace10,
-                        if(AppConfig.instance.appInUse == AppInUse.g && _.appReleaseItems.isNotEmpty)
+                        if(AppConfig.instance.appInUse == AppInUse.g && controller.appReleaseItems.isNotEmpty)
                           Column(
                             children: <Widget>[
                               Row(
@@ -129,30 +129,30 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                                   children: [
                                     const Icon(FontAwesomeIcons.music, size: 12),
                                     AppTheme.widthSpace5,
-                                    Text('${_.appReleaseItem.value.type.value.tr.toUpperCase()} (${_.appReleaseItems.length})')
+                                    Text('${controller.appReleaseItem.value.type.value.tr.toUpperCase()} (${controller.appReleaseItems.length})')
                                   ]
                               ),
                               Container(
                                 constraints: BoxConstraints(
-                                  maxHeight: _.appReleaseItems.length == 1 ? 90 : _.appReleaseItems.length == 2 ? 160 : 250,
+                                  maxHeight: controller.appReleaseItems.length == 1 ? 90 : controller.appReleaseItems.length == 2 ? 160 : 250,
                                 ),
-                                child: buildReleaseItems(context, _),
+                                child: buildReleaseItems(context, controller),
                               ),
                             ],
                           ),
-                        _.releaseItemIndex > 0 ? Obx(()=> LinearPercentIndicator(
+                        controller.releaseItemIndex > 0 ? Obx(()=> LinearPercentIndicator(
                           padding: const EdgeInsets.symmetric(horizontal: 20),
                           lineHeight: AppTheme.fullHeight(context) /15,
-                          percent: _.releaseItemIndex/_.releaseItemsQty.value,
+                          percent: controller.releaseItemIndex/controller.releaseItemsQty.value,
                           center: Text("${AppTranslationConstants.adding.tr} "
-                              "${_.releaseItemIndex} ${ReleaseTranslationConstants.outOf.tr} ${_.releaseItemsQty.value}"
+                              "${controller.releaseItemIndex} ${ReleaseTranslationConstants.outOf.tr} ${controller.releaseItemsQty.value}"
                           ),
                           progressColor: AppColor.bondiBlue,
                         ),) : SubmitButton(context, text: ReleaseTranslationConstants.submitRelease.tr,
-                          isLoading: _.isLoading.value, isEnabled: !_.isButtonDisabled.value,
-                          onPressed: () => _.submitRelease(context),
+                          isLoading: controller.isLoading.value, isEnabled: !controller.isButtonDisabled.value,
+                          onPressed: () => controller.submitRelease(context),
                         ),
-                        if(_.releaseItemIndex.value == 0) TitleSubtitleRow("", showDivider: false, subtitle: ReleaseTranslationConstants.submitReleaseMsg.tr, titleFontSize: 14, subTitleFontSize: 12,),
+                        if(controller.releaseItemIndex.value == 0) TitleSubtitleRow("", showDivider: false, subtitle: ReleaseTranslationConstants.submitReleaseMsg.tr, titleFontSize: 14, subTitleFontSize: 12,),
                       ],
                     ),
                   ),
@@ -165,17 +165,17 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
   }
 
   ///ONLY OF USE FOR APPINUSE.G
-  Widget buildReleaseItems(BuildContext context, ReleaseUploadController _) {
+  Widget buildReleaseItems(BuildContext context, ReleaseUploadController controller) {
     return ListView.builder(
       padding: EdgeInsets.zero,
-      itemCount: _.appReleaseItems.length,
+      itemCount: controller.appReleaseItems.length,
       itemBuilder: (context, index) {
-        AppReleaseItem releaseItem = _.appReleaseItems.elementAt(index);
+        AppReleaseItem releaseItem = controller.appReleaseItems.elementAt(index);
         String ownerName = releaseItem.ownerName;
 
         return ListTile(
           leading: Image.file(
-              File(_.releaseCoverImgPath.value),
+              File(controller.releaseCoverImgPath.value),
               height: 40, width: 40
           ),
           title: Text(releaseItem.name.isEmpty ? ""
@@ -186,7 +186,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
           trailing: Text(DateTimeUtilities.secondsToMinutes(releaseItem.duration,)),
           ///FEATURE
           onTap: () async {
-            await _.playPreview(releaseItem);
+            await controller.playPreview(releaseItem);
           }
 
         );

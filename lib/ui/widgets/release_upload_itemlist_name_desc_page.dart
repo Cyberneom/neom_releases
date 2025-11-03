@@ -23,7 +23,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
-      builder: (_) {
+      builder: (controller) {
          return Scaffold(
            extendBodyBehindAppBar: true,
            appBar: AppBarChild(color: Colors.transparent),
@@ -36,7 +36,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                 children: <Widget>[
                   AppConfig.instance.appInUse == AppInUse.g ? AppTheme.heightSpace100 : const SizedBox.shrink(),
                   HeaderIntro(
-                    subtitle: '${ReleaseTranslationConstants.releaseUploadItemlistNameDesc1.tr} ${_.appReleaseItem.value.type.value.tr.toUpperCase()}? '
+                    subtitle: '${ReleaseTranslationConstants.releaseUploadItemlistNameDesc1.tr} ${controller.appReleaseItem.value.type.value.tr.toUpperCase()}? '
                         '${ReleaseTranslationConstants.releaseUploadItemlistNameDesc2.tr}',
                     showLogo: AppConfig.instance.appInUse == AppInUse.g,
                   ),
@@ -44,11 +44,11 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                   Padding(
                     padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                     child: TextFormField(
-                      controller: _.itemlistNameController,
-                      onChanged:(text) => _.setItemlistName() ,
+                      controller: controller.itemlistNameController,
+                      onChanged:(text) => controller.setItemlistName() ,
                       decoration: InputDecoration(
                         filled: true,
-                        labelText: '${ReleaseTranslationConstants.releaseItemlistTitle.tr} ${_.appReleaseItem.value.type.value.tr.toLowerCase()}',
+                        labelText: '${ReleaseTranslationConstants.releaseItemlistTitle.tr} ${controller.appReleaseItem.value.type.value.tr.toLowerCase()}',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -59,11 +59,11 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                     padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                     child: TextFormField(
                       minLines: 3, maxLines: 6,
-                      controller: _.itemlistDescController,
-                      onChanged:(text) => _.setItemlistDesc() ,
+                      controller: controller.itemlistDescController,
+                      onChanged:(text) => controller.setItemlistDesc() ,
                       decoration: InputDecoration(
                         filled: true,
-                        labelText: '${ReleaseTranslationConstants.releaseItemlistDesc.tr} ${_.appReleaseItem.value.type.value.tr.toLowerCase()}',
+                        labelText: '${ReleaseTranslationConstants.releaseItemlistDesc.tr} ${controller.appReleaseItem.value.type.value.tr.toLowerCase()}',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -79,12 +79,12 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
               ),
              ),
           ),
-           floatingActionButton: _.validateItemlistNameDesc() ? FloatingActionButton(
+           floatingActionButton: controller.validateItemlistNameDesc() ? FloatingActionButton(
              heroTag: AppHeroTagConstants.clearImg,
              tooltip: AppTranslationConstants.next,
              child: const Icon(Icons.navigate_next),
              onPressed: ()=>{
-               _.addItemlistNameDesc()
+               controller.addItemlistNameDesc()
              },
            ) : const SizedBox.shrink(),
          );

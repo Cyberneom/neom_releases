@@ -16,7 +16,7 @@ class OnlinePositioningSummaryBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
-      builder: (_) => Positioned(
+      builder: (controller) => Positioned(
         top: -50,
         bottom: 0,
         child: TweenAnimationBuilder(
@@ -30,7 +30,7 @@ class OnlinePositioningSummaryBackground extends StatelessWidget {
             height: AppTheme.fullHeight(context),
             padding: const EdgeInsets.symmetric(horizontal: 10),
             color: Colors.black.withOpacity(0.4),
-            child: _.appReleaseItem.value.imgUrl.isNotEmpty ? CachedNetworkImage(imageUrl: _.appReleaseItem.value.imgUrl,
+            child: controller.appReleaseItem.value.imgUrl.isNotEmpty ? CachedNetworkImage(imageUrl: controller.appReleaseItem.value.imgUrl,
               width: AppTheme.fullWidth(context), height: AppTheme.fullHeight(context),
               fit: BoxFit.fitWidth,
             ) : Image.asset(AppConfig.instance.appInUse == AppInUse.g ? AppFlavour.getAppLogoPath() : AppFlavour.getAppPreLogoPath(),

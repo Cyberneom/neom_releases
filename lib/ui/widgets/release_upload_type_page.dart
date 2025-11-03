@@ -25,7 +25,7 @@ class ReleaseUploadType extends StatelessWidget {
     return GetBuilder<ReleaseUploadController>(
         id: AppPageIdConstants.releaseUpload,
         init: ReleaseUploadController(),
-        builder: (_) => Obx(()=> Scaffold(
+        builder: (controller) => Obx(()=> Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBarChild(color: Colors.transparent),
           backgroundColor: AppColor.main50,
@@ -44,31 +44,31 @@ class ReleaseUploadType extends StatelessWidget {
                       AppTheme.heightSpace10,
                       buildActionChip(
                         appEnum: ReleaseType.single,
-                        controllerFunction: _.setReleaseType,
-                          isSelected: _.appReleaseItem.value.type == ReleaseType.single && _.releaseItemsQty.value == 1
+                        controllerFunction: controller.setReleaseType,
+                          isSelected: controller.appReleaseItem.value.type == ReleaseType.single && controller.releaseItemsQty.value == 1
                       ),
                       AppTheme.heightSpace10,
                        buildActionChip(
                          appEnum: ReleaseType.album,
-                         controllerFunction: _.setReleaseType,
-                         isSelected: _.appReleaseItem.value.type == ReleaseType.album
+                         controllerFunction: controller.setReleaseType,
+                         isSelected: controller.appReleaseItem.value.type == ReleaseType.album
                        ),
                       AppTheme.heightSpace10,
                       buildActionChip(
                         appEnum: ReleaseType.ep,
-                        controllerFunction: _.setReleaseType,
-                        isSelected: _.appReleaseItem.value.type == ReleaseType.ep
+                        controllerFunction: controller.setReleaseType,
+                        isSelected: controller.appReleaseItem.value.type == ReleaseType.ep
                       ),
                       AppTheme.heightSpace10,
                       buildActionChip(
                         appEnum: ReleaseType.demo,
-                        controllerFunction: _.setReleaseType,
-                        isSelected: _.appReleaseItem.value.type == ReleaseType.demo
+                        controllerFunction: controller.setReleaseType,
+                        isSelected: controller.appReleaseItem.value.type == ReleaseType.demo
                       ),
                     ]
                   ),
                   AppTheme.heightSpace20,
-                  _.showItemsQtyDropDown.value ? SizedBox(
+                  controller.showItemsQtyDropDown.value ? SizedBox(
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
@@ -77,10 +77,10 @@ class ReleaseUploadType extends StatelessWidget {
                         DropdownButton<int>(
                           borderRadius: BorderRadius.circular(10.0),
                           items: ReleasesConstants.appReleaseItemsQty
-                            .where((itemsQty) => itemsQty >= (_.appReleaseItem.value.type == ReleaseType.demo ? 1
-                              : _.appReleaseItem.value.type == ReleaseType.ep ? 2 : 4)
-                              && itemsQty <= (_.appReleaseItem.value.type == ReleaseType.demo ? 4 :
-                              _.appReleaseItem.value.type == ReleaseType.ep ? 6 : 15)
+                            .where((itemsQty) => itemsQty >= (controller.appReleaseItem.value.type == ReleaseType.demo ? 1
+                              : controller.appReleaseItem.value.type == ReleaseType.ep ? 2 : 4)
+                              && itemsQty <= (controller.appReleaseItem.value.type == ReleaseType.demo ? 4 :
+                              controller.appReleaseItem.value.type == ReleaseType.ep ? 6 : 15)
                           ).map((int itemsQty) {
                             return DropdownMenuItem<int>(
                               value: itemsQty,
@@ -88,9 +88,9 @@ class ReleaseUploadType extends StatelessWidget {
                             );
                           }).toList(),
                           onChanged: (int? itemsQty) {
-                            _.setAppReleaseItemsQty(itemsQty ?? 1);
+                            controller.setAppReleaseItemsQty(itemsQty ?? 1);
                           },
-                          value: _.releaseItemsQty.value,
+                          value: controller.releaseItemsQty.value,
                           elevation: 20,
                           dropdownColor: AppColor.getMain(),
                         ),
@@ -102,19 +102,19 @@ class ReleaseUploadType extends StatelessWidget {
             ),
           ),
         ),
-        floatingActionButton: _.releaseItemsQty.value > 0 ? FloatingActionButton(
+        floatingActionButton: controller.releaseItemsQty.value > 0 ? FloatingActionButton(
             tooltip: AppTranslationConstants.next.tr,
             elevation: AppTheme.elevationFAB,
             child: const Icon(Icons.navigate_next),
             onPressed: () {
               if(AppConfig.instance.appInUse == AppInUse.g) {
-                if(_.bandServiceImpl.bands.isNotEmpty) {
+                if(controller.bandServiceImpl.bands.isNotEmpty) {
                   Get.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
                 } else {
-                  _.setAsSolo();
+                  controller.setAsSolo();
                 }
               } else {
-                _.setAsSolo();
+                controller.setAsSolo();
               }
             },
           ) : const SizedBox.shrink(),

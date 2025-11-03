@@ -16,7 +16,7 @@ class ReleaseUploadSummaryPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
-      builder: (_) => Scaffold(
+      builder: (controller) => Scaffold(
       body: Container(
         height: AppTheme.fullHeight(context),
         decoration: AppTheme.appBoxDecoration,

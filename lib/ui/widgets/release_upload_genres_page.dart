@@ -18,13 +18,13 @@ class ReleaseUploadGenresPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
-      builder: (_) {
+      builder: (controller) {
          return Scaffold(
            extendBodyBehindAppBar: true,
            appBar: AppBarChild(
-             color: _.releaseItemsQty.value > 1 ? null : Colors.transparent,
-             title: _.releaseItemsQty.value > 1  && _.appReleaseItems.length < _.releaseItemsQty.value  ? '${AppTranslationConstants.releaseItem.tr} ${_.appReleaseItems.length+1} '
-                 '${AppTranslationConstants.of.tr} ${_.releaseItemsQty.value}' : '',
+             color: controller.releaseItemsQty.value > 1 ? null : Colors.transparent,
+             title: controller.releaseItemsQty.value > 1  && controller.appReleaseItems.length < controller.releaseItemsQty.value  ? '${AppTranslationConstants.releaseItem.tr} ${controller.appReleaseItems.length+1} '
+                 '${AppTranslationConstants.of.tr} ${controller.releaseItemsQty.value}' : '',
            ),
            backgroundColor: AppColor.main50,
            body: Container(
@@ -38,20 +38,20 @@ class ReleaseUploadGenresPage extends StatelessWidget {
                     child: SingleChildScrollView(
                       child: Wrap(
                         alignment: WrapAlignment.center,
-                        children: _.genreChips.toList()
+                        children: controller.genreChips.toList()
                       ),
                     ),
                   ),
                 ],
               ),
            ),
-           floatingActionButton: _.selectedGenres.isNotEmpty ? FloatingActionButton(
+           floatingActionButton: controller.selectedGenres.isNotEmpty ? FloatingActionButton(
              tooltip: AppTranslationConstants.next.tr,
              elevation: AppTheme.elevationFAB,
              child: const Icon(Icons.navigate_next),
              onPressed: () {
-               if(_.instrumentsUsed.isNotEmpty) {
-                 _.addGenresToReleaseItem();
+               if(controller.instrumentsUsed.isNotEmpty) {
+                 controller.addGenresToReleaseItem();
                } else {
                  Get.snackbar(
                      MessageTranslationConstants.introInstrumentSelection.tr,

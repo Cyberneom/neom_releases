@@ -14,17 +14,17 @@ class ReleaseUploadInstrList extends StatelessWidget{
   Widget build(BuildContext context) {
     return GetBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
-      builder: (_) => ListView.separated(
+      builder: (controller) => ListView.separated(
         separatorBuilder: (context, index) => const Divider(),
         itemBuilder: (__, index) {
-          Instrument instrument = _.instrumentServiceImpl.instruments.values.elementAt(index);
+          Instrument instrument = controller.instrumentServiceImpl.instruments.values.elementAt(index);
           return ListTile(
-            onTap: () => _.instrumentsUsed.contains(instrument.name) ? _.removeInstrument(index) : _.addInstrument(index),
+            onTap: () => controller.instrumentsUsed.contains(instrument.name) ? controller.removeInstrument(index) : controller.addInstrument(index),
             title: Center(child: Text(instrument.name.tr.capitalizeFirst, style: const TextStyle(fontSize: AppTheme.chipsFontSize)),),
-            tileColor: _.instrumentsUsed.contains(instrument.name) ? AppColor.getMain() : Colors.transparent,
+            tileColor: controller.instrumentsUsed.contains(instrument.name) ? AppColor.getMain() : Colors.transparent,
           );
         },
-        itemCount: _.instrumentServiceImpl.instruments.length-1,
+        itemCount: controller.instrumentServiceImpl.instruments.length-1,
       ),
     );
   }
