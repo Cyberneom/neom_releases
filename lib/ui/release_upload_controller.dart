@@ -56,7 +56,7 @@ import 'package:neom_core/utils/enums/release_status.dart';
 import 'package:neom_core/utils/enums/release_type.dart';
 import 'package:neom_core/utils/enums/subscription_status.dart';
 import 'package:neom_core/utils/enums/verification_level.dart';
-import 'package:neom_maps_services/places.dart';
+import 'package:neom_maps_services/domain/models/prediction.dart';
 import 'package:rubber/rubber.dart';
 
 import '../utils/constants/release_translation_constants.dart';
