@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
 import 'package:neom_commons/ui/widgets/appbar_child.dart';
@@ -22,7 +22,7 @@ class ReleaseUploadType extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GetBuilder<ReleaseUploadController>(
+    return SintBuilder<ReleaseUploadController>(
         id: AppPageIdConstants.releaseUpload,
         init: ReleaseUploadController(),
         builder: (controller) => Obx(()=> Scaffold(
@@ -109,7 +109,7 @@ class ReleaseUploadType extends StatelessWidget {
             onPressed: () {
               if(AppConfig.instance.appInUse == AppInUse.g) {
                 if(controller.bandServiceImpl.bands.isNotEmpty) {
-                  Get.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
+                  Sint.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
                 } else {
                   controller.setAsSolo();
                 }

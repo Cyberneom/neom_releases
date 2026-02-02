@@ -1,4 +1,4 @@
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 import 'package:neom_core/utils/constants/app_route_constants.dart';
 
 import 'ui/release_upload_page.dart';
@@ -13,48 +13,48 @@ import 'ui/widgets/release_upload_type_page.dart';
 
 class ReleaseRoutes {
 
-  static final List<GetPage<dynamic>> routes = [
-    GetPage(
+  static final List<SintPage<dynamic>> routes = [
+    SintPage(
       name: AppRouteConstants.releaseUpload,
       page: () => const ReleaseUploadPage(),
       transition: Transition.leftToRight,
     ),
-    GetPage(
+    SintPage(
       name: AppRouteConstants.releaseUploadType,
       page: () => const ReleaseUploadType(),
       transition: Transition.zoom,
     ),
-    GetPage(
+    SintPage(
       name: AppRouteConstants.releaseUploadBandOrSolo,
       page: () => const ReleaseUploadBandOrSoloPage(),
       transition: Transition.zoom,
     ),
-    GetPage(
+    SintPage(
       name: AppRouteConstants.releaseUploadItemlistNameDesc,
       page: () => const ReleaseUploadItemlistNameDescPage(),
       transition: Transition.zoom,
     ),
-    GetPage(
+    SintPage(
       name: AppRouteConstants.releaseUploadNameDesc,
       page: () => const ReleaseUploadNameDescPage(),
       transition: Transition.zoom,
     ),
-    GetPage(
+    SintPage(
       name: AppRouteConstants.releaseUploadInstr,
       page: () => const ReleaseUploadInstrPage(),
       transition: Transition.zoom,
     ),
-    GetPage(
+    SintPage(
       name: AppRouteConstants.releaseUploadGenres,
       page: () => const ReleaseUploadGenresPage(),
       transition: Transition.zoom,
     ),
-    GetPage(
+    SintPage(
       name: AppRouteConstants.releaseUploadInfo,
       page: () => const ReleaseUploadInfoPage(),
       transition: Transition.zoom,
     ),
-    GetPage(
+    SintPage(
       name: AppRouteConstants.releaseUploadSummary,
       page: () => const ReleaseUploadSummaryPage(),
       transition: Transition.zoom,

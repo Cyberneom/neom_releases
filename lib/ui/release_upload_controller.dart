@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
 import 'package:neom_commons/utils/app_alerts.dart';
@@ -61,16 +61,16 @@ import 'package:rubber/rubber.dart';
 
 import '../utils/constants/release_translation_constants.dart';
 
-class ReleaseUploadController extends GetxController with GetTickerProviderStateMixin implements ReleaseUploadService {
+class ReleaseUploadController extends SintController with SintTickerProviderStateMixin implements ReleaseUploadService {
 
-  final userServiceImpl = Get.find<UserService>();
-  final mapsServiceImpl = Get.find<MapsService>();
-  final instrumentServiceImpl = Get.find<InstrumentService>();
-  final bandServiceImpl = Get.find<BandService>();
-  final mediaUploadServiceImpl = Get.find<MediaUploadService>();
-  final mediaPlayerServiceImpl = Get.find<MediaPlayerService>();
-  final wooMediaServiceImpl = Get.find<WooMediaService>();
-  final audioLitePlayerServiceImpl = Get.find<AudioLitePlayerService>();
+  final userServiceImpl = Sint.find<UserService>();
+  final mapsServiceImpl = Sint.find<MapsService>();
+  final instrumentServiceImpl = Sint.find<InstrumentService>();
+  final bandServiceImpl = Sint.find<BandService>();
+  final mediaUploadServiceImpl = Sint.find<MediaUploadService>();
+  final mediaPlayerServiceImpl = Sint.find<MediaPlayerService>();
+  final wooMediaServiceImpl = Sint.find<WooMediaService>();
+  final audioLitePlayerServiceImpl = Sint.find<AudioLitePlayerService>();
 
   AppProfile profile = AppProfile();
   AppUser user = AppUser();
@@ -245,7 +245,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         releaseItemsQty.value = 1;
         showItemsQtyDropDown.value = false;
         if(bandServiceImpl.bands.isNotEmpty) {
-          Get.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
+          Sint.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
         } else {
           setAsSolo();
         }
@@ -290,7 +290,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     AppConfig.logger.t("Adding ${instrumentsUsed.length} instruments used in release");
     try {
       appReleaseItem.value.instruments = instrumentsUsed;
-      Get.toNamed(AppRouteConstants.releaseUploadGenres);
+      Sint.toNamed(AppRouteConstants.releaseUploadGenres);
     } catch (e) {
       AppConfig.logger.e(e.toString());
     }
@@ -377,8 +377,8 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
       await createReleasePost();
 
-      if (Get.isRegistered<TimelineService>()) {
-        await Get.find<TimelineService>().getTimeline();
+      if (Sint.isRegistered<TimelineService>()) {
+        await Sint.find<TimelineService>().getTimeline();
       }
 
       AppUtilities.showSnackBar(
@@ -394,7 +394,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
     isButtonDisabled.value = false;
     isLoading.value = false;
-    Get.offAllNamed(AppRouteConstants.home);
+    Sint.offAllNamed(AppRouteConstants.home);
     update();
   }
 
@@ -580,7 +580,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       }
 
       if(appReleaseItems.length == releaseItemsQty.value) {
-        Get.toNamed(AppRouteConstants.releaseUploadInfo);
+        Sint.toNamed(AppRouteConstants.releaseUploadInfo);
       } else {
         gotoNextItemNameDesc();
       }
@@ -605,7 +605,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
         ///DEPRECATED setDigitalReleasePrice();
       }
 
-      Get.toNamed(AppRouteConstants.releaseUploadInstr);
+      Sint.toNamed(AppRouteConstants.releaseUploadInstr);
     } else {
       AppUtilities.showSnackBar(title: ReleaseTranslationConstants.releaseUpload, message: ReleaseTranslationConstants.releaseItemNameMsg);
     }
@@ -617,7 +617,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     AppConfig.logger.t("addItemlistNameDesc");
     setItemlistName();
     setItemlistDesc();
-    Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
+    Sint.toNamed(AppRouteConstants.releaseUploadNameDesc);
   }
 
   void setPhysicalReleasePrice() {
@@ -646,7 +646,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
   //   AppConfig.logger.t("");
   //   setReleaseName();
   //   setReleaseDesc();
-  //   Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
+  //   Sint.toNamed(AppRouteConstants.releaseUploadNameDesc);
   // }
 
   @override
@@ -682,7 +682,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       AppConfig.logger.e(e.toString());
     }
 
-    Get.toNamed(AppRouteConstants.releaseUploadSummary);
+    Sint.toNamed(AppRouteConstants.releaseUploadSummary);
     update([AppPageIdConstants.releaseUpload]);
   }
 
@@ -871,7 +871,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
       previewUrl: releaseFilePath,
       duration: int.parse(durationController.text),
     );
-    Get.toNamed(AppRouteConstants.pdfViewer,
+    Sint.toNamed(AppRouteConstants.pdfViewer,
         arguments: [previewItem, false]);
   }
 
@@ -909,7 +909,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
     descController.clear();
     appReleaseItem.value.name = '';
     releaseFilePreviewURL.value = '';
-    Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
+    Sint.toNamed(AppRouteConstants.releaseUploadNameDesc);
   }
 
   void removeLastReleaseItem() {
@@ -990,9 +990,9 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
 
   void gotoNameDesc() {
     if(AppConfig.instance.appInUse != AppInUse.g || appReleaseItem.value.type == ReleaseType.single) {
-      Get.toNamed(AppRouteConstants.releaseUploadNameDesc);
+      Sint.toNamed(AppRouteConstants.releaseUploadNameDesc);
     } else {
-      Get.toNamed(AppRouteConstants.releaseUploadItemlistNameDesc);
+      Sint.toNamed(AppRouteConstants.releaseUploadItemlistNameDesc);
     }
   }
 
@@ -1000,7 +1000,7 @@ class ReleaseUploadController extends GetxController with GetTickerProviderState
    if(userServiceImpl.userSubscription?.status == SubscriptionStatus.active) {
      // uploadMedia();
    } else {
-     AppAlerts.getSubscriptionAlert(Get.find<SubscriptionService>(), context, AppRouteConstants.releaseUpload);
+     AppAlerts.getSubscriptionAlert(Sint.find<SubscriptionService>(), context, AppRouteConstants.releaseUpload);
    }
   }
 

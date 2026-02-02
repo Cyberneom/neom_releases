@@ -2,7 +2,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
+import 'package:sint/sint.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
@@ -25,7 +25,7 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return GetBuilder<ReleaseUploadController>(
+    return SintBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
       builder: (controller) => Scaffold(
         extendBodyBehindAppBar: true,
