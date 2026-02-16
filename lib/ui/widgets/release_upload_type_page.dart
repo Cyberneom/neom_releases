@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sint/sint.dart';
+import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
 import 'package:neom_commons/ui/widgets/appbar_child.dart';
@@ -12,6 +12,7 @@ import 'package:neom_core/app_config.dart';
 import 'package:neom_core/utils/constants/app_route_constants.dart';
 import 'package:neom_core/utils/enums/app_in_use.dart';
 import 'package:neom_core/utils/enums/release_type.dart';
+import 'package:sint/sint.dart';
 
 import '../../utils/constants/release_translation_constants.dart';
 import '../../utils/constants/releases_constants.dart';
@@ -28,7 +29,7 @@ class ReleaseUploadType extends StatelessWidget {
         builder: (controller) => Obx(()=> Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBarChild(color: Colors.transparent),
-          backgroundColor: AppColor.main50,
+          backgroundColor: AppFlavour.getBackgroundColor(),
           body: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: AppTheme.appBoxDecoration,
@@ -36,7 +37,9 @@ class ReleaseUploadType extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: <Widget>[
-                HeaderIntro(subtitle: ReleaseTranslationConstants.releaseUploadType.tr, showLogo: AppConfig.instance.appInUse == AppInUse.g),
+                HeaderIntro(
+                    subtitle: ReleaseTranslationConstants.releaseUploadType.tr,
+                    showLogo: true),
                 AppTheme.heightSpace10,
                 Column(
                     mainAxisAlignment: MainAxisAlignment.center,

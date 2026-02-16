@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:sint/sint.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
 import 'package:neom_commons/ui/widgets/buttons/submit_button.dart';
@@ -21,6 +20,7 @@ import 'package:neom_core/utils/enums/app_in_use.dart';
 import 'package:neom_core/utils/enums/itemlist_type.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:rubber/rubber.dart';
+import 'package:sint/sint.dart';
 
 import '../../utils/constants/release_translation_constants.dart';
 import '../release_upload_controller.dart';
@@ -119,7 +119,12 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                               ) : const SizedBox.shrink(),
                             ]
                         ),
-                        GenresGridView(controller.appReleaseItem.value.categories, AppColor.yellow),
+                        GenresGridView(
+                            [
+                             ...controller.appReleaseItem.value.instruments ?? [],
+                             ...controller.appReleaseItem.value.categories,
+                            ],
+                            AppColor.yellow),
                         AppTheme.heightSpace10,
                         if(AppConfig.instance.appInUse == AppInUse.g && controller.appReleaseItems.isNotEmpty)
                           Column(
@@ -140,19 +145,52 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                               ),
                             ],
                           ),
-                        controller.releaseItemIndex > 0 ? Obx(()=> LinearPercentIndicator(
-                          padding: const EdgeInsets.symmetric(horizontal: 20),
-                          lineHeight: AppTheme.fullHeight(context) /15,
-                          percent: controller.releaseItemIndex/controller.releaseItemsQty.value,
-                          center: Text("${AppTranslationConstants.adding.tr} "
-                              "${controller.releaseItemIndex} ${ReleaseTranslationConstants.outOf.tr} ${controller.releaseItemsQty.value}"
+                        controller.isLoading.value
+                          ? Obx(() => Column(
+                              children: [
+                                if(controller.releaseItemIndex > 0 && controller.releaseItemsQty.value > 0)
+                                  LinearPercentIndicator(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                    lineHeight: AppTheme.fullHeight(context) / 15,
+                                    percent: (controller.releaseItemIndex / controller.releaseItemsQty.value).clamp(0.0, 1.0),
+                                    center: Text("${AppTranslationConstants.adding.tr} "
+                                        "${controller.releaseItemIndex} ${ReleaseTranslationConstants.outOf.tr} ${controller.releaseItemsQty.value}"),
+                                    progressColor: AppColor.bondiBlue,
+                                  ),
+                                if(controller.uploadStatusMessage.value.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const SizedBox(
+                                          width: 16, height: 16,
+                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          controller.uploadStatusMessage.value,
+                                          style: const TextStyle(fontSize: 14, color: Colors.white70),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ))
+                          : SubmitButton(context,
+                              text: AppConfig.instance.appInfo.releaseRevisionEnabled
+                                  ? ReleaseTranslationConstants.submitRelease.tr
+                                  : ReleaseTranslationConstants.publishOnPlatform.tr,
+                              isLoading: false, isEnabled: !controller.isButtonDisabled.value,
+                              onPressed: () => controller.submitRelease(context),
+                            ),
+                        if(!controller.isLoading.value && controller.releaseItemIndex.value == 0)
+                          TitleSubtitleRow("", showDivider: false,
+                            subtitle: AppConfig.instance.appInfo.releaseRevisionEnabled
+                                ? ReleaseTranslationConstants.submitReleaseMsg.tr
+                                : ReleaseTranslationConstants.publishOnPlatformMsg.tr,
+                            titleFontSize: 14, subTitleFontSize: 12,
                           ),
-                          progressColor: AppColor.bondiBlue,
-                        ),) : SubmitButton(context, text: ReleaseTranslationConstants.submitRelease.tr,
-                          isLoading: controller.isLoading.value, isEnabled: !controller.isButtonDisabled.value,
-                          onPressed: () => controller.submitRelease(context),
-                        ),
-                        if(controller.releaseItemIndex.value == 0) TitleSubtitleRow("", showDivider: false, subtitle: ReleaseTranslationConstants.submitReleaseMsg.tr, titleFontSize: 14, subTitleFontSize: 12,),
                       ],
                     ),
                   ),

@@ -1,5 +1,5 @@
-import 'package:sint/sint.dart';
 import 'package:neom_core/utils/constants/app_route_constants.dart';
+import 'package:sint/sint.dart';
 
 import 'ui/release_upload_page.dart';
 import 'ui/widgets/release_upload_band_or_solo_page.dart';

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:sint/sint.dart';
-import 'package:neom_commons/ui/theme/app_color.dart';
+import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
 import 'package:neom_commons/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/ui/widgets/header_intro.dart';
@@ -11,6 +10,7 @@ import 'package:neom_commons/utils/constants/translations/app_translation_consta
 import 'package:neom_core/app_config.dart';
 import 'package:neom_core/app_properties.dart';
 import 'package:neom_core/utils/enums/app_in_use.dart';
+import 'package:sint/sint.dart';
 
 import '../../utils/constants/release_translation_constants.dart';
 import '../release_upload_controller.dart';
@@ -27,7 +27,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
          return Scaffold(
            extendBodyBehindAppBar: true,
            appBar: AppBarChild(color: Colors.transparent),
-           backgroundColor: AppColor.main50,
+           backgroundColor: AppFlavour.getBackgroundColor(),
            body: Container(
              height: AppTheme.fullHeight(context),
              decoration: AppTheme.appBoxDecoration,

@@ -1,8 +1,6 @@
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:sint/sint.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
@@ -14,6 +12,7 @@ import 'package:neom_core/domain/model/band.dart';
 import 'package:neom_core/domain/model/band_member.dart';
 import 'package:neom_core/utils/core_utilities.dart';
 import 'package:neom_core/utils/enums/band_member_role.dart';
+import 'package:sint/sint.dart';
 
 import '../../utils/constants/release_translation_constants.dart';
 import '../release_upload_controller.dart';
@@ -30,12 +29,12 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
       builder: (controller) => Scaffold(
         extendBodyBehindAppBar: true,
         appBar: AppBarChild(color: Colors.transparent),
-        backgroundColor: AppColor.main50,
+        backgroundColor: AppFlavour.getBackgroundColor(),
         body: Container(
-            decoration: AppTheme.boxDecoration,
-            height: AppTheme.fullHeight(context),
-            child: Column(
-              children: [
+          decoration: AppTheme.boxDecoration,
+          height: AppTheme.fullHeight(context),
+          child: Column(
+            children: [
               AppTheme.heightSpace30,
               HeaderIntro(subtitle: ReleaseTranslationConstants.releaseUploadBandSelection.tr),
               AppTheme.heightSpace20,
@@ -96,7 +95,7 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
               end: Alignment.bottomCenter,
               stops: const [0, 0.35, 1],
               colors: [
-                theme.scaffoldBackgroundColor.withOpacity(0),
+                theme.scaffoldBackgroundColor.withValues(alpha: 0),
                 theme.scaffoldBackgroundColor,
                 theme.scaffoldBackgroundColor,
               ],

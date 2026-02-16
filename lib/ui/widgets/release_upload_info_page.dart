@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:sint/sint.dart';
+import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
 import 'package:neom_commons/ui/widgets/appbar_child.dart';
@@ -12,9 +12,11 @@ import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/utils/constants/translations/app_translation_constants.dart';
 import 'package:neom_core/app_config.dart';
 import 'package:neom_core/utils/enums/app_in_use.dart';
+import 'package:sint/sint.dart';
 
 import '../../utils/constants/release_translation_constants.dart';
 import '../release_upload_controller.dart';
+import 'publisher_search_field.dart';
 
 class ReleaseUploadInfoPage extends StatelessWidget {
   const ReleaseUploadInfoPage({super.key});
@@ -25,17 +27,18 @@ class ReleaseUploadInfoPage extends StatelessWidget {
     return SintBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
       builder: (controller) {
-        return WillPopScope(
-          onWillPop: () async {
+        return PopScope(
+          canPop: true,
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop) return;
             if(controller.releaseItemsQty.value > 1 && controller.appReleaseItems.isNotEmpty) {
               controller.removeLastReleaseItem();
             }
-            return true; // Return true to allow the back button press to pop the screen
-        },
-        child: Obx(()=> Scaffold(
+          },
+          child: Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBarChild(color: Colors.transparent),
-          backgroundColor: AppColor.main50,
+          backgroundColor: AppFlavour.getBackgroundColor(),
           body: Container(
             height: MediaQuery.of(context).size.height,
             padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
@@ -45,8 +48,10 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   AppTheme.heightSpace100,
-                  HeaderIntro(subtitle: ReleaseTranslationConstants.releaseUploadPLaceDate.tr, showPreLogo: false,),
-                  AppTheme.heightSpace10,
+                  HeaderIntro(
+                    subtitle: ReleaseTranslationConstants.releaseUploadPLaceDate.tr,
+                    showPreLogo: true,),
+                  AppTheme.heightSpace20,
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -98,26 +103,34 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                     ],
                   ),
                   AppTheme.heightSpace20,
-                  controller.isAutoPublished.value ? const SizedBox.shrink() : TextFormField(
-                    controller: controller.placeController,
-                    onTap:() => controller.getPublisherPlace(context) ,
-                    enabled: !controller.isAutoPublished.value,
-                    decoration: InputDecoration(
-                      filled: true,
-                      labelText: ReleaseTranslationConstants.specifyPublishingPlace.tr,
-                      labelStyle: const TextStyle(fontSize: 15),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  controller.isAutoPublished.value ? const SizedBox.shrink() :
+                  // Use PublisherSearchField for EMXI (book publishing - search users/profiles)
+                  // Use Maps autocomplete for music apps (venue/studio location)
+                  AppConfig.instance.appInUse == AppInUse.e
+                    ? PublisherSearchField(
+                        controller: controller.placeController,
+                        onPublisherSelected: controller.onPublisherSelected,
+                      )
+                    : TextFormField(
+                        controller: controller.placeController,
+                        onTap:() => controller.getPublisherPlace(context),
+                        enabled: !controller.isAutoPublished.value,
+                        decoration: InputDecoration(
+                          filled: true,
+                          labelText: ReleaseTranslationConstants.specifyPublishingPlace.tr,
+                          labelStyle: const TextStyle(fontSize: 15),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
                       ),
-                    ),
-                  ),
                   AppTheme.heightSpace20,
-                  controller.releaseCoverImgPath.isNotEmpty && AppConfig.instance.appInUse == AppInUse.e
+                  Obx(()=> controller.releaseCoverImgPath.isNotEmpty && AppConfig.instance.appInUse == AppInUse.e
                       ? Text(ReleaseTranslationConstants.tapCoverToPreviewRelease.tr,
                     style: const TextStyle(decoration: TextDecoration.underline),)
-                      : const SizedBox.shrink(),
-                  controller.releaseCoverImgPath.isNotEmpty ? AppTheme.heightSpace5 : const SizedBox.shrink(),
-                  controller.releaseCoverImgPath.isEmpty ?
+                      : const SizedBox.shrink(),),
+                  Obx(()=> controller.releaseCoverImgPath.isNotEmpty ? AppTheme.heightSpace5 : const SizedBox.shrink(),),
+                  Obx(()=> controller.releaseCoverImgPath.isEmpty ?
                   GestureDetector(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -130,8 +143,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                         ],
                       ),
                       onTap: () => controller.addReleaseCoverImg()
-                  ) :
-                  Stack(
+                  ) : Stack(
                       alignment: Alignment.bottomRight,
                       children: [
                         ClipRRect(
@@ -139,8 +151,10 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                           child: GestureDetector(
                             child: Image.file(
                               File(controller.releaseCoverImgPath.value),
-                              height: 180,
-                              width: 180
+                              // Book cover format (6:9) for EMXI, square (1:1) for music apps
+                              height: AppConfig.instance.appInUse == AppInUse.e ? 240 : 180,
+                              width: AppConfig.instance.appInUse == AppInUse.e ? 160 : 180,
+                              fit: BoxFit.cover,
                             ),
                             onTap: () => AppConfig.instance.appInUse == AppInUse.e ? controller.gotoPdfPreview() : {}
                           ),
@@ -157,18 +171,17 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                           ),
                         ),
                       ]
-                  ),
+                  ),),
                   AppTheme.heightSpace20,
-                  controller.validateInfo() ? SummaryButton(AppTranslationConstants.viewSummary.tr,
+                  Obx(()=>controller.validateInfo() ? SummaryButton(AppTranslationConstants.viewSummary.tr,
                     onPressed: controller.gotoReleaseSummary,
-                  ) : const SizedBox.shrink(),
+                  ) : const SizedBox.shrink(),),
                   AppTheme.heightSpace20
                 ],
               ),
             ),
           ),
-        )),
-        );
+        ));
       }
     );
   }

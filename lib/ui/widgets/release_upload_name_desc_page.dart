@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:sint/sint.dart';
-import 'package:neom_commons/ui/theme/app_color.dart';
+import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
 import 'package:neom_commons/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/ui/widgets/header_intro.dart';
 import 'package:neom_commons/ui/widgets/number_limit_input_formatter.dart';
+import 'package:neom_commons/ui/widgets/right_side_company_logo.dart';
 import 'package:neom_commons/ui/widgets/title_subtitle_row.dart';
 import 'package:neom_commons/utils/constants/app_hero_tag_constants.dart';
 import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
@@ -16,6 +16,7 @@ import 'package:neom_core/app_config.dart';
 import 'package:neom_core/app_properties.dart';
 import 'package:neom_core/utils/enums/app_currency.dart';
 import 'package:neom_core/utils/enums/app_in_use.dart';
+import 'package:sint/sint.dart';
 
 import '../../utils/constants/release_translation_constants.dart';
 import '../release_upload_controller.dart';
@@ -29,24 +30,27 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
     return SintBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
       builder: (controller) {
-         return WillPopScope(
-           onWillPop: () async {
-             if(AppConfig.instance.appInUse != AppInUse.g) return true;
+         return PopScope(
+           canPop: true,
+           onPopInvokedWithResult: (didPop, result) {
+             if (didPop) return;
+             if(AppConfig.instance.appInUse != AppInUse.g) return;
 
              if(controller.releaseItemsQty.value > 1 && controller.appReleaseItems.isNotEmpty) {
                controller.removeLastReleaseItem();
              }
-
-           return controller.appReleaseItems.isEmpty; ///If not empty keeps on loop removing previous added songs
-         },
-        child: Scaffold(
+           },
+           child: Scaffold(
            extendBodyBehindAppBar: true,
            appBar: AppBarChild(
              color: controller.releaseItemsQty.value > 1 ? null : Colors.transparent,
              title: controller.releaseItemsQty.value > 1  && controller.appReleaseItems.length < controller.releaseItemsQty.value  ? '${AppTranslationConstants.releaseItem.tr} ${controller.appReleaseItems.length+1} '
                  '${AppTranslationConstants.of.tr} ${controller.releaseItemsQty.value}' : '',
+             actionWidgets: [
+               RightSideCompanyLogo()
+             ],
            ),
-           backgroundColor: AppColor.main50,
+           backgroundColor: AppFlavour.getBackgroundColor(),
            body: Container(
              height: AppTheme.fullHeight(context),
              decoration: AppTheme.appBoxDecoration,
@@ -56,14 +60,28 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                   AppTheme.heightSpace100,
                   HeaderIntro(
                     subtitle: ReleaseTranslationConstants.releaseUploadNameDesc.tr,
-                    showPreLogo: false,
                   ),
                   AppTheme.heightSpace10,
                   Padding(
                     padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
                     child: TextFormField(
-                      controller: controller.nameController,
-                      onChanged:(text) => controller.setReleaseName() ,
+                      controller: controller.authorController,
+                      onChanged:(text) => controller.setReleaseTitle() ,
+                      decoration: InputDecoration(
+                        filled: true,
+                        labelText: ReleaseTranslationConstants.releaseAuthor.tr,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                    ),
+                  ),
+                  AppTheme.heightSpace10,
+                  Padding(
+                    padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
+                    child: TextFormField(
+                      controller: controller.titleController,
+                      onChanged:(text) => controller.setReleaseTitle() ,
                       decoration: InputDecoration(
                         filled: true,
                         labelText: ReleaseTranslationConstants.releaseTitle.tr,
@@ -171,8 +189,11 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                         ),
                     ],),
                   ) : const SizedBox.shrink(),
-                  if(controller.releaseItemsQty.value == 1) TitleSubtitleRow("", showDivider: false, vPadding: 10, hPadding: 20, subtitle: ReleaseTranslationConstants.releasePriceMsg.tr, titleFontSize: 14, subTitleFontSize: 12,
-                  url: AppProperties.getDigitalPositioningUrl()),
+                  if(controller.releaseItemsQty.value == 1)
+                    TitleSubtitleRow("", showDivider: false, vPadding: 10,
+                        hPadding: 20, subtitle: ReleaseTranslationConstants.releasePriceMsg.tr,
+                        titleFontSize: 14, subTitleFontSize: 12,
+                        url: AppProperties.getDigitalPositioningUrl()),
                   AppTheme.heightSpace10,
                   GestureDetector(
                     child: Row(
@@ -180,14 +201,14 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                       children: [
                         const Icon(FontAwesomeIcons.file, size: 20),
                         AppTheme.widthSpace5,
-                        Text(controller.releaseFilePreviewURL.isEmpty
+                        Obx(()=> Text(controller.releaseFilePreviewURL.isEmpty
                             ? ReleaseTranslationConstants.addReleaseFile.tr
                             : ReleaseTranslationConstants.changeReleaseFile.tr,
                           style: const TextStyle(color: Colors.white70,),
-                        ),
+                        ),),
                       ],
                     ),
-                    onTap: () async {controller.addReleaseFile();}
+                    onTap: () => controller.addReleaseFile(),
                   ),
                   Obx(() => controller.releaseFilePreviewURL.isNotEmpty
                       ? Padding(
