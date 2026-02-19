@@ -74,14 +74,14 @@ import '../utils/constants/release_translation_constants.dart';
 class ReleaseUploadController extends SintController with SintTickerProviderStateMixin implements ReleaseUploadService {
 
   final userServiceImpl = Sint.find<UserService>();
-  final mapsServiceImpl = Sint.find<MapsService>();
+  final MapsService? mapsServiceImpl = Sint.isRegistered<MapsService>() ? Sint.find<MapsService>() : null;
   final instrumentServiceImpl = Sint.find<InstrumentService>();
   final bandServiceImpl = Sint.find<BandService>();
-  final mediaUploadServiceImpl = Sint.find<MediaUploadService>();
-  final mediaPlayerServiceImpl = Sint.find<MediaPlayerService>();
+  final MediaUploadService? mediaUploadServiceImpl = Sint.isRegistered<MediaUploadService>() ? Sint.find<MediaUploadService>() : null;
+  final MediaPlayerService? mediaPlayerServiceImpl = Sint.isRegistered<MediaPlayerService>() ? Sint.find<MediaPlayerService>() : null;
   final wooMediaServiceImpl = Sint.find<WooMediaService>();
   final wooGatewayServiceImpl = Sint.find<WooGatewayService>();
-  final audioLitePlayerServiceImpl = Sint.find<AudioLitePlayerService>();
+  final AudioLitePlayerService? audioLitePlayerServiceImpl = Sint.isRegistered<AudioLitePlayerService>() ? Sint.find<AudioLitePlayerService>() : null;
 
   /// Cache controller for draft management
   late final ReleaseCacheController cacheController;
@@ -173,7 +173,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       ///DEPRECATED
       // digitalPriceController.text = AppFlavour.getInitialPrice();
 
-      mapsServiceImpl.goToPosition(profile.position!);
+      mapsServiceImpl!.goToPosition(profile.position!);
 
       // Check for pending draft
       await _checkForPendingDraft();
@@ -262,7 +262,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
           && File(draft.coverImageLocalPath!).existsSync()) {
         releaseCoverImgPath.value = draft.coverImageLocalPath!;
         try {
-          mediaUploadServiceImpl.setMediaFile(File(draft.coverImageLocalPath!));
+          mediaUploadServiceImpl!.setMediaFile(File(draft.coverImageLocalPath!));
         } catch (e) {
           AppConfig.logger.w('Could not restore media file to service: $e');
         }
@@ -383,7 +383,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     try { rubberAnimationController.dispose(); } catch (_) {}
     try { releaseUploadDetailsAnimationController.dispose(); } catch (_) {}
 
-    audioLitePlayerServiceImpl.clear();
+    audioLitePlayerServiceImpl!.clear();
   }
 
   @override
@@ -535,13 +535,13 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         releaseCoverImgURL = draft.coverImageRemoteUrl!;
         releaseItemlist.imgUrl = releaseCoverImgURL;
         AppConfig.logger.i('Resuming: Cover already uploaded, skipping. URL: $releaseCoverImgURL');
-      } else if(mediaUploadServiceImpl.mediaFileExists()) {
-        AppConfig.logger.d("Uploading releaseCoverImg from: ${mediaUploadServiceImpl.getMediaFile().path}");
+      } else if(mediaUploadServiceImpl!.mediaFileExists()) {
+        AppConfig.logger.d("Uploading releaseCoverImg from: ${mediaUploadServiceImpl!.getMediaFile().path}");
         uploadStatusMessage.value = ReleaseTranslationConstants.uploadingCover.tr;
         update([AppPageIdConstants.releaseUpload]);
 
         releaseCoverImgURL = await wooMediaServiceImpl.uploadMediaToWordPress(
-          mediaUploadServiceImpl.getMediaFile(),
+          mediaUploadServiceImpl!.getMediaFile(),
           fileName: releaseItemlist.name
         );
 
@@ -923,9 +923,9 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     AppConfig.logger.t("");
 
     try {
-      Prediction prediction = await mapsServiceImpl.placeAutoComplete(context, placeController.text);
-      publisherPlace.value = await mapsServiceImpl.predictionToGooglePlace(prediction);
-      mapsServiceImpl.goToPosition(publisherPlace.value.position!);
+      Prediction prediction = await mapsServiceImpl!.placeAutoComplete(context, placeController.text);
+      publisherPlace.value = await mapsServiceImpl!.predictionToGooglePlace(prediction);
+      mapsServiceImpl!.goToPosition(publisherPlace.value.position!);
       placeController.text = publisherPlace.value.name;
       FocusScope.of(context).requestFocus(FocusNode()); //remove focus
     } catch (e) {
@@ -964,7 +964,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     // Publisher name is valid if auto-published OR if placeController has text
     // No longer requires coordinates - just the publisher name
     return ((isAutoPublished.value || placeController.text.trim().isNotEmpty)
-        && mediaUploadServiceImpl.mediaFileExists());
+        && mediaUploadServiceImpl!.mediaFileExists());
   }
 
   @override
@@ -1096,7 +1096,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
   Future<void> addNameDescToReleaseItem() async {
     AppConfig.logger.t("addNameDescToReleaseItem");
-    audioLitePlayerServiceImpl.stop();
+    audioLitePlayerServiceImpl!.stop();
 
     if(appReleaseItems.where((element) => element.name == titleController.text.trim()).isEmpty) {
       setReleaseTitle();
@@ -1213,15 +1213,15 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   Future<void> addReleaseCoverImg() async {
     AppConfig.logger.t("addReleaseCoverImg");
     try {
-      await mediaUploadServiceImpl.handleImage(
+      await mediaUploadServiceImpl!.handleImage(
         uploadDestination: MediaUploadDestination.releaseItem,
         crop: false,
         ratioX: AppConfig.instance.appInUse != AppInUse.e ? 1 : 6,
         ratioY: AppConfig.instance.appInUse != AppInUse.e ? 1 : 9,
       );
 
-      if(mediaUploadServiceImpl.mediaFileExists()) {
-        releaseCoverImgPath.value = mediaUploadServiceImpl.getMediaFile().path;
+      if(mediaUploadServiceImpl!.mediaFileExists()) {
+        releaseCoverImgPath.value = mediaUploadServiceImpl!.getMediaFile().path;
       }
     } catch (e) {
       AppConfig.logger.e(e.toString());
@@ -1234,7 +1234,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   void clearReleaseCoverImg() {
     AppConfig.logger.d("clearReleaseCoverImg");
     try {
-      mediaUploadServiceImpl.clearMedia();
+      mediaUploadServiceImpl!.clearMedia();
       releaseCoverImgPath.value = '';
     } catch (e) {
       AppConfig.logger.e(e.toString());
@@ -1289,7 +1289,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   Widget getCoverImageWidget(BuildContext context) {
 
     Widget cachedNetworkImage;
-    bool containsCroppedImgFile = mediaUploadServiceImpl.mediaFileExists();
+    bool containsCroppedImgFile = mediaUploadServiceImpl!.mediaFileExists();
     String itemImgUrl = appReleaseItem.value.imgUrl.isNotEmpty
         ? appReleaseItem.value.imgUrl
         : releaseItemlist.imgUrl.isNotEmpty
@@ -1298,7 +1298,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
     try {
       if(containsCroppedImgFile) {
-        String croppedImgFilePath = mediaUploadServiceImpl.getMediaFile().path;
+        String croppedImgFilePath = mediaUploadServiceImpl!.getMediaFile().path;
         cachedNetworkImage = Image.file(
             File(croppedImgFilePath),
             width: AppTheme.fullWidth(context)*0.45
@@ -1328,11 +1328,11 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
     try {
 
-      await mediaUploadServiceImpl.pickMultipleMedia();
+      await mediaUploadServiceImpl!.pickMultipleMedia();
 
-      if(mediaUploadServiceImpl.releaseFiles.isNotEmpty) {
-        AppConfig.logger.d("Found ${mediaUploadServiceImpl.releaseFiles.length} files");
-        String releaseFileFirstName = FileSystemUtilities.getFileNameWithExtension(mediaUploadServiceImpl.releaseFiles.first.path);
+      if(mediaUploadServiceImpl!.releaseFiles.isNotEmpty) {
+        AppConfig.logger.d("Found ${mediaUploadServiceImpl!.releaseFiles.length} files");
+        String releaseFileFirstName = FileSystemUtilities.getFileNameWithExtension(mediaUploadServiceImpl!.releaseFiles.first.path);
         if(appReleaseItems.where((element) => element.previewUrl == releaseFileFirstName).isNotEmpty) {
           AppUtilities.showSnackBar(
               title: ReleaseTranslationConstants.releaseUpload,
@@ -1342,7 +1342,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
           return;
         }
 
-        releaseFilePath = mediaUploadServiceImpl.getReleaseFilePath();
+        releaseFilePath = mediaUploadServiceImpl!.getReleaseFilePath();
         appReleaseItem.value.previewUrl = releaseFileFirstName;
         releaseFilePreviewURL.value = releaseFileFirstName;
         
@@ -1360,10 +1360,10 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         }
 
         if(AppConfig.instance.appInUse == AppInUse.g) {
-          await audioLitePlayerServiceImpl.stop();
-          audioLitePlayerServiceImpl.setFilePath(releaseFilePath);
-          await audioLitePlayerServiceImpl.play();
-          appReleaseItem.value.duration = audioLitePlayerServiceImpl.durationInSeconds;
+          await audioLitePlayerServiceImpl!.stop();
+          audioLitePlayerServiceImpl!.setFilePath(releaseFilePath);
+          await audioLitePlayerServiceImpl!.play();
+          appReleaseItem.value.duration = audioLitePlayerServiceImpl!.durationInSeconds;
           durationController.text = appReleaseItem.value.duration.toString();
           if(appReleaseItem.value.duration > 0 && appReleaseItem.value.duration <= CoreConstants.maxAudioDuration) {
             AppConfig.logger.i("Audio duration of ${appReleaseItem.value.duration} seconds");
@@ -1411,7 +1411,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   }
 
   void gotoPdfPreview() {
-    releaseFilePath = mediaUploadServiceImpl.getReleaseFilePath();
+    releaseFilePath = mediaUploadServiceImpl!.getReleaseFilePath();
 
     AppReleaseItem previewItem = AppReleaseItem(
       previewUrl: releaseFilePath,
@@ -1560,7 +1560,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
      if (appReleaseItem.value.name.isEmpty) missingFields.add(ReleaseTranslationConstants.releaseTitle.tr);
      if (appReleaseItem.value.description.isEmpty && releaseItemlist.description.isEmpty) missingFields.add(ReleaseTranslationConstants.releaseDesc.tr);
      if (appReleaseItem.value.previewUrl.isEmpty && releaseFilePaths.isEmpty) missingFields.add(ReleaseTranslationConstants.addReleaseFile.tr);
-     if (!mediaUploadServiceImpl.mediaFileExists() && releaseCoverImgPath.value.isEmpty
+     if (!mediaUploadServiceImpl!.mediaFileExists() && releaseCoverImgPath.value.isEmpty
          && appReleaseItem.value.imgUrl.isEmpty && releaseItemlist.imgUrl.isEmpty) {
        missingFields.add(ReleaseTranslationConstants.addReleaseCoverImg.tr);
      }
@@ -1611,9 +1611,9 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
     try {
 
-      if(mediaUploadServiceImpl.mediaFileExists()) {
-        AppConfig.logger.d("Uploading releaseCoverImg from: ${mediaUploadServiceImpl.getMediaFile().path}");
-        releaseCoverImgURL = await wooMediaServiceImpl.uploadMediaToWordPress(mediaUploadServiceImpl.getMediaFile(), fileName: releaseItemlist.name);
+      if(mediaUploadServiceImpl!.mediaFileExists()) {
+        AppConfig.logger.d("Uploading releaseCoverImg from: ${mediaUploadServiceImpl!.getMediaFile().path}");
+        releaseCoverImgURL = await wooMediaServiceImpl.uploadMediaToWordPress(mediaUploadServiceImpl!.getMediaFile(), fileName: releaseItemlist.name);
         releaseItemlist.imgUrl = releaseCoverImgURL;
       }
 
@@ -1675,13 +1675,13 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     AppConfig.logger.d("Playing preview for item: ${item.name} - ${item.previewUrl}");
 
     if(isPlaying && previewPath.contains(item.previewUrl)) {
-      await audioLitePlayerServiceImpl.stop();
+      await audioLitePlayerServiceImpl!.stop();
       isPlaying = false;
     } else {
-      await audioLitePlayerServiceImpl.stop();
+      await audioLitePlayerServiceImpl!.stop();
       previewPath = releaseFilePaths.firstWhere((path) => path.contains(item.previewUrl));
-      await audioLitePlayerServiceImpl.setFilePath(previewPath);
-      await audioLitePlayerServiceImpl.play();
+      await audioLitePlayerServiceImpl!.setFilePath(previewPath);
+      await audioLitePlayerServiceImpl!.play();
       isPlaying = true;
     }
 
