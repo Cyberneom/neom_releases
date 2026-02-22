@@ -4,26 +4,28 @@ import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:pdfx/pdfx.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
 import 'package:neom_commons/utils/app_alerts.dart';
 import 'package:neom_commons/utils/app_utilities.dart';
-import 'package:neom_commons/utils/dialog_factory.dart';
 import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/utils/constants/translations/app_translation_constants.dart';
+import 'package:neom_commons/utils/dialog_factory.dart';
 import 'package:neom_commons/utils/file_system_utilities.dart';
 import 'package:neom_core/app_config.dart';
 import 'package:neom_core/app_properties.dart';
 import 'package:neom_core/data/api_services/push_notification/firebase_messaging_calls.dart';
+import 'package:neom_core/data/firestore/activity_feed_firestore.dart';
 import 'package:neom_core/data/firestore/app_release_item_firestore.dart';
 import 'package:neom_core/data/firestore/app_upload_firestore.dart';
 import 'package:neom_core/data/firestore/itemlist_firestore.dart';
 import 'package:neom_core/data/firestore/post_firestore.dart';
-import 'package:neom_core/data/firestore/user_firestore.dart';
+import 'package:neom_core/data/firestore/request_firestore.dart';
 import 'package:neom_core/data/implementations/geolocator_controller.dart';
+import 'package:neom_core/domain/model/activity_feed.dart';
 import 'package:neom_core/domain/model/app_profile.dart';
 import 'package:neom_core/domain/model/app_release_item.dart';
+import 'package:neom_core/domain/model/app_request.dart';
 import 'package:neom_core/domain/model/app_user.dart';
 import 'package:neom_core/domain/model/band.dart';
 import 'package:neom_core/domain/model/genre.dart';
@@ -47,6 +49,7 @@ import 'package:neom_core/domain/use_cases/woo_media_service.dart';
 import 'package:neom_core/utils/constants/app_route_constants.dart';
 import 'package:neom_core/utils/constants/core_constants.dart';
 import 'package:neom_core/utils/core_utilities.dart';
+import 'package:neom_core/utils/enums/activity_feed_type.dart';
 import 'package:neom_core/utils/enums/app_currency.dart';
 import 'package:neom_core/utils/enums/app_in_use.dart';
 import 'package:neom_core/utils/enums/app_media_type.dart';
@@ -60,13 +63,9 @@ import 'package:neom_core/utils/enums/release_type.dart';
 import 'package:neom_core/utils/enums/subscription_status.dart';
 import 'package:neom_core/utils/enums/verification_level.dart';
 import 'package:neom_maps_services/domain/models/prediction.dart';
+import 'package:pdfx/pdfx.dart';
 import 'package:rubber/rubber.dart';
 import 'package:sint/sint.dart';
-import 'package:neom_core/data/firestore/activity_feed_firestore.dart';
-import 'package:neom_core/data/firestore/request_firestore.dart';
-import 'package:neom_core/domain/model/activity_feed.dart';
-import 'package:neom_core/domain/model/app_request.dart';
-import 'package:neom_core/utils/enums/activity_feed_type.dart';
 
 import '../data/release_cache_controller.dart';
 import '../utils/constants/release_translation_constants.dart';
@@ -211,8 +210,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       // Restore itemlist
       if (draft.itemlist != null) {
         releaseItemlist = draft.itemlist!;
-        itemlistNameController.text = releaseItemlist.name ?? '';
-        itemlistDescController.text = releaseItemlist.description ?? '';
+        itemlistNameController.text = releaseItemlist.name;
+        itemlistDescController.text = releaseItemlist.description;
       }
 
       // Restore release items and validate local file paths
@@ -252,7 +251,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       // Restore publisher info
       if (draft.publisherPlace != null) {
         publisherPlace.value = draft.publisherPlace!;
-        placeController.text = draft.publisherPlace!.name ?? '';
+        placeController.text = draft.publisherPlace!.name;
       }
       isAutoPublished.value = draft.isAutoPublished;
       publishedYear.value = draft.publishedYear;
@@ -804,7 +803,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         // Create a global activity feed notification that all users will see
         final globalActivityFeed = ActivityFeed.fromGlobalNewRelease(
           releaseId: releaseItemlist.id,
-          releaseTitle: releaseItemlist.name ?? '',
+          releaseTitle: releaseItemlist.name,
           releaseCoverUrl: coverImageUrl,
           authorProfile: profile,
         );
@@ -831,9 +830,9 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         from: profile.id,
         to: CoreConstants.appBot,
         releaseItemId: releaseItemId,
-        releaseName: releaseItemlist.name ?? appReleaseItem.value.name,
+        releaseName: releaseItemlist.name,
         authorName: profile.name,
-        message: 'Solicitud de aprobación: "${releaseItemlist.name ?? appReleaseItem.value.name}" por ${profile.name}',
+        message: 'Solicitud de aprobación: "${releaseItemlist.name}" por ${profile.name}',
       );
 
       // Insert the request to Firestore
@@ -1554,7 +1553,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   }
 
   Future<void> submitRelease(BuildContext context) async {
-   if(true || userServiceImpl.userSubscription?.status == SubscriptionStatus.active) {
+   if(AppConfig.instance.appInfo.demoReleaseEnabled || userServiceImpl.userSubscription?.status == SubscriptionStatus.active) {
      // Validate required fields before proceeding
      final missingFields = <String>[];
      if (appReleaseItem.value.name.isEmpty) missingFields.add(ReleaseTranslationConstants.releaseTitle.tr);

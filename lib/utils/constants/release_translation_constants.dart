@@ -96,4 +96,9 @@ class ReleaseTranslationConstants {
   static const String sharePubliclyYes = 'sharePubliclyYes';
   static const String sharePubliclyNo = 'sharePubliclyNo';
 
+  static const String digitalSalesModel = 'digitalSalesModel';
+  static const String digitalSalesModelMsg = 'digitalSalesModelMsg';
+  static const String physicalSalesModel = 'physicalSalesModel';
+  static const String physicalSalesModelMsg = 'physicalSalesModelMsg';
+
 }
