@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -54,12 +55,15 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
            body: Container(
              height: AppTheme.fullHeight(context),
              decoration: AppTheme.appBoxDecoration,
-             child: SingleChildScrollView(
-               child: Column(
-                children: <Widget>[
-                  AppTheme.heightSpace100,
-                  HeaderIntro(
-                    subtitle: ReleaseTranslationConstants.releaseUploadNameDesc.tr,
+             child: Center(
+               child: ConstrainedBox(
+                 constraints: BoxConstraints(maxWidth: kIsWeb ? 800 : double.infinity),
+                 child: SingleChildScrollView(
+                   child: Column(
+                    children: <Widget>[
+                      AppTheme.heightSpace100,
+                      HeaderIntro(
+                        subtitle: ReleaseTranslationConstants.releaseUploadNameDesc.tr,
                   ),
                   AppTheme.heightSpace10,
                   Padding(
@@ -114,7 +118,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                      children: [
                        SizedBox(
-                         width: AppTheme.fullWidth(context) / 2.75,
+                         width: (kIsWeb ? 800 : AppTheme.fullWidth(context)) / 2.75,
                          child: TextFormField(
                            controller: controller.durationController,
                            keyboardType: TextInputType.number,
@@ -148,7 +152,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                          ],
                        ),
                       AppConfig.instance.appInUse != AppInUse.e ? Container(
-                           width: AppTheme.fullWidth(context) / 2.75,
+                           width: (kIsWeb ? 800 : AppTheme.fullWidth(context)) / 2.75,
                            alignment: Alignment.centerRight,
                            child:
                            Column(
@@ -165,7 +169,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                              ],
                            )
                       ) : SizedBox(
-                        width: AppTheme.fullWidth(context) / 2.75,
+                        width: (kIsWeb ? 800 : AppTheme.fullWidth(context)) / 2.75,
                         child: TextFormField(
                            controller: controller.physicalPriceController,
                            inputFormatters: [
@@ -221,9 +225,11 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                       ),
                     ) : const SizedBox.shrink(),
                   ),
-                  AppTheme.heightSpace30
-                ],
-              ),
+                      AppTheme.heightSpace30
+                    ],
+                  ),
+                 ),
+               ),
              ),
           ),
            floatingActionButton: controller.validateNameDesc() ? FloatingActionButton(

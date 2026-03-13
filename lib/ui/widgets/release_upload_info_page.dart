@@ -1,5 +1,5 @@
-import 'dart:io';
-
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:neom_core/utils/platform/core_io.dart';
 import 'package:flutter/material.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
@@ -43,8 +43,11 @@ class ReleaseUploadInfoPage extends StatelessWidget {
             height: MediaQuery.of(context).size.height,
             padding: const EdgeInsets.only(left: 20, right: 20, top: 10, bottom: 10),
             decoration: AppTheme.appBoxDecoration,
-            child: SingleChildScrollView(
-              child: Column(
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: kIsWeb ? 800 : double.infinity),
+                child: SingleChildScrollView(
+                  child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: <Widget>[
                   AppTheme.heightSpace100,
@@ -56,7 +59,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       SizedBox(
-                        width: AppTheme.fullWidth(context)/2,
+                        width: (kIsWeb ? 800 : AppTheme.fullWidth(context))/2,
                         child: GestureDetector(
                           child: Row(
                             children: <Widget>[
@@ -73,7 +76,7 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                         ),
                       ),
                       SizedBox(
-                        width: AppTheme.fullWidth(context)/2.8,
+                        width: (kIsWeb ? 800 : AppTheme.fullWidth(context))/2.8,
                         child: DropdownButton<int>(
                           hint: Text(ReleaseTranslationConstants.publishedYear.tr),
                           value: controller.publishedYear.value != 0 ? controller.publishedYear.value : null,
@@ -149,13 +152,19 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                         ClipRRect(
                           borderRadius: BorderRadius.circular(5.0),
                           child: GestureDetector(
-                            child: Image.file(
-                              File(controller.releaseCoverImgPath.value),
-                              // Book cover format (6:9) for EMXI, square (1:1) for music apps
-                              height: AppConfig.instance.appInUse == AppInUse.e ? 240 : 180,
-                              width: AppConfig.instance.appInUse == AppInUse.e ? 160 : 180,
-                              fit: BoxFit.cover,
-                            ),
+                            child: kIsWeb && controller.mediaUploadServiceImpl?.mediaBytes != null
+                                ? Image.memory(
+                                    controller.mediaUploadServiceImpl!.mediaBytes!,
+                                    height: AppConfig.instance.appInUse == AppInUse.e ? 240 : 180,
+                                    width: AppConfig.instance.appInUse == AppInUse.e ? 160 : 180,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Image.file(
+                                    File(controller.releaseCoverImgPath.value) as dynamic,
+                                    height: AppConfig.instance.appInUse == AppInUse.e ? 240 : 180,
+                                    width: AppConfig.instance.appInUse == AppInUse.e ? 160 : 180,
+                                    fit: BoxFit.cover,
+                                  ),
                             onTap: () => AppConfig.instance.appInUse == AppInUse.e ? controller.gotoPdfPreview() : {}
                           ),
                         ),
@@ -178,6 +187,8 @@ class ReleaseUploadInfoPage extends StatelessWidget {
                   ) : const SizedBox.shrink(),),
                   AppTheme.heightSpace20
                 ],
+              ),
+                ),
               ),
             ),
           ),

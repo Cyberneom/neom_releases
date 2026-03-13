@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
@@ -17,12 +18,18 @@ import 'package:sint/sint.dart';
 import '../../utils/constants/release_translation_constants.dart';
 import '../../utils/constants/releases_constants.dart';
 import '../release_upload_controller.dart';
+import 'release_upload_web_page.dart';
 
 class ReleaseUploadType extends StatelessWidget {
   const ReleaseUploadType({super.key});
 
   @override
   Widget build(BuildContext context) {
+    // On web with wide screen, show the single-page form directly
+    if (kIsWeb && MediaQuery.of(context).size.width > 900) {
+      return const ReleaseUploadWebPage();
+    }
+
     return SintBuilder<ReleaseUploadController>(
         id: AppPageIdConstants.releaseUpload,
         init: ReleaseUploadController(),
@@ -34,9 +41,11 @@ class ReleaseUploadType extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: AppTheme.appBoxDecoration,
             child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: kIsWeb ? 800 : double.infinity),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: <Widget>[
                 HeaderIntro(
                     subtitle: ReleaseTranslationConstants.releaseUploadType.tr,
                     showLogo: true),
@@ -103,6 +112,7 @@ class ReleaseUploadType extends StatelessWidget {
                   if(AppConfig.instance.appInUse == AppInUse.e) TitleSubtitleRow("", hPadding: 20,subtitle: ReleaseTranslationConstants.salesModelMsg.tr,showDivider: false,),
               ],
             ),
+          ),
           ),
         ),
         floatingActionButton: controller.releaseItemsQty.value > 0 ? FloatingActionButton(

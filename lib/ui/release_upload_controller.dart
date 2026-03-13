@@ -1,8 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:neom_commons/ui/widgets/images/handled_cached_network_image.dart';
 import 'package:flutter/foundation.dart';
+import 'package:neom_core/utils/platform/core_io.dart';
 import 'package:flutter/material.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
@@ -10,6 +10,7 @@ import 'package:neom_commons/utils/app_alerts.dart';
 import 'package:neom_commons/utils/app_utilities.dart';
 import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/utils/constants/translations/app_translation_constants.dart';
+import 'package:neom_commons/utils/constants/translations/common_translation_constants.dart';
 import 'package:neom_commons/utils/dialog_factory.dart';
 import 'package:neom_commons/utils/file_system_utilities.dart';
 import 'package:neom_core/app_config.dart';
@@ -53,6 +54,7 @@ import 'package:neom_core/utils/enums/activity_feed_type.dart';
 import 'package:neom_core/utils/enums/app_currency.dart';
 import 'package:neom_core/utils/enums/app_in_use.dart';
 import 'package:neom_core/utils/enums/app_media_type.dart';
+import 'package:neom_core/utils/enums/media_type.dart';
 import 'package:neom_core/utils/enums/itemlist_type.dart';
 import 'package:neom_core/utils/enums/media_upload_destination.dart';
 import 'package:neom_core/utils/enums/owner_type.dart';
@@ -99,8 +101,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   String backgroundImgUrl = "";
 
   late ScrollController scrollController = ScrollController();
-  late RubberAnimationController rubberAnimationController;
-  late RubberAnimationController releaseUploadDetailsAnimationController;
+  RubberAnimationController? rubberAnimationController;
+  RubberAnimationController? releaseUploadDetailsAnimationController;
 
   TextEditingController authorController = TextEditingController();
   TextEditingController titleController = TextEditingController();
@@ -166,13 +168,18 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       cacheController = Sint.put(ReleaseCacheController());
 
       scrollController = ScrollController();
-      rubberAnimationController = RubberAnimationController(vsync: this, duration: const Duration(milliseconds: 20));
-      releaseUploadDetailsAnimationController = getRubberAnimationController();
+
+      if (!kIsWeb) {
+        rubberAnimationController = RubberAnimationController(vsync: this, duration: const Duration(milliseconds: 20));
+        releaseUploadDetailsAnimationController = getRubberAnimationController();
+      }
 
       ///DEPRECATED
       // digitalPriceController.text = AppFlavour.getInitialPrice();
 
-      mapsServiceImpl!.goToPosition(profile.position!);
+      if (mapsServiceImpl != null && profile.position != null) {
+        mapsServiceImpl!.goToPosition(profile.position!);
+      }
 
       // Check for pending draft
       await _checkForPendingDraft();
@@ -379,10 +386,10 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       scrollController.dispose();
     }
 
-    try { rubberAnimationController.dispose(); } catch (_) {}
-    try { releaseUploadDetailsAnimationController.dispose(); } catch (_) {}
+    try { rubberAnimationController?.dispose(); } catch (_) {}
+    try { releaseUploadDetailsAnimationController?.dispose(); } catch (_) {}
 
-    audioLitePlayerServiceImpl!.clear();
+    audioLitePlayerServiceImpl?.clear();
   }
 
   @override
@@ -539,10 +546,20 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         uploadStatusMessage.value = ReleaseTranslationConstants.uploadingCover.tr;
         update([AppPageIdConstants.releaseUpload]);
 
-        releaseCoverImgURL = await wooMediaServiceImpl.uploadMediaToWordPress(
-          mediaUploadServiceImpl!.getMediaFile(),
-          fileName: releaseItemlist.name
-        );
+        // Web: upload cover from bytes. Mobile: upload from File via WordPress.
+        if (kIsWeb && mediaUploadServiceImpl!.mediaBytes != null) {
+          releaseCoverImgURL = await AppUploadFirestore().uploadMediaBytes(
+            mediaUploadServiceImpl!.getMediaId(),
+            mediaUploadServiceImpl!.mediaBytes!,
+            MediaType.image,
+            MediaUploadDestination.releaseItem,
+          );
+        } else {
+          releaseCoverImgURL = await wooMediaServiceImpl.uploadMediaToWordPress(
+            mediaUploadServiceImpl!.getMediaFile(),
+            fileName: releaseItemlist.name
+          );
+        }
 
         // CRITICAL: Validate cover upload was successful
         if (releaseCoverImgURL.isEmpty) {
@@ -638,15 +655,28 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
             mediaType = AppMediaType.text;
           }
 
-          String filePath = releaseFilePaths.elementAt(releaseItemIndex.value);
-
-          File fileToUpload = await FileSystemUtilities.getFileFromPath(filePath);
           String uploadedFileUrl = '';
 
-          if(AppProperties.mediaToWordpressFlag()) {
-            uploadedFileUrl = await wooMediaServiceImpl.uploadMediaToWordPress(fileToUpload, fileName: releaseItem.name);
+          // Web: upload from bytes. Mobile: upload from file path.
+          if (kIsWeb && mediaUploadServiceImpl != null) {
+            final bytes = mediaUploadServiceImpl!.getReleaseFileBytes(releaseItemIndex.value);
+            if (bytes != null && bytes.isNotEmpty) {
+              if (AppProperties.mediaToWordpressFlag()) {
+                // WooCommerce upload needs File — not supported on web, use Firebase
+                uploadedFileUrl = await AppUploadFirestore().uploadReleaseItemBytes(releaseItem.name, bytes, mediaType);
+              } else {
+                uploadedFileUrl = await AppUploadFirestore().uploadReleaseItemBytes(releaseItem.name, bytes, mediaType);
+              }
+            }
           } else {
-            uploadedFileUrl = await AppUploadFirestore().uploadReleaseItem(releaseItem.name, fileToUpload, mediaType);
+            String filePath = releaseFilePaths.elementAt(releaseItemIndex.value);
+            File fileToUpload = await FileSystemUtilities.getFileFromPath(filePath);
+
+            if(AppProperties.mediaToWordpressFlag()) {
+              uploadedFileUrl = await wooMediaServiceImpl.uploadMediaToWordPress(fileToUpload, fileName: releaseItem.name);
+            } else {
+              uploadedFileUrl = await AppUploadFirestore().uploadReleaseItem(releaseItem.name, fileToUpload, mediaType);
+            }
           }
 
           // CRITICAL: Validate file upload was successful
@@ -963,7 +993,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     // Publisher name is valid if auto-published OR if placeController has text
     // No longer requires coordinates - just the publisher name
     return ((isAutoPublished.value || placeController.text.trim().isNotEmpty)
-        && mediaUploadServiceImpl!.mediaFileExists());
+        && (mediaUploadServiceImpl?.mediaFileExists() ?? false));
   }
 
   @override
@@ -1211,6 +1241,13 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   @override
   Future<void> addReleaseCoverImg() async {
     AppConfig.logger.t("addReleaseCoverImg");
+    if (mediaUploadServiceImpl == null) {
+      AppUtilities.showSnackBar(
+        title: ReleaseTranslationConstants.releaseUpload,
+        message: CommonTranslationConstants.notAvailable,
+      );
+      return;
+    }
     try {
       await mediaUploadServiceImpl!.handleImage(
         uploadDestination: MediaUploadDestination.releaseItem,
@@ -1233,7 +1270,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   void clearReleaseCoverImg() {
     AppConfig.logger.d("clearReleaseCoverImg");
     try {
-      mediaUploadServiceImpl!.clearMedia();
+      mediaUploadServiceImpl?.clearMedia();
       releaseCoverImgPath.value = '';
     } catch (e) {
       AppConfig.logger.e(e.toString());
@@ -1263,7 +1300,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       yield Padding(
         padding: const EdgeInsets.all(5.0),
         child: FilterChip(
-          backgroundColor: AppColor.main50,
+          backgroundColor: AppColor.surfaceBright,
           avatar: CircleAvatar(
             backgroundColor: Colors.cyan,
             child: Text(genre.name[0].toUpperCase(),
@@ -1272,7 +1309,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
           ),
           label: Text(genre.name.capitalize, style: const TextStyle(fontSize: 15),),
           selected: selectedGenres.contains(genre.name),
-          selectedColor: AppColor.main50,
+          selectedColor: AppColor.surfaceCard,
           onSelected: (bool selected) {
             if (selected) {
               addGenre(genre);
@@ -1288,34 +1325,40 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   Widget getCoverImageWidget(BuildContext context) {
 
     Widget cachedNetworkImage;
-    bool containsCroppedImgFile = mediaUploadServiceImpl!.mediaFileExists();
+    bool containsCroppedImgFile = mediaUploadServiceImpl?.mediaFileExists() ?? false;
     String itemImgUrl = appReleaseItem.value.imgUrl.isNotEmpty
         ? appReleaseItem.value.imgUrl
         : releaseItemlist.imgUrl.isNotEmpty
             ? releaseItemlist.imgUrl
             : AppProperties.getAppLogoUrl();
 
+    final coverWidth = (kIsWeb ? 800.0 : AppTheme.fullWidth(context)) * 0.45;
+
     try {
-      if(containsCroppedImgFile) {
+      if(!kIsWeb && containsCroppedImgFile) {
         String croppedImgFilePath = mediaUploadServiceImpl!.getMediaFile().path;
         cachedNetworkImage = Image.file(
-            File(croppedImgFilePath),
-            width: AppTheme.fullWidth(context)*0.45
+            File(croppedImgFilePath) as dynamic,
+            width: coverWidth
         );
-      } else if(releaseCoverImgPath.value.isNotEmpty && File(releaseCoverImgPath.value).existsSync()) {
+      } else if(!kIsWeb && releaseCoverImgPath.value.isNotEmpty && File(releaseCoverImgPath.value).existsSync()) {
         cachedNetworkImage = Image.file(
-            File(releaseCoverImgPath.value),
-            width: AppTheme.fullWidth(context)*0.45
+            File(releaseCoverImgPath.value) as dynamic,
+            width: coverWidth
         );
       } else {
-        cachedNetworkImage = CachedNetworkImage(
-            imageUrl: itemImgUrl,
-            width: AppTheme.fullWidth(context)*0.45);
+        cachedNetworkImage = HandledCachedNetworkImage(
+            itemImgUrl,
+            width: coverWidth,
+            enableFullScreen: false,
+        );
       }
     } catch (e) {
       AppConfig.logger.e(e.toString());
-      cachedNetworkImage = CachedNetworkImage(imageUrl: itemImgUrl,
-          width: AppTheme.fullWidth(context)*0.45);
+      cachedNetworkImage = HandledCachedNetworkImage(itemImgUrl,
+          width: coverWidth,
+          enableFullScreen: false,
+      );
     }
 
     return cachedNetworkImage;
@@ -1324,6 +1367,14 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   @override
   Future<void> addReleaseFile() async {
     AppConfig.logger.d("Handling Release File From Gallery");
+
+    if (mediaUploadServiceImpl == null) {
+      AppUtilities.showSnackBar(
+        title: ReleaseTranslationConstants.releaseUpload,
+        message: CommonTranslationConstants.notAvailable,
+      );
+      return;
+    }
 
     try {
 
@@ -1344,7 +1395,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         releaseFilePath = mediaUploadServiceImpl!.getReleaseFilePath();
         appReleaseItem.value.previewUrl = releaseFileFirstName;
         releaseFilePreviewURL.value = releaseFileFirstName;
-        
+
         if(titleController.text.isEmpty) {
           AppConfig.logger.d("Setting name from file name");
           String tempTitleName = '';
@@ -1358,7 +1409,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
           titleController.text = tempTitleName;
         }
 
-        if(AppConfig.instance.appInUse == AppInUse.g) {
+        if(audioLitePlayerServiceImpl != null && appReleaseItem.value.isAudioContent) {
           await audioLitePlayerServiceImpl!.stop();
           audioLitePlayerServiceImpl!.setFilePath(releaseFilePath);
           await audioLitePlayerServiceImpl!.play();
@@ -1381,6 +1432,100 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     }
 
     ///DEPRECATED update([AppPageIdConstants.releaseUpload]);
+  }
+
+  /// Picks multiple audio files and populates the track list for web album uploads.
+  /// Returns the number of tracks added. Each file becomes a track in appReleaseItems.
+  Future<int> addReleaseFilesWeb() async {
+    AppConfig.logger.d("addReleaseFilesWeb — multi-track pick");
+
+    if (mediaUploadServiceImpl == null) {
+      AppUtilities.showSnackBar(
+        title: ReleaseTranslationConstants.releaseUpload,
+        message: CommonTranslationConstants.notAvailable,
+      );
+      return 0;
+    }
+
+    try {
+      await mediaUploadServiceImpl!.pickMultipleMedia();
+      final pickedFiles = mediaUploadServiceImpl!.releaseFiles;
+      if (pickedFiles.isEmpty) return 0;
+
+      AppConfig.logger.d("Web picked ${pickedFiles.length} files");
+
+      // Clear previous tracks and paths
+      appReleaseItems.clear();
+      releaseFilePaths.clear();
+
+      for (int i = 0; i < pickedFiles.length; i++) {
+        final fileName = mediaUploadServiceImpl!.getReleaseFileName(i);
+        if (fileName.isEmpty) continue;
+
+        // Extract track name from file name
+        String trackName = fileName;
+        if (trackName.contains('.')) {
+          trackName = trackName.substring(0, trackName.lastIndexOf('.'));
+        }
+        // Clean up common prefixes (track numbers like "01 - ", "01. ")
+        trackName = trackName.replaceAll(RegExp(r'^\d+[\s.\-_]+'), '').trim();
+
+        final trackItem = AppReleaseItem.fromJSON(appReleaseItem.value.toJSON());
+        trackItem.name = trackName;
+        trackItem.previewUrl = fileName;
+        trackItem.ownerEmail = user.email;
+        trackItem.ownerName = authorController.text.trim();
+        trackItem.galleryUrls = [profile.photoUrl];
+        trackItem.ownerType = OwnerType.profile;
+
+        appReleaseItems.add(trackItem);
+        releaseFilePaths.add(fileName); // On web, just the filename
+      }
+
+      // Update quantity to match picked files
+      releaseItemsQty.value = appReleaseItems.length;
+      releaseFilePreviewURL.value = '${appReleaseItems.length} tracks';
+
+      update([AppPageIdConstants.releaseUpload]);
+      return appReleaseItems.length;
+    } catch (e) {
+      AppConfig.logger.e("addReleaseFilesWeb error: $e");
+    }
+    return 0;
+  }
+
+  /// Removes a track from the web track list by index.
+  void removeTrackAt(int index) {
+    if (index >= 0 && index < appReleaseItems.length) {
+      appReleaseItems.removeAt(index);
+      if (index < releaseFilePaths.length) {
+        releaseFilePaths.removeAt(index);
+      }
+      releaseItemsQty.value = appReleaseItems.length;
+      releaseFilePreviewURL.value = appReleaseItems.isNotEmpty
+          ? '${appReleaseItems.length} tracks' : '';
+      update([AppPageIdConstants.releaseUpload]);
+    }
+  }
+
+  /// Reorders tracks in the web track list.
+  void reorderTrack(int oldIndex, int newIndex) {
+    if (newIndex > oldIndex) newIndex--;
+    final item = appReleaseItems.removeAt(oldIndex);
+    appReleaseItems.insert(newIndex, item);
+    if (oldIndex < releaseFilePaths.length && newIndex <= releaseFilePaths.length) {
+      final path = releaseFilePaths.removeAt(oldIndex);
+      releaseFilePaths.insert(newIndex, path);
+    }
+    update([AppPageIdConstants.releaseUpload]);
+  }
+
+  /// Updates the name of a track at the given index.
+  void updateTrackName(int index, String name) {
+    if (index >= 0 && index < appReleaseItems.length) {
+      appReleaseItems[index].name = name;
+      update([AppPageIdConstants.releaseUpload]);
+    }
   }
 
   /// Extracts the page count from a PDF file and sets it in durationController
@@ -1416,7 +1561,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       previewUrl: releaseFilePath,
       duration: int.parse(durationController.text),
     );
-    Sint.toNamed(AppRouteConstants.pdfViewer,
+    Sint.toNamed(AppRouteConstants.readingPath(previewItem.id),
         arguments: [previewItem, false]);
   }
 
@@ -1552,6 +1697,160 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     }
   }
 
+  /// Sets release type without navigating to the next page.
+  /// Used by the web single-page form (ReleaseUploadWebPage).
+  void setReleaseTypeWeb(ReleaseType releaseType) {
+    AppConfig.logger.d("setReleaseTypeWeb: ${releaseType.name}");
+
+    if(profile.verificationLevel == VerificationLevel.none) {
+      if(releaseType != ReleaseType.single) {
+        AppUtilities.showSnackBar(
+            title: ReleaseTranslationConstants.digitalPositioning,
+            message: ReleaseTranslationConstants.freeSingleReleaseUploadMsg.tr
+        );
+        return;
+      } else if(userServiceImpl.user.releaseItemIds?.isNotEmpty ?? false) {
+        AppUtilities.showSnackBar(
+            title: ReleaseTranslationConstants.digitalPositioning,
+            message: ReleaseTranslationConstants.freeSingleReleaseUploadMsg.tr
+        );
+        return;
+      }
+    }
+
+    switch(releaseType) {
+      case ReleaseType.single:
+        releaseItemsQty.value = 1;
+        releaseItemlist.type = ItemlistType.single;
+        break;
+      case ReleaseType.ep:
+        releaseItemsQty.value = 2;
+        releaseItemlist.type = ItemlistType.ep;
+        break;
+      case ReleaseType.album:
+        releaseItemsQty.value = 4;
+        releaseItemlist.type = ItemlistType.album;
+        break;
+      case ReleaseType.demo:
+        releaseItemsQty.value = 1;
+        releaseItemlist.type = ItemlistType.demo;
+        break;
+      case ReleaseType.episode:
+        releaseItemsQty.value = 1;
+        releaseItemlist.type = ItemlistType.podcast;
+        break;
+      case ReleaseType.chapter:
+        releaseItemsQty.value = 1;
+        releaseItemlist.type = ItemlistType.audiobook;
+        break;
+    }
+
+    appReleaseItems.clear();
+
+    // Set as solo for web single-page flow (skip band selection)
+    selectedBand.value = Band();
+    bandInstruments = [];
+    appReleaseItem.value.ownerEmail = user.email;
+    appReleaseItem.value.ownerName = authorController.text.trim();
+    appReleaseItem.value.galleryUrls = [profile.photoUrl];
+    appReleaseItem.value.ownerType = OwnerType.profile;
+    releaseItemlist.ownerId = profile.id;
+    releaseItemlist.ownerName = authorController.text.trim();
+    releaseItemlist.ownerType = OwnerType.profile;
+    if (profile.position?.latitude != 0.0) {
+      releaseItemlist.position = profile.position!;
+    }
+
+    update([AppPageIdConstants.releaseUpload]);
+  }
+
+  /// Creates a release directly from the web single-page form.
+  /// Combines all the logic from addNameDescToReleaseItem + addInstrumentsToReleaseItem
+  /// + addGenresToReleaseItem + gotoReleaseSummary + submitRelease without navigation.
+  Future<void> createReleaseDirect(BuildContext context) async {
+    AppConfig.logger.d("createReleaseDirect — web single-page flow");
+
+    try {
+      // 1. Set name/desc/duration/price
+      setReleaseTitle();
+      setReleaseDesc();
+      if (AppConfig.instance.appInUse == AppInUse.e) {
+        setReleaseDuration();
+        setPhysicalReleasePrice();
+      }
+
+      // 2. Instruments are already set via chip selection (addInstrument/removeInstrument)
+      appReleaseItem.value.instruments = instrumentsUsed;
+
+      // 3. Genres/categories are already set via chip selection (addGenre/removeGenre)
+      appReleaseItem.value.categories = selectedGenres;
+
+      // 4. Add release items to list
+      // On web with multi-track (album/EP), tracks are already populated by addReleaseFilesWeb().
+      // For singles or if tracks weren't pre-populated, add the current item.
+      if (appReleaseItems.isEmpty) {
+        appReleaseItems.add(AppReleaseItem.fromJSON(appReleaseItem.value.toJSON()));
+        releaseFilePaths.add(releaseFilePath);
+      }
+
+      // 5. Set final metadata on all items (same as gotoReleaseSummary)
+      final place = isAutoPublished.value ? null : publisherPlace.value;
+      final metaOwner = isAutoPublished.value
+          ? ReleaseTranslationConstants.selfPublished.tr
+          : publisherPlace.value.name;
+
+      for (AppReleaseItem releaseItem in appReleaseItems) {
+        if (releaseItem.imgUrl.isEmpty) {
+          releaseItem.imgUrl = releaseCoverImgPath.isNotEmpty
+              ? releaseCoverImgPath.value
+              : AppProperties.getAppLogoUrl();
+        }
+        releaseItem.publishedYear = publishedYear.value;
+        if (physicalPriceController.text.isNotEmpty) setPhysicalReleasePrice();
+        releaseItem.physicalPrice = appReleaseItem.value.physicalPrice;
+        releaseItem.place = place;
+        releaseItem.metaOwner = metaOwner;
+        // Propagate shared metadata to all tracks
+        if (releaseItem.instruments == null || releaseItem.instruments!.isEmpty) {
+          releaseItem.instruments = instrumentsUsed;
+        }
+        if (releaseItem.categories.isEmpty) {
+          releaseItem.categories = selectedGenres;
+        }
+        releaseItem.ownerEmail = user.email;
+        releaseItem.ownerName = authorController.text.trim();
+      }
+
+      // For singles, use the item name as the itemlist name
+      if (appReleaseItem.value.type == ReleaseType.single) {
+        releaseItemlist.name = appReleaseItem.value.name;
+        releaseItemlist.description = appReleaseItem.value.description;
+      }
+
+      // 6. Save to cache
+      await cacheController.updateDraft(
+        step: ReleaseUploadStep.infoSet,
+        itemlist: releaseItemlist,
+        releaseItems: appReleaseItems.toList(),
+        publisherPlace: publisherPlace.value,
+        isAutoPublished: isAutoPublished.value,
+        publishedYear: publishedYear.value,
+        coverImageLocalPath: releaseCoverImgPath.value,
+      );
+
+      // 7. Submit (same as submitRelease)
+      submitRelease(context);
+    } catch (e) {
+      AppConfig.logger.e("createReleaseDirect error: $e");
+      AppUtilities.showSnackBar(
+        title: ReleaseTranslationConstants.releaseUpload,
+        message: e.toString(),
+      );
+    }
+
+    update([AppPageIdConstants.releaseUpload]);
+  }
+
   Future<void> submitRelease(BuildContext context) async {
    if(AppConfig.instance.appInfo.demoReleaseEnabled || userServiceImpl.userSubscription?.status == SubscriptionStatus.active) {
      // Validate required fields before proceeding
@@ -1559,7 +1858,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
      if (appReleaseItem.value.name.isEmpty) missingFields.add(ReleaseTranslationConstants.releaseTitle.tr);
      if (appReleaseItem.value.description.isEmpty && releaseItemlist.description.isEmpty) missingFields.add(ReleaseTranslationConstants.releaseDesc.tr);
      if (appReleaseItem.value.previewUrl.isEmpty && releaseFilePaths.isEmpty) missingFields.add(ReleaseTranslationConstants.addReleaseFile.tr);
-     if (!mediaUploadServiceImpl!.mediaFileExists() && releaseCoverImgPath.value.isEmpty
+     if (!(mediaUploadServiceImpl?.mediaFileExists() ?? false) && releaseCoverImgPath.value.isEmpty
          && appReleaseItem.value.imgUrl.isEmpty && releaseItemlist.imgUrl.isEmpty) {
        missingFields.add(ReleaseTranslationConstants.addReleaseCoverImg.tr);
      }
@@ -1671,19 +1970,57 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   }
 
   Future<void> playPreview(AppReleaseItem item) async {
+    if(audioLitePlayerServiceImpl == null) return;
     AppConfig.logger.d("Playing preview for item: ${item.name} - ${item.previewUrl}");
 
-    if(isPlaying && previewPath.contains(item.previewUrl)) {
-      await audioLitePlayerServiceImpl!.stop();
+    try {
+      if(isPlaying && previewPath.contains(item.previewUrl)) {
+        await audioLitePlayerServiceImpl!.stop();
+        isPlaying = false;
+      } else {
+        await audioLitePlayerServiceImpl!.stop();
+        // Try multi-track paths first, fallback to single-track path
+        previewPath = releaseFilePaths.isNotEmpty
+            ? releaseFilePaths.firstWhere(
+                (path) => path.contains(item.previewUrl),
+                orElse: () => releaseFilePath,
+              )
+            : releaseFilePath;
+        if(previewPath.isEmpty) return;
+        await audioLitePlayerServiceImpl!.setFilePath(previewPath);
+        await audioLitePlayerServiceImpl!.play();
+        isPlaying = true;
+      }
+    } catch(e) {
+      AppConfig.logger.e("playPreview error: $e");
       isPlaying = false;
-    } else {
-      await audioLitePlayerServiceImpl!.stop();
-      previewPath = releaseFilePaths.firstWhere((path) => path.contains(item.previewUrl));
-      await audioLitePlayerServiceImpl!.setFilePath(previewPath);
-      await audioLitePlayerServiceImpl!.play();
-      isPlaying = true;
     }
 
+    update([AppPageIdConstants.releaseUpload]);
+  }
+
+  /// Toggles play/pause for single-track audio preview in the summary page.
+  Future<void> playPreviewSingle() async {
+    if(audioLitePlayerServiceImpl == null || releaseFilePath.isEmpty) return;
+    AppConfig.logger.d("Playing single preview: $releaseFilePath");
+
+    try {
+      if(isPlaying) {
+        await audioLitePlayerServiceImpl!.stop();
+        isPlaying = false;
+      } else {
+        await audioLitePlayerServiceImpl!.stop();
+        await audioLitePlayerServiceImpl!.setFilePath(releaseFilePath);
+        await audioLitePlayerServiceImpl!.play();
+        isPlaying = true;
+        previewPath = releaseFilePath;
+      }
+    } catch(e) {
+      AppConfig.logger.e("playPreviewSingle error: $e");
+      isPlaying = false;
+    }
+
+    update([AppPageIdConstants.releaseUpload]);
   }
 
 }

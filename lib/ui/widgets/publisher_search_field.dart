@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
+import 'package:neom_commons/ui/widgets/images/handled_cached_network_image.dart';
 import 'package:neom_core/app_config.dart';
 import 'package:neom_core/data/firestore/profile_firestore.dart';
 import 'package:neom_core/domain/model/app_profile.dart';
@@ -157,12 +158,16 @@ class _PublisherSearchFieldState extends State<PublisherSearchField> {
       dense: true,
       leading: CircleAvatar(
         radius: 18,
-        backgroundImage: profile.photoUrl.isNotEmpty
-            ? NetworkImage(profile.photoUrl)
-            : null,
-        child: profile.photoUrl.isEmpty
-            ? Text(profile.name.isNotEmpty ? profile.name[0].toUpperCase() : '?')
-            : null,
+        child: profile.photoUrl.isNotEmpty
+            ? ClipOval(
+                child: HandledCachedNetworkImage(
+                  profile.photoUrl,
+                  width: 36,
+                  height: 36,
+                  fit: BoxFit.cover,
+                ),
+              )
+            : Text(profile.name.isNotEmpty ? profile.name[0].toUpperCase() : '?'),
       ),
       title: Text(
         profile.name,

@@ -1,6 +1,5 @@
-import 'dart:io';
-
-import 'package:cached_network_image/cached_network_image.dart';
+import 'package:neom_commons/ui/widgets/images/handled_cached_network_image.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
@@ -9,6 +8,7 @@ import 'package:neom_commons/ui/widgets/buttons/submit_button.dart';
 import 'package:neom_commons/ui/widgets/genres_grid_view.dart';
 import 'package:neom_commons/ui/widgets/read_more_container.dart';
 import 'package:neom_commons/ui/widgets/title_subtitle_row.dart';
+import 'package:neom_commons/utils/auth_guard.dart';
 import 'package:neom_commons/utils/constants/app_constants.dart';
 import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/utils/constants/translations/app_translation_constants.dart';
@@ -16,7 +16,6 @@ import 'package:neom_commons/utils/datetime_utilities.dart';
 import 'package:neom_core/app_config.dart';
 import 'package:neom_core/app_properties.dart';
 import 'package:neom_core/domain/model/app_release_item.dart';
-import 'package:neom_core/utils/enums/app_in_use.dart';
 import 'package:neom_core/utils/enums/itemlist_type.dart';
 import 'package:percent_indicator/linear_percent_indicator.dart';
 import 'package:rubber/rubber.dart';
@@ -32,177 +31,500 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return SintBuilder<ReleaseUploadController>(
       id: AppPageIdConstants.releaseUpload,
-      builder: (controller) =>
-        TweenAnimationBuilder(
-          duration: const Duration(milliseconds: 600),
-          tween: Tween<double>(begin: AppTheme.fullHeight(context)/2, end: 0),
-          builder: (_, double value, child) {
-            return Transform.translate(
-              offset: Offset(0, value),
-              child: child,
-            );
-          },
-          child: RubberBottomSheet(
-            scrollController: controller.scrollController,
-            animationController: controller.releaseUploadDetailsAnimationController,
-            lowerLayer: Container(color: Colors.transparent,),
-            upperLayer: Column(
-              children: [
-                Center(
-                  child: ClipRRect(
-                      borderRadius: const BorderRadius.only(
-                        topLeft: Radius.circular(20), /// Adjust the radius here for desired roundness
-                        topRight: Radius.circular(20),
-                      ),
-                      child: controller.getCoverImageWidget(context)
-                  ),
+      builder: (controller) {
+        if (kIsWeb) {
+          return _buildWebLayout(context, controller);
+        }
+        return _buildMobileLayout(context, controller);
+      },
+    );
+  }
+
+  Widget _buildWebLayout(BuildContext context, ReleaseUploadController controller) {
+    final avatarRadius = 50.0;
+
+    return TweenAnimationBuilder(
+      duration: const Duration(milliseconds: 600),
+      tween: Tween<double>(begin: AppTheme.fullHeight(context) / 2, end: 0),
+      builder: (_, double value, child) {
+        return Transform.translate(
+          offset: Offset(0, value),
+          child: child,
+        );
+      },
+      child: Column(
+        children: [
+          Center(
+            child: ClipRRect(
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              child: controller.getCoverImageWidget(context),
+            ),
+          ),
+          Expanded(
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColor.surfaceBright,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(50.0),
                 ),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: AppColor.main95,
-                      borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(50.0),
+              ),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(AppTheme.padding10),
+                child: Column(
+                  children: [
+                    Text(
+                      controller.releaseItemlist.name.capitalize,
+                      style: const TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    AppTheme.heightSpace10,
+                    ReadMoreContainer(
+                      text: controller.releaseItemlist.type != ItemlistType.single
+                          ? controller.releaseItemlist.description
+                          : controller.appReleaseItem.value.description,
+                    ),
+                    AppTheme.heightSpace10,
+                    CircleAvatar(
+                      radius: avatarRadius,
+                      child: ClipOval(
+                        child: HandledCachedNetworkImage(
+                          controller.profile.photoUrl.isNotEmpty
+                              ? controller.profile.photoUrl
+                              : AppProperties.getNoImageUrl(),
+                          width: avatarRadius * 2,
+                          height: avatarRadius * 2,
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
-                    child: ListView(
-                      physics: const NeverScrollableScrollPhysics(),
-                      padding: const EdgeInsets.all(AppTheme.padding10),
-                      controller: controller.scrollController,
-                      children: [
-                        Text(controller.releaseItemlist.name.capitalize,
-                          style: const TextStyle(
-                            fontSize: 25,
-                            fontWeight: FontWeight.bold,),
-                          textAlign: TextAlign.center,
-                        ),
-                        AppTheme.heightSpace10,
-                        ReadMoreContainer(text: controller.releaseItemlist.type != ItemlistType.single ? controller.releaseItemlist.description : controller.appReleaseItem.value.description),
-                        AppTheme.heightSpace10,
-                        CircleAvatar(
-                          radius: AppTheme.fullWidth(context)/7,
-                          child: ClipOval(
-                            child: CachedNetworkImage(
-                              imageUrl: controller.profile.photoUrl.isNotEmpty
-                                  ? controller.profile.photoUrl
-                                  : AppProperties.getNoImageUrl(),
-                              width: (AppTheme.fullWidth(context)/7)*2, /// Set the width to twice the radius
-                              height: (AppTheme.fullWidth(context)/7)*2, /// Set the height to twice the radius
-                              fit: BoxFit.cover, /// You can adjust the fit mode as needed
-                            ),
+                    AppTheme.heightSpace5,
+                    Text(
+                      "${AppTranslationConstants.by.tr.capitalizeFirst}: ${controller.profile.name}",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                    AppTheme.heightSpace10,
+                    Text(
+                      !controller.isAutoPublished.value ||
+                              (controller.appReleaseItem.value.place?.name.isNotEmpty ?? false)
+                          ? (controller.appReleaseItem.value.place?.name ?? "")
+                          : ReleaseTranslationConstants.autoPublishing.tr,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    AppTheme.heightSpace10,
+                    if (controller.isPhysical.value &&
+                        controller.appReleaseItem.value.physicalPrice?.amount != 0)
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "${ReleaseTranslationConstants.physicalReleasePrice.tr}: \$${controller.appReleaseItem.value.physicalPrice?.amount.truncate().toString()} MXN ",
+                            style: const TextStyle(fontSize: 15),
                           ),
-                        ),
-                        AppTheme.heightSpace5,
-                        Text(
-                          "${AppTranslationConstants.by.tr.capitalizeFirst}: ${controller.profile.name}",
-                          textAlign: TextAlign.center, style: const TextStyle(fontSize: 15),
-                        ),
-                        AppTheme.heightSpace10,
-                        Text(!controller.isAutoPublished.value || (controller.appReleaseItem.value.place?.name.isNotEmpty ?? false)
-                            ? (controller.appReleaseItem.value.place?.name ?? "")
-                            : ReleaseTranslationConstants.autoPublishing.tr,
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                          textAlign: TextAlign.center,
-                        ),
-                        AppTheme.heightSpace10,
-                        Column(
+                        ],
+                      ),
+                    GenresGridView(
+                      [
+                        ...controller.appReleaseItem.value.instruments ?? [],
+                        ...controller.appReleaseItem.value.categories,
+                      ],
+                      AppColor.yellow,
+                    ),
+                    AppTheme.heightSpace10,
+                    // Multi-track list (all apps)
+                    if (controller.appReleaseItems.isNotEmpty)
+                      Column(
+                        children: <Widget>[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              (controller.isPhysical.value && controller.appReleaseItem.value.physicalPrice?.amount != 0) ?
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                children: [
-                                  Text("${ReleaseTranslationConstants.physicalReleasePrice.tr}: \$${controller.appReleaseItem.value.physicalPrice?.amount.truncate().toString()} MXN ",
-                                    style: const TextStyle(fontSize: 15),
-                                  ),
-                                ],
-                              ) : const SizedBox.shrink(),
-                            ]
-                        ),
-                        GenresGridView(
-                            [
-                             ...controller.appReleaseItem.value.instruments ?? [],
-                             ...controller.appReleaseItem.value.categories,
-                            ],
-                            AppColor.yellow),
-                        AppTheme.heightSpace10,
-                        if(AppConfig.instance.appInUse == AppInUse.g && controller.appReleaseItems.isNotEmpty)
-                          Column(
-                            children: <Widget>[
-                              Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    const Icon(FontAwesomeIcons.music, size: 12),
-                                    AppTheme.widthSpace5,
-                                    Text('${controller.appReleaseItem.value.type.value.tr.toUpperCase()} (${controller.appReleaseItems.length})')
-                                  ]
-                              ),
-                              Container(
-                                constraints: BoxConstraints(
-                                  maxHeight: controller.appReleaseItems.length == 1 ? 90 : controller.appReleaseItems.length == 2 ? 160 : 250,
-                                ),
-                                child: buildReleaseItems(context, controller),
+                              const Icon(FontAwesomeIcons.music, size: 12),
+                              AppTheme.widthSpace5,
+                              Text(
+                                '${controller.appReleaseItem.value.type.value.tr.toUpperCase()} (${controller.appReleaseItems.length})',
                               ),
                             ],
                           ),
-                        controller.isLoading.value
-                          ? Obx(() => Column(
+                          Container(
+                            constraints: BoxConstraints(
+                              maxHeight: controller.appReleaseItems.length == 1
+                                  ? 90
+                                  : controller.appReleaseItems.length == 2
+                                      ? 160
+                                      : 250,
+                            ),
+                            child: _buildWebReleaseItems(context, controller),
+                          ),
+                        ],
+                      ),
+                    // Single-track audio preview
+                    if (controller.appReleaseItems.isEmpty &&
+                        controller.appReleaseItem.value.isAudioContent &&
+                        controller.releaseFilePath.isNotEmpty)
+                      ListTile(
+                        leading: Icon(
+                          controller.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                          size: 40,
+                          color: AppColor.bondiBlue,
+                        ),
+                        title: Text(
+                          controller.appReleaseItem.value.name.isNotEmpty
+                              ? controller.appReleaseItem.value.name
+                              : controller.releaseFilePreviewURL.value,
+                        ),
+                        subtitle: Text(DateTimeUtilities.secondsToMinutes(controller.appReleaseItem.value.duration)),
+                        onTap: () async => await controller.playPreviewSingle(),
+                      ),
+                    controller.isLoading.value
+                        ? Obx(() => Column(
                               children: [
-                                if(controller.releaseItemIndex > 0 && controller.releaseItemsQty.value > 0)
+                                if (controller.releaseItemIndex > 0 &&
+                                    controller.releaseItemsQty.value > 0)
                                   LinearPercentIndicator(
                                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                                    lineHeight: AppTheme.fullHeight(context) / 15,
-                                    percent: (controller.releaseItemIndex / controller.releaseItemsQty.value).clamp(0.0, 1.0),
-                                    center: Text("${AppTranslationConstants.adding.tr} "
-                                        "${controller.releaseItemIndex} ${ReleaseTranslationConstants.outOf.tr} ${controller.releaseItemsQty.value}"),
+                                    lineHeight: 40,
+                                    percent: (controller.releaseItemIndex /
+                                            controller.releaseItemsQty.value)
+                                        .clamp(0.0, 1.0),
+                                    center: Text(
+                                      "${AppTranslationConstants.adding.tr} "
+                                      "${controller.releaseItemIndex} ${ReleaseTranslationConstants.outOf.tr} ${controller.releaseItemsQty.value}",
+                                    ),
                                     progressColor: AppColor.bondiBlue,
                                   ),
-                                if(controller.uploadStatusMessage.value.isNotEmpty)
+                                if (controller.uploadStatusMessage.value.isNotEmpty)
                                   Padding(
                                     padding: const EdgeInsets.symmetric(vertical: 12),
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         const SizedBox(
-                                          width: 16, height: 16,
-                                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70),
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white70,
+                                          ),
                                         ),
                                         const SizedBox(width: 10),
                                         Text(
                                           controller.uploadStatusMessage.value,
-                                          style: const TextStyle(fontSize: 14, color: Colors.white70),
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.white70,
+                                          ),
                                         ),
                                       ],
                                     ),
                                   ),
                               ],
                             ))
-                          : SubmitButton(context,
-                              text: AppConfig.instance.appInfo.releaseRevisionEnabled
-                                  ? ReleaseTranslationConstants.submitRelease.tr
-                                  : ReleaseTranslationConstants.publishOnPlatform.tr,
-                              isLoading: false, isEnabled: !controller.isButtonDisabled.value,
-                              onPressed: () => controller.submitRelease(context),
-                            ),
-                        if(!controller.isLoading.value && controller.releaseItemIndex.value == 0)
-                          TitleSubtitleRow("", showDivider: false,
-                            subtitle: AppConfig.instance.appInfo.releaseRevisionEnabled
-                                ? ReleaseTranslationConstants.submitReleaseMsg.tr
-                                : ReleaseTranslationConstants.publishOnPlatformMsg.tr,
-                            titleFontSize: 14, subTitleFontSize: 12,
+                        : SubmitButton(
+                            context,
+                            text: AppConfig.instance.appInfo.releaseRevisionEnabled
+                                ? ReleaseTranslationConstants.submitRelease.tr
+                                : ReleaseTranslationConstants.publishOnPlatform.tr,
+                            isLoading: false,
+                            isEnabled: !controller.isButtonDisabled.value,
+                            onPressed: () => AuthGuard.protect(context, () => controller.submitRelease(context)),
                           ),
-                      ],
-                    ),
-                  ),
+                    if (!controller.isLoading.value &&
+                        controller.releaseItemIndex.value == 0)
+                      TitleSubtitleRow(
+                        "",
+                        showDivider: false,
+                        subtitle: AppConfig.instance.appInfo.releaseRevisionEnabled
+                            ? ReleaseTranslationConstants.submitReleaseMsg.tr
+                            : ReleaseTranslationConstants.publishOnPlatformMsg.tr,
+                        titleFontSize: 14,
+                        subTitleFontSize: 12,
+                      ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
-        ),
+        ],
+      ),
     );
   }
 
-  ///ONLY OF USE FOR APPINUSE.G
+  /// Web-safe release items list (no Image.file)
+  Widget _buildWebReleaseItems(BuildContext context, ReleaseUploadController controller) {
+    return ListView.builder(
+      padding: EdgeInsets.zero,
+      itemCount: controller.appReleaseItems.length,
+      itemBuilder: (context, index) {
+        AppReleaseItem releaseItem = controller.appReleaseItems.elementAt(index);
+        String ownerName = releaseItem.ownerName;
+        final bool isThisPlaying = controller.isPlaying &&
+            controller.previewPath.contains(releaseItem.previewUrl);
+
+        return ListTile(
+          leading: Icon(
+            isThisPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+            size: 40,
+            color: isThisPlaying ? AppColor.bondiBlue : Colors.white70,
+          ),
+          title: Text(
+            releaseItem.name.isEmpty
+                ? ""
+                : releaseItem.name.length > AppConstants.maxAppItemNameLength
+                    ? "${releaseItem.name.substring(0, AppConstants.maxAppItemNameLength)}..."
+                    : releaseItem.name,
+          ),
+          subtitle: Row(children: [
+            Text(
+              ownerName.isEmpty
+                  ? ""
+                  : ownerName.length > AppConstants.maxArtistNameLength
+                      ? "${ownerName.substring(0, AppConstants.maxArtistNameLength)}..."
+                      : ownerName,
+            ),
+            const SizedBox(width: 5),
+          ]),
+          trailing: Text(DateTimeUtilities.secondsToMinutes(releaseItem.duration)),
+          onTap: () async {
+            await controller.playPreview(releaseItem);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildMobileLayout(BuildContext context, ReleaseUploadController controller) {
+    return TweenAnimationBuilder(
+      duration: const Duration(milliseconds: 600),
+      tween: Tween<double>(begin: AppTheme.fullHeight(context) / 2, end: 0),
+      builder: (_, double value, child) {
+        return Transform.translate(
+          offset: Offset(0, value),
+          child: child,
+        );
+      },
+      child: RubberBottomSheet(
+        scrollController: controller.scrollController,
+        animationController: controller.releaseUploadDetailsAnimationController!,
+        lowerLayer: Container(color: Colors.transparent),
+        upperLayer: Column(
+          children: [
+            Center(
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
+                ),
+                child: controller.getCoverImageWidget(context),
+              ),
+            ),
+            Expanded(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: AppColor.surfaceBright,
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(50.0),
+                  ),
+                ),
+                child: ListView(
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.all(AppTheme.padding10),
+                  controller: controller.scrollController,
+                  children: [
+                    Text(
+                      controller.releaseItemlist.name.capitalize,
+                      style: const TextStyle(
+                        fontSize: 25,
+                        fontWeight: FontWeight.bold,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    AppTheme.heightSpace10,
+                    ReadMoreContainer(
+                      text: controller.releaseItemlist.type != ItemlistType.single
+                          ? controller.releaseItemlist.description
+                          : controller.appReleaseItem.value.description,
+                    ),
+                    AppTheme.heightSpace10,
+                    CircleAvatar(
+                      radius: AppTheme.fullWidth(context) / 7,
+                      child: ClipOval(
+                        child: HandledCachedNetworkImage(
+                          controller.profile.photoUrl.isNotEmpty
+                              ? controller.profile.photoUrl
+                              : AppProperties.getNoImageUrl(),
+                          width: (AppTheme.fullWidth(context) / 7) * 2,
+                          height: (AppTheme.fullWidth(context) / 7) * 2,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                    AppTheme.heightSpace5,
+                    Text(
+                      "${AppTranslationConstants.by.tr.capitalizeFirst}: ${controller.profile.name}",
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                    AppTheme.heightSpace10,
+                    Text(
+                      !controller.isAutoPublished.value ||
+                              (controller.appReleaseItem.value.place?.name.isNotEmpty ?? false)
+                          ? (controller.appReleaseItem.value.place?.name ?? "")
+                          : ReleaseTranslationConstants.autoPublishing.tr,
+                      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      textAlign: TextAlign.center,
+                    ),
+                    AppTheme.heightSpace10,
+                    Column(
+                      children: [
+                        (controller.isPhysical.value &&
+                                controller.appReleaseItem.value.physicalPrice?.amount != 0)
+                            ? Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    "${ReleaseTranslationConstants.physicalReleasePrice.tr}: \$${controller.appReleaseItem.value.physicalPrice?.amount.truncate().toString()} MXN ",
+                                    style: const TextStyle(fontSize: 15),
+                                  ),
+                                ],
+                              )
+                            : const SizedBox.shrink(),
+                      ],
+                    ),
+                    GenresGridView(
+                      [
+                        ...controller.appReleaseItem.value.instruments ?? [],
+                        ...controller.appReleaseItem.value.categories,
+                      ],
+                      AppColor.yellow,
+                    ),
+                    AppTheme.heightSpace10,
+                    // Multi-track list (all apps)
+                    if (controller.appReleaseItems.isNotEmpty)
+                      Column(
+                        children: <Widget>[
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(FontAwesomeIcons.music, size: 12),
+                              AppTheme.widthSpace5,
+                              Text(
+                                '${controller.appReleaseItem.value.type.value.tr.toUpperCase()} (${controller.appReleaseItems.length})',
+                              ),
+                            ],
+                          ),
+                          Container(
+                            constraints: BoxConstraints(
+                              maxHeight: controller.appReleaseItems.length == 1
+                                  ? 90
+                                  : controller.appReleaseItems.length == 2
+                                      ? 160
+                                      : 250,
+                            ),
+                            child: buildReleaseItems(context, controller),
+                          ),
+                        ],
+                      ),
+                    // Single-track audio preview
+                    if (controller.appReleaseItems.isEmpty &&
+                        controller.appReleaseItem.value.isAudioContent &&
+                        controller.releaseFilePath.isNotEmpty)
+                      ListTile(
+                        leading: Icon(
+                          controller.isPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+                          size: 40,
+                          color: AppColor.bondiBlue,
+                        ),
+                        title: Text(
+                          controller.appReleaseItem.value.name.isNotEmpty
+                              ? controller.appReleaseItem.value.name
+                              : controller.releaseFilePreviewURL.value,
+                        ),
+                        subtitle: Text(DateTimeUtilities.secondsToMinutes(controller.appReleaseItem.value.duration)),
+                        onTap: () async => await controller.playPreviewSingle(),
+                      ),
+                    controller.isLoading.value
+                        ? Obx(() => Column(
+                              children: [
+                                if (controller.releaseItemIndex > 0 &&
+                                    controller.releaseItemsQty.value > 0)
+                                  LinearPercentIndicator(
+                                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                                    lineHeight: AppTheme.fullHeight(context) / 15,
+                                    percent: (controller.releaseItemIndex /
+                                            controller.releaseItemsQty.value)
+                                        .clamp(0.0, 1.0),
+                                    center: Text(
+                                      "${AppTranslationConstants.adding.tr} "
+                                      "${controller.releaseItemIndex} ${ReleaseTranslationConstants.outOf.tr} ${controller.releaseItemsQty.value}",
+                                    ),
+                                    progressColor: AppColor.bondiBlue,
+                                  ),
+                                if (controller.uploadStatusMessage.value.isNotEmpty)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(vertical: 12),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        const SizedBox(
+                                          width: 16,
+                                          height: 16,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                            color: Colors.white70,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 10),
+                                        Text(
+                                          controller.uploadStatusMessage.value,
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.white70,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                              ],
+                            ))
+                        : SubmitButton(
+                            context,
+                            text: AppConfig.instance.appInfo.releaseRevisionEnabled
+                                ? ReleaseTranslationConstants.submitRelease.tr
+                                : ReleaseTranslationConstants.publishOnPlatform.tr,
+                            isLoading: false,
+                            isEnabled: !controller.isButtonDisabled.value,
+                            onPressed: () => AuthGuard.protect(context, () => controller.submitRelease(context)),
+                          ),
+                    if (!controller.isLoading.value &&
+                        controller.releaseItemIndex.value == 0)
+                      TitleSubtitleRow(
+                        "",
+                        showDivider: false,
+                        subtitle: AppConfig.instance.appInfo.releaseRevisionEnabled
+                            ? ReleaseTranslationConstants.submitReleaseMsg.tr
+                            : ReleaseTranslationConstants.publishOnPlatformMsg.tr,
+                        titleFontSize: 14,
+                        subTitleFontSize: 12,
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Release items list with play/pause indicator (mobile)
   Widget buildReleaseItems(BuildContext context, ReleaseUploadController controller) {
     return ListView.builder(
       padding: EdgeInsets.zero,
@@ -210,26 +532,38 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
       itemBuilder: (context, index) {
         AppReleaseItem releaseItem = controller.appReleaseItems.elementAt(index);
         String ownerName = releaseItem.ownerName;
+        final bool isThisPlaying = controller.isPlaying &&
+            controller.previewPath.contains(releaseItem.previewUrl);
 
         return ListTile(
-          leading: Image.file(
-              File(controller.releaseCoverImgPath.value),
-              height: 40, width: 40
+          leading: Icon(
+            isThisPlaying ? Icons.pause_circle_filled : Icons.play_circle_filled,
+            size: 40,
+            color: isThisPlaying ? AppColor.bondiBlue : Colors.white70,
           ),
-          title: Text(releaseItem.name.isEmpty ? ""
-              : releaseItem.name.length > AppConstants.maxAppItemNameLength ? "${releaseItem.name.substring(0,AppConstants.maxAppItemNameLength)}...": releaseItem.name),
-          subtitle: Row(children: [Text(ownerName.isEmpty ? ""
-              : ownerName.length > AppConstants.maxArtistNameLength ? "${ownerName.substring(0,AppConstants.maxArtistNameLength)}...": ownerName), const SizedBox(width:5,),
-              ]),
-          trailing: Text(DateTimeUtilities.secondsToMinutes(releaseItem.duration,)),
-          ///FEATURE
+          title: Text(
+            releaseItem.name.isEmpty
+                ? ""
+                : releaseItem.name.length > AppConstants.maxAppItemNameLength
+                    ? "${releaseItem.name.substring(0, AppConstants.maxAppItemNameLength)}..."
+                    : releaseItem.name,
+          ),
+          subtitle: Row(children: [
+            Text(
+              ownerName.isEmpty
+                  ? ""
+                  : ownerName.length > AppConstants.maxArtistNameLength
+                      ? "${ownerName.substring(0, AppConstants.maxArtistNameLength)}..."
+                      : ownerName,
+            ),
+            const SizedBox(width: 5),
+          ]),
+          trailing: Text(DateTimeUtilities.secondsToMinutes(releaseItem.duration)),
           onTap: () async {
             await controller.playPreview(releaseItem);
-          }
-
+          },
         );
       },
     );
   }
-
 }

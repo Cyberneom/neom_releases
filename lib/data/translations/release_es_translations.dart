@@ -86,6 +86,15 @@ class ReleaseEsTranslations {
     ReleaseTranslationConstants.missingRequiredFields: 'Faltan campos requeridos',
     ReleaseTranslationConstants.wooProductCreationFailed: 'No se pudo crear el producto en la tienda',
     ReleaseTranslationConstants.uploadFailedRetry: 'Ocurrió un error. Presiona el botón para reintentar.',
+    ReleaseTranslationConstants.trackList: 'Lista de Tracks',
+    ReleaseTranslationConstants.addTracks: 'Agregar Tracks',
+    ReleaseTranslationConstants.trackNumber: 'Track',
+    ReleaseTranslationConstants.dragToReorder: 'Arrastra para reordenar',
+    ReleaseTranslationConstants.noTracksAdded: 'Aún no hay tracks. Selecciona archivos MP3 para comenzar.',
+    ReleaseTranslationConstants.selectAudioFiles: 'Seleccionar archivos de audio',
+    ReleaseTranslationConstants.tracksSelected: 'tracks seleccionados',
+    ReleaseTranslationConstants.removeTrack: 'Eliminar track',
+    ReleaseTranslationConstants.trackName: 'Nombre del track',
   };
 
 }

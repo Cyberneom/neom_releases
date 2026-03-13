@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
@@ -6,6 +7,7 @@ import 'package:neom_commons/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/ui/widgets/buttons/summary_button.dart';
 import 'package:neom_commons/ui/widgets/header_intro.dart';
 import 'package:neom_commons/ui/widgets/title_subtitle_row.dart';
+import 'package:neom_commons/utils/auth_guard.dart';
 import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/utils/constants/translations/app_translation_constants.dart';
 import 'package:neom_core/app_config.dart';
@@ -27,17 +29,19 @@ class ReleaseUploadPage extends StatelessWidget {
         return Scaffold(
           extendBodyBehindAppBar: true,
           appBar: AppBarChild(color: Colors.transparent),
-          backgroundColor: AppColor.main50,
+          backgroundColor: AppColor.scaffold,
           body: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10),
             decoration: AppTheme.appBoxDecoration,
             child: Center(
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    AppTheme.heightSpace30,
-                    HeaderIntro(subtitle: ReleaseTranslationConstants.releaseUpload.tr, showPreLogo: true),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: kIsWeb ? 800 : double.infinity),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AppTheme.heightSpace30,
+                      HeaderIntro(subtitle: ReleaseTranslationConstants.releaseUpload.tr, showPreLogo: true),
                     AppTheme.heightSpace10,
                     // Show different content based on pending draft
                     Obx(() {
@@ -46,7 +50,7 @@ class ReleaseUploadPage extends StatelessWidget {
                         return Column(
                           children: [
                             _buildPendingDraftCard(context, controller),
-                            _buildStartNewButton(controller),
+                            _buildStartNewButton(context, controller),
                           ],
                         );
                       } else {
@@ -66,14 +70,15 @@ class ReleaseUploadPage extends StatelessWidget {
                             AppFlavour.getSalesModelInfoWidget(context),
                             SummaryButton(
                               AppTranslationConstants.toStart.tr,
-                              onPressed: () => controller.startNewRelease(),
+                              onPressed: () => AuthGuard.protect(context, () => controller.startNewRelease()),
                             ),
                           ],
                         );
                       }
                     }),
-                    AppTheme.heightSpace30,
-                  ],
+                      AppTheme.heightSpace30,
+                    ],
+                  ),
                 ),
               ),
             ),
@@ -92,9 +97,9 @@ class ReleaseUploadPage extends StatelessWidget {
       margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withAlpha(15),
+        color: AppColor.borderSubtle,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withAlpha(40), width: 1.5),
+        border: Border.all(color: AppColor.white15, width: 1.5),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +109,7 @@ class ReleaseUploadPage extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(20),
+                  color: AppColor.dividerColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(Icons.bookmark_rounded, color: Colors.white, size: 24),
@@ -128,9 +133,9 @@ class ReleaseUploadPage extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white.withAlpha(10),
+              color: AppColor.white10,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.white.withAlpha(20)),
+              border: Border.all(color: AppColor.dividerColor),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -166,7 +171,7 @@ class ReleaseUploadPage extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => controller.resumeFromDraft(),
+              onPressed: () => AuthGuard.protect(context, () => controller.resumeFromDraft()),
               icon: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 22),
               label: Text(
                 ReleaseTranslationConstants.continueWithPrevious.tr,
@@ -224,16 +229,16 @@ class ReleaseUploadPage extends StatelessWidget {
   }
 
   /// Build the "Start New" button when there's a pending draft
-  Widget _buildStartNewButton(ReleaseUploadController controller) {
+  Widget _buildStartNewButton(BuildContext context, ReleaseUploadController controller) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 8),
       width: double.infinity,
       child: OutlinedButton.icon(
-        onPressed: () async {
+        onPressed: () => AuthGuard.protect(context, () async {
           // Confirm before discarding draft
           await controller.discardDraft();
           controller.startNewRelease();
-        },
+        }),
         icon: const Icon(Icons.add_circle_outline_rounded, color: Colors.white70, size: 20),
         label: Text(
           ReleaseTranslationConstants.startNewPositioning.tr,
@@ -245,7 +250,7 @@ class ReleaseUploadPage extends StatelessWidget {
         ),
         style: OutlinedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 14),
-          side: BorderSide(color: Colors.white.withAlpha(60), width: 1.5),
+          side: BorderSide(color: AppColor.textMuted, width: 1.5),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
           ),

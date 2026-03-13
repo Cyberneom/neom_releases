@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
@@ -31,8 +32,11 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
            body: Container(
              height: AppTheme.fullHeight(context),
              decoration: AppTheme.appBoxDecoration,
-             child: SingleChildScrollView(
-               child: Column(
+             child: Center(
+               child: ConstrainedBox(
+                 constraints: BoxConstraints(maxWidth: kIsWeb ? 800 : double.infinity),
+                 child: SingleChildScrollView(
+                   child: Column(
                 children: <Widget>[
                   AppConfig.instance.appInUse == AppInUse.g ? AppTheme.heightSpace100 : const SizedBox.shrink(),
                   HeaderIntro(
@@ -77,6 +81,8 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                   AppTheme.heightSpace10,
                 ],
               ),
+               ),
+             ),
              ),
           ),
            floatingActionButton: controller.validateItemlistNameDesc() ? FloatingActionButton(

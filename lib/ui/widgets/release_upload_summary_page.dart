@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
 import 'package:neom_commons/ui/widgets/buttons/custom_back_button.dart';
@@ -20,15 +21,29 @@ class ReleaseUploadSummaryPage extends StatelessWidget {
       body: Container(
         height: AppTheme.fullHeight(context),
         decoration: AppTheme.appBoxDecoration,
-        child: const Stack(
-        alignment: Alignment.center,
-        children: [
-          OnlinePositioningSummaryBackground(),
-          ReleaseUploadSummaryRubberPage(),
-          CustomBackButton(),
-        ],
+        child: kIsWeb
+          ? Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: const Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    OnlinePositioningSummaryBackground(),
+                    ReleaseUploadSummaryRubberPage(),
+                    CustomBackButton(),
+                  ],
+                ),
+              ),
+            )
+          : const Stack(
+              alignment: Alignment.center,
+              children: [
+                OnlinePositioningSummaryBackground(),
+                ReleaseUploadSummaryRubberPage(),
+                CustomBackButton(),
+              ],
+            ),
       ),),
-    ),
     );
   }
 

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
@@ -31,14 +32,19 @@ class ReleaseUploadInstrPage extends StatelessWidget {
           backgroundColor: AppFlavour.getBackgroundColor(),
           body: Container(
             decoration: AppTheme.appBoxDecoration,
-            child: Column(
-                children: <Widget>[
-                  AppTheme.heightSpace100,
-                  HeaderIntro(
-                    subtitle: ReleaseTranslationConstants.releaseUploadInstr.tr,
-                    showPreLogo: true,),
-                  Expanded(child: ReleaseUploadInstrList(),),
-                ]
+            child: Center(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(maxWidth: kIsWeb ? 800 : double.infinity),
+                child: Column(
+                    children: <Widget>[
+                      AppTheme.heightSpace100,
+                      HeaderIntro(
+                        subtitle: ReleaseTranslationConstants.releaseUploadInstr.tr,
+                        showPreLogo: true,),
+                      Expanded(child: ReleaseUploadInstrList(),),
+                    ]
+                ),
+              ),
             ),
           ),
         floatingActionButton: controller.instrumentsUsed.value.isNotEmpty ? FloatingActionButton(

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
@@ -30,19 +31,24 @@ class ReleaseUploadGenresPage extends StatelessWidget {
            body: Container(
              height: AppTheme.fullHeight(context),
              decoration: AppTheme.appBoxDecoration,
-              child: Column(
-                children: [
-                  AppTheme.heightSpace100,
-                  HeaderIntro(subtitle: ReleaseTranslationConstants.releaseUploadGenres.tr, showPreLogo: false,),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Wrap(
-                        alignment: WrapAlignment.center,
-                        children: controller.genreChips.toList()
+              child: Center(
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: kIsWeb ? 800 : double.infinity),
+                  child: Column(
+                    children: [
+                      AppTheme.heightSpace100,
+                      HeaderIntro(subtitle: ReleaseTranslationConstants.releaseUploadGenres.tr, showPreLogo: false,),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            children: controller.genreChips.toList()
+                          ),
+                        ),
                       ),
-                    ),
+                    ],
                   ),
-                ],
+                ),
               ),
            ),
            floatingActionButton: controller.selectedGenres.isNotEmpty ? FloatingActionButton(

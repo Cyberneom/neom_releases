@@ -101,4 +101,15 @@ class ReleaseTranslationConstants {
   static const String physicalSalesModel = 'physicalSalesModel';
   static const String physicalSalesModelMsg = 'physicalSalesModelMsg';
 
+  // Web track list (DistroKid-style)
+  static const String trackList = 'trackList';
+  static const String addTracks = 'addTracks';
+  static const String trackNumber = 'trackNumber';
+  static const String dragToReorder = 'dragToReorder';
+  static const String noTracksAdded = 'noTracksAdded';
+  static const String selectAudioFiles = 'selectAudioFiles';
+  static const String tracksSelected = 'tracksSelected';
+  static const String removeTrack = 'removeTrack';
+  static const String trackName = 'trackName';
+
 }

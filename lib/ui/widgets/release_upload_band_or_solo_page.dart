@@ -1,6 +1,7 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
+import 'package:neom_commons/ui/widgets/images/handled_cached_network_image.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
@@ -33,7 +34,10 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
         body: Container(
           decoration: AppTheme.boxDecoration,
           height: AppTheme.fullHeight(context),
-          child: Column(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: kIsWeb ? 800 : double.infinity),
+              child: Column(
             children: [
               AppTheme.heightSpace30,
               HeaderIntro(subtitle: ReleaseTranslationConstants.releaseUploadBandSelection.tr),
@@ -53,7 +57,7 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
                       child: ListTile(
                         leading: SizedBox(
                           width: 50,
-                          child: CachedNetworkImage(imageUrl: band.photoUrl)
+                          child: HandledCachedNetworkImage(band.photoUrl)
                         ),
                         title: Text(band.name.length > AppConstants.maxItemlistNameLength
                           ? "${band.name.substring(0,AppConstants.maxItemlistNameLength)}..."
@@ -65,7 +69,7 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
                           children: <Widget>[
                             (CoreUtilities.getTotalItemsQty(band.itemlists ?? {}) > 0)
                               ? ActionChip(
-                                backgroundColor: AppColor.main50,
+                                backgroundColor: AppColor.surfaceBright,
                                 avatar: CircleAvatar(
                                   backgroundColor: AppColor.white80,
                                   child: Text(CoreUtilities.getTotalItemsQty(band.itemlists ?? {}).toString()),
@@ -87,6 +91,8 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
                 ),),
               ),],
             ),
+          ),
+          ),
         ),
         bottomNavigationBar: DecoratedBox(
           decoration: BoxDecoration(
@@ -102,7 +108,7 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
             ),
           ),
           child: Container(
-            color: AppColor.main50,
+            color: AppColor.surfaceCard,
             padding: const EdgeInsets.fromLTRB(50, 10, 50, 10),
             child: ElevatedButton.icon(
               style: ButtonStyle(
