@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:neom_core/app_config.dart';
+import 'package:neom_core/utils/neom_error_logger.dart';
 import 'package:neom_core/domain/model/app_release_item.dart';
 import 'package:neom_core/domain/model/item_list.dart';
 import 'package:neom_core/domain/model/place.dart';
@@ -201,8 +202,8 @@ class ReleaseCacheController extends SintController {
           AppConfig.logger.d('Cleared old/completed release draft');
         }
       }
-    } catch (e) {
-      AppConfig.logger.e('Error loading release draft: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: '_loadExistingDraft');
       await clearDraft();
     } finally {
       isLoading.value = false;
@@ -292,8 +293,8 @@ class ReleaseCacheController extends SintController {
         final jsonString = jsonEncode(currentDraft.value!.toJson());
         await prefs.setString(_cacheKey, jsonString);
       }
-    } catch (e) {
-      AppConfig.logger.e('Error saving release draft: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: '_saveDraft');
     }
   }
 
@@ -305,8 +306,8 @@ class ReleaseCacheController extends SintController {
       currentDraft.value = null;
       hasPendingDraft.value = false;
       AppConfig.logger.d('Cleared release draft');
-    } catch (e) {
-      AppConfig.logger.e('Error clearing release draft: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'clearDraft');
     }
   }
 

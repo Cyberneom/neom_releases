@@ -14,6 +14,8 @@ import 'package:neom_commons/utils/constants/translations/common_translation_con
 import 'package:neom_commons/utils/dialog_factory.dart';
 import 'package:neom_commons/utils/file_system_utilities.dart';
 import 'package:neom_core/app_config.dart';
+import 'package:neom_core/utils/neom_error_logger.dart';
+import 'package:neom_core/utils/neom_flow_tracker.dart';
 import 'package:neom_core/app_properties.dart';
 import 'package:neom_core/data/api_services/push_notification/firebase_messaging_calls.dart';
 import 'package:neom_core/data/firestore/activity_feed_firestore.dart';
@@ -159,6 +161,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
     super.onInit();
     AppConfig.logger.d("Release Upload Controller Init");
+    NeomFlowTracker.startFlow('release_upload');
+    NeomFlowTracker.trackScreen('release_upload');
 
     try {
       user = userServiceImpl.user;
@@ -183,8 +187,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
       // Check for pending draft
       await _checkForPendingDraft();
-    } catch(e) {
-      AppConfig.logger.e(e.toString());
+    } catch(e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'onInit');
     }
   }
 
@@ -196,8 +200,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       if (hasDraft) {
         AppConfig.logger.i('Found pending release draft: ${cacheController.currentDraft.value?.progressDescription}');
       }
-    } catch (e) {
-      AppConfig.logger.e('Error checking for pending draft: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: '_checkForPendingDraft');
     }
   }
 
@@ -287,8 +291,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       _navigateToResumeStep(draft.lastCompletedStep);
 
       update([AppPageIdConstants.releaseUpload]);
-    } catch (e) {
-      AppConfig.logger.e('Error resuming from draft: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'resumeFromDraft');
       isLoading.value = false;
       AppUtilities.showSnackBar(
         title: ReleaseTranslationConstants.releaseUpload,
@@ -361,8 +365,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       appReleaseItem.value.metaOwnerId = userServiceImpl.user.email;
 
       genres.value = await CoreUtilities.loadGenres();
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'onReady');
     }
 
     isLoading.value = false;
@@ -509,8 +513,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       await cacheController.updateDraft(step: ReleaseUploadStep.instrumentsSet);
 
       Sint.toNamed(AppRouteConstants.releaseUploadGenres);
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'addInstrumentsToReleaseItem');
     }
 
     update([AppPageIdConstants.releaseUpload]);
@@ -776,6 +780,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       // Mark as completed and clear cache
       await cacheController.markAsCompleted();
       _uploadRetryCount = 0;
+      NeomFlowTracker.endFlow('release_upload');
 
       AppUtilities.showSnackBar(
           title: ReleaseTranslationConstants.digitalPositioning,
@@ -787,8 +792,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       uploadStatusMessage.value = '';
       Sint.offAllNamed(AppRouteConstants.home);
 
-    } catch (e) {
-      AppConfig.logger.e('Upload failed (attempt ${_uploadRetryCount + 1}/$_maxRetries): ${e.toString()}');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'uploadReleaseItem');
       _uploadRetryCount++;
 
       // Save failed state to cache with error message
@@ -941,8 +946,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         }
 
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'createReleasePost');
     }
 
   }
@@ -1087,8 +1092,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       await cacheController.updateDraft(step: ReleaseUploadStep.genresSet);
 
       addReleaseItemToList();
-    } catch(e) {
-      AppConfig.logger.e(e.toString());
+    } catch(e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'addGenresToReleaseItem');
     }
 
     update([AppPageIdConstants.releaseUpload]);
@@ -1116,8 +1121,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       } else {
         gotoNextItemNameDesc();
       }
-    } catch(e) {
-      AppConfig.logger.e(e.toString());
+    } catch(e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'addReleaseItemToList');
     }
 
     update([AppPageIdConstants.releaseUpload]);
@@ -1215,8 +1220,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         coverImageLocalPath: releaseCoverImgPath.value,
       );
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'gotoReleaseSummary');
     }
 
     Sint.toNamed(AppRouteConstants.releaseUploadSummary);
@@ -1259,8 +1264,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       if(mediaUploadServiceImpl!.mediaFileExists()) {
         releaseCoverImgPath.value = mediaUploadServiceImpl!.getMediaFile().path;
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'addReleaseCoverImg');
     }
 
     validateInfo();
@@ -1272,8 +1277,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     try {
       mediaUploadServiceImpl?.clearMedia();
       releaseCoverImgPath.value = '';
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'clearReleaseCoverImg');
     }
 
   }
@@ -1353,8 +1358,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
             enableFullScreen: false,
         );
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'getCoverImageWidget');
       cachedNetworkImage = HandledCachedNetworkImage(itemImgUrl,
           width: coverWidth,
           enableFullScreen: false,
@@ -1427,8 +1432,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
           await _extractPdfPageCount(releaseFilePath);
         }
       }
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'addReleaseFile');
     }
 
     ///DEPRECATED update([AppPageIdConstants.releaseUpload]);
@@ -1488,8 +1493,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
       update([AppPageIdConstants.releaseUpload]);
       return appReleaseItems.length;
-    } catch (e) {
-      AppConfig.logger.e("addReleaseFilesWeb error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'addReleaseFilesWeb');
     }
     return 0;
   }
@@ -1541,8 +1546,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       AppConfig.logger.i("PDF page count extracted: $pageCount pages");
 
       update([AppPageIdConstants.releaseUpload]);
-    } catch (e) {
-      AppConfig.logger.e("Error extracting PDF page count: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: '_extractPdfPageCount');
       // Don't clear the file, just log the error - user can still enter manually
     }
   }
@@ -1646,8 +1651,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         step: ReleaseUploadStep.bandOrSoloSelected,
         itemlist: releaseItemlist,
       );
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'setSelectedBand');
     }
 
     gotoNameDesc();
@@ -1681,8 +1686,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         itemlist: releaseItemlist,
       );
 
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'setAsSolo');
     }
 
     gotoNameDesc();
@@ -1840,8 +1845,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
       // 7. Submit (same as submitRelease)
       submitRelease(context);
-    } catch (e) {
-      AppConfig.logger.e("createReleaseDirect error: $e");
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'createReleaseDirect');
       AppUtilities.showSnackBar(
         title: ReleaseTranslationConstants.releaseUpload,
         message: e.toString(),
@@ -1958,8 +1963,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
           title: ReleaseTranslationConstants.digitalPositioning,
           message: ReleaseTranslationConstants.digitalPositioningSuccess.tr
       );
-    } catch (e) {
-      AppConfig.logger.e(e.toString());
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'uploadMedia');
       AppUtilities.showSnackBar(title: ReleaseTranslationConstants.digitalPositioning, message: e.toString());
       isButtonDisabled.value = false;
       isLoading.value = false;
@@ -1991,8 +1996,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         await audioLitePlayerServiceImpl!.play();
         isPlaying = true;
       }
-    } catch(e) {
-      AppConfig.logger.e("playPreview error: $e");
+    } catch(e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'playPreview');
       isPlaying = false;
     }
 
@@ -2015,8 +2020,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         isPlaying = true;
         previewPath = releaseFilePath;
       }
-    } catch(e) {
-      AppConfig.logger.e("playPreviewSingle error: $e");
+    } catch(e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'playPreviewSingle');
       isPlaying = false;
     }
 

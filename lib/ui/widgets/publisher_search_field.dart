@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/widgets/images/handled_cached_network_image.dart';
-import 'package:neom_core/app_config.dart';
+import 'package:neom_core/utils/neom_error_logger.dart';
 import 'package:neom_core/data/firestore/profile_firestore.dart';
 import 'package:neom_core/domain/model/app_profile.dart';
 import 'package:sint/sint.dart';
@@ -78,8 +78,8 @@ class _PublisherSearchFieldState extends State<PublisherSearchField> {
           _showSuggestions();
         }
       }
-    } catch (e) {
-      AppConfig.logger.e('Error searching publishers: $e');
+    } catch (e, st) {
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: '_searchPublishers');
       if (mounted) {
         setState(() => _isLoading = false);
       }

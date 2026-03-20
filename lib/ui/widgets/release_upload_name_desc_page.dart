@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
-import 'package:neom_commons/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/ui/widgets/header_intro.dart';
 import 'package:neom_commons/ui/widgets/number_limit_input_formatter.dart';
 import 'package:neom_commons/ui/widgets/right_side_company_logo.dart';
@@ -43,11 +42,11 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
            },
            child: Scaffold(
            extendBodyBehindAppBar: true,
-           appBar: AppBarChild(
-             color: controller.releaseItemsQty.value > 1 ? null : Colors.transparent,
+           appBar: SintAppBar(
+             backgroundColor: controller.releaseItemsQty.value > 1 ? null : Colors.transparent,
              title: controller.releaseItemsQty.value > 1  && controller.appReleaseItems.length < controller.releaseItemsQty.value  ? '${AppTranslationConstants.releaseItem.tr} ${controller.appReleaseItems.length+1} '
                  '${AppTranslationConstants.of.tr} ${controller.releaseItemsQty.value}' : '',
-             actionWidgets: [
+             actions: [
                RightSideCompanyLogo()
              ],
            ),

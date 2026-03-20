@@ -9,7 +9,6 @@ import 'package:neom_commons/ui/widgets/buttons/submit_button.dart';
 import 'package:neom_commons/ui/widgets/images/media_preview_image.dart';
 import 'package:neom_commons/ui/widgets/number_limit_input_formatter.dart';
 import 'package:neom_commons/ui/widgets/right_side_company_logo.dart';
-import 'package:neom_commons/ui/widgets/web_content_wrapper.dart';
 import 'package:neom_commons/utils/auth_guard.dart';
 import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
 import 'package:neom_commons/utils/constants/translations/app_translation_constants.dart';
@@ -23,9 +22,8 @@ import '../../utils/constants/release_translation_constants.dart';
 import '../release_upload_controller.dart';
 import 'publisher_search_field.dart';
 
-/// Single-page release upload form optimized for web.
-/// Combines all creation steps (type, name/desc, instruments, genres, info)
-/// into one scrollable page — similar to CreateEventWebPage.
+/// Two-column release upload form optimized for web.
+/// Left: form sections in glass cards. Right: sticky cover + preview + submit.
 class ReleaseUploadWebPage extends StatelessWidget {
   const ReleaseUploadWebPage({super.key});
 
@@ -37,243 +35,103 @@ class ReleaseUploadWebPage extends StatelessWidget {
       builder: (controller) => WebKeyboardManager(
         pageId: 'releaseUpload',
         child: Scaffold(
-        appBar: AppBar(
-          title: Text(ReleaseTranslationConstants.releaseUpload.tr),
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          actions: [RightSideCompanyLogo()],
-        ),
-        backgroundColor: AppFlavour.getBackgroundColor(),
-        body: GestureDetector(
-          onTap: () => FocusScope.of(context).unfocus(),
-          child: Container(
-            decoration: AppTheme.appBoxDecoration,
-            child: controller.isLoading.value
-                ? const Center(child: CircularProgressIndicator())
-                : WebContentWrapper(
-                    maxWidth: 750,
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 16,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // ─── Tipo de publicación ───
-                          _sectionHeader(ReleaseTranslationConstants.releaseUploadType.tr),
-                          const SizedBox(height: 12),
-                          _buildReleaseTypeChips(controller),
-                          const SizedBox(height: 8),
-                          const Divider(color: Colors.white12),
-                          const SizedBox(height: 16),
-
-                          // ─── Autor, título y descripción ───
-                          _sectionHeader(ReleaseTranslationConstants.releaseUploadNameDesc.tr),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: controller.authorController,
-                            onChanged: (_) => controller.setReleaseAuthor(),
-                            decoration: _inputDecoration(
-                              ReleaseTranslationConstants.releaseAuthor.tr,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: controller.titleController,
-                            onChanged: (_) => controller.setReleaseTitle(),
-                            decoration: _inputDecoration(
-                              ReleaseTranslationConstants.releaseTitle.tr,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          TextFormField(
-                            controller: controller.descController,
-                            onChanged: (_) => controller.setReleaseDesc(),
-                            minLines: 2,
-                            maxLines: 6,
-                            decoration: _inputDecoration(
-                              ReleaseTranslationConstants.releaseDesc.tr,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Duration / Physical price row (for Emxi)
-                          if (AppConfig.instance.appInUse == AppInUse.e) ...[
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: controller.durationController,
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                      NumberLimitInputFormatter(1000),
-                                    ],
-                                    decoration: _inputDecoration(
-                                      ReleaseTranslationConstants.appItemDurationShort.tr,
-                                    ),
-                                    onChanged: (_) => controller.setReleaseDuration(),
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: controller.physicalPriceController,
-                                    keyboardType: TextInputType.number,
-                                    inputFormatters: [
-                                      FilteringTextInputFormatter.digitsOnly,
-                                      NumberLimitInputFormatter(500),
-                                    ],
-                                    decoration: _inputDecoration(
-                                      ReleaseTranslationConstants.physicalReleasePrice.tr,
-                                      hint: '(${AppTranslationConstants.optional.tr})',
-                                      suffix: AppCurrency.mxn.value.tr.toUpperCase(),
-                                    ),
-                                    onChanged: (_) => controller.setPhysicalReleasePrice(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-
-                          // ─── Archivos / Track List ───
-                          _buildTrackListSection(controller),
-                          const SizedBox(height: 8),
-                          const Divider(color: Colors.white12),
-                          const SizedBox(height: 16),
-
-                          // ─── Instrumentos ───
-                          if (AppConfig.instance.appInUse == AppInUse.g) ...[
-                            _sectionHeader(ReleaseTranslationConstants.releaseUploadInstr.tr),
-                            const SizedBox(height: 12),
-                            _buildInstrumentChips(controller),
-                            const SizedBox(height: 8),
-                            const Divider(color: Colors.white12),
-                            const SizedBox(height: 16),
-                          ],
-
-                          // ─── Géneros / Categorías ───
-                          Obx(() => controller.genres.isNotEmpty
-                              ? Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    _sectionHeader(ReleaseTranslationConstants.releaseUploadGenres.tr),
-                                    const SizedBox(height: 12),
-                                    Wrap(
-                                      spacing: 4,
-                                      runSpacing: 4,
-                                      children: controller.genreChips.toList(),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    const Divider(color: Colors.white12),
-                                    const SizedBox(height: 16),
-                                  ],
-                                )
-                              : const SizedBox.shrink()),
-
-                          // ─── Publicación / Lugar / Año ───
-                          _sectionHeader(ReleaseTranslationConstants.releaseUploadPLaceDate.tr),
-                          const SizedBox(height: 12),
-                          Row(
+          appBar: SintAppBar(
+            title: ReleaseTranslationConstants.releaseUpload.tr,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            actions: [RightSideCompanyLogo()],
+          ),
+          backgroundColor: AppFlavour.getBackgroundColor(),
+          body: GestureDetector(
+            onTap: () => FocusScope.of(context).unfocus(),
+            child: Container(
+              decoration: AppTheme.appBoxDecoration,
+              child: controller.isLoading.value
+                  ? const Center(child: CircularProgressIndicator())
+                  : Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 1100),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              // ═══ Left column: scrollable form ═══
                               Expanded(
                                 flex: 3,
-                                child: _autoPublishCheckbox(controller),
+                                child: SingleChildScrollView(
+                                  padding: const EdgeInsets.only(right: 24, bottom: 40),
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      _buildTypeCard(controller),
+                                      const SizedBox(height: 16),
+                                      _buildInfoCard(context, controller),
+                                      const SizedBox(height: 16),
+                                      _buildTracksCard(controller),
+                                      const SizedBox(height: 16),
+                                      if (AppConfig.instance.appInUse == AppInUse.g)
+                                        _buildInstrumentsCard(controller),
+                                      if (AppConfig.instance.appInUse == AppInUse.g)
+                                        const SizedBox(height: 16),
+                                      _buildGenresCard(controller),
+                                      const SizedBox(height: 16),
+                                      _buildPublicationCard(context, controller),
+                                    ],
+                                  ),
+                                ),
                               ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                flex: 2,
-                                child: _yearDropdown(controller),
+                              // ═══ Right column: sticky sidebar ═══
+                              SizedBox(
+                                width: 300,
+                                child: _buildSidebar(context, controller),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 12),
-                          Obx(() => !controller.isAutoPublished.value
-                              ? AppConfig.instance.appInUse == AppInUse.e
-                                  ? PublisherSearchField(
-                                      controller: controller.placeController,
-                                      onPublisherSelected: controller.onPublisherSelected,
-                                    )
-                                  : TextFormField(
-                                      controller: controller.placeController,
-                                      onTap: () => controller.getPublisherPlace(context),
-                                      decoration: _inputDecoration(
-                                        ReleaseTranslationConstants.specifyPublishingPlace.tr,
-                                      ),
-                                    )
-                              : const SizedBox.shrink()),
-                          const SizedBox(height: 8),
-                          const Divider(color: Colors.white12),
-                          const SizedBox(height: 16),
-
-                          // ─── Portada ───
-                          _sectionHeader(ReleaseTranslationConstants.addReleaseCoverImg.tr),
-                          const SizedBox(height: 12),
-                          _buildCoverImageSection(context, controller),
-                          const SizedBox(height: 24),
-
-                          // ─── Upload progress ───
-                          Obx(() => controller.uploadStatusMessage.value.isNotEmpty
-                              ? _buildUploadProgress(controller)
-                              : const SizedBox.shrink()),
-
-                          // ─── Botón publicar ───
-                          Center(
-                            child: SizedBox(
-                              width: 300,
-                              child: Obx(() => SubmitButton(
-                                context,
-                                text: AppConfig.instance.appInfo.releaseRevisionEnabled
-                                    ? ReleaseTranslationConstants.submitRelease.tr
-                                    : ReleaseTranslationConstants.publishOnPlatform.tr,
-                                isLoading: controller.isLoading.value && controller.uploadStatusMessage.value.isNotEmpty,
-                                isEnabled: !controller.isButtonDisabled.value
-                                    && controller.titleController.text.isNotEmpty
-                                    && (controller.appReleaseItems.isNotEmpty
-                                        || controller.releaseFilePreviewURL.isNotEmpty),
-                                onPressed: () => AuthGuard.protect(context, () => controller.createReleaseDirect(context)),
-                              )),
-                            ),
-                          ),
-                          Obx(() => !controller.isLoading.value
-                              ? Padding(
-                                  padding: const EdgeInsets.only(top: 8),
-                                  child: Text(
-                                    AppConfig.instance.appInfo.releaseRevisionEnabled
-                                        ? ReleaseTranslationConstants.submitReleaseMsg.tr
-                                        : ReleaseTranslationConstants.publishOnPlatformMsg.tr,
-                                    style: TextStyle(
-                                      color: Colors.grey[500],
-                                      fontSize: 12,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                )
-                              : const SizedBox.shrink()),
-                          const SizedBox(height: 40),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
+            ),
           ),
         ),
-      ),
       ),
     );
   }
 
-  // ─── Shared helpers ───
+  // ═══════════════════════════════════════════
+  //  Glass card wrapper
+  // ═══════════════════════════════════════════
 
-  Widget _sectionHeader(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-        color: Colors.white70,
-        fontSize: 14,
-        fontWeight: FontWeight.w600,
-        letterSpacing: 0.5,
+  Widget _glassCard({required String title, required IconData icon, required Widget child}) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.04),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColor.borderSubtle),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: AppColor.bondiBlue),
+              const SizedBox(width: 10),
+              Text(
+                title,
+                style: TextStyle(
+                  color: AppColor.bondiBlue,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.8,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          child,
+        ],
       ),
     );
   }
@@ -291,131 +149,249 @@ class ReleaseUploadWebPage extends StatelessWidget {
     );
   }
 
-  // ─── Release type ───
+  // ═══════════════════════════════════════════
+  //  1. Release Type Card
+  // ═══════════════════════════════════════════
 
-  Widget _buildReleaseTypeChips(ReleaseUploadController controller) {
+  Widget _buildTypeCard(ReleaseUploadController controller) {
     final types = AppConfig.instance.appInUse == AppInUse.e
         ? [ReleaseType.single, ReleaseType.chapter]
         : [ReleaseType.single, ReleaseType.album, ReleaseType.ep, ReleaseType.demo];
 
-    return Obx(() => Wrap(
-      spacing: 8,
-      runSpacing: 8,
-      children: types.map((type) {
-        final isSelected = controller.appReleaseItem.value.type == type
-            && controller.releaseItemsQty.value > 0;
-        return ChoiceChip(
-          label: Text(type.value.tr.capitalizeFirst),
-          selected: isSelected,
-          selectedColor: AppColor.bondiBlue,
-          backgroundColor: AppColor.surfaceElevated,
-          labelStyle: TextStyle(
-            color: isSelected ? Colors.white : Colors.white70,
-            fontSize: AppTheme.chipsFontSize,
-          ),
-          shape: AppTheme.outlinedBorderChip,
-          onSelected: (_) => controller.setReleaseTypeWeb(type),
-        );
-      }).toList(),
-    ));
+    return _glassCard(
+      title: ReleaseTranslationConstants.releaseUploadType.tr.toUpperCase(),
+      icon: FontAwesomeIcons.compactDisc,
+      child: Obx(() => Wrap(
+        spacing: 10,
+        runSpacing: 10,
+        children: types.map((type) {
+          final isSelected = controller.appReleaseItem.value.type == type
+              && controller.releaseItemsQty.value > 0;
+          return ChoiceChip(
+            label: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+              child: Text(type.value.tr.capitalizeFirst),
+            ),
+            selected: isSelected,
+            selectedColor: AppColor.bondiBlue,
+            backgroundColor: AppColor.surfaceElevated,
+            labelStyle: TextStyle(
+              color: isSelected ? Colors.white : Colors.white70,
+              fontSize: AppTheme.chipsFontSize,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            ),
+            shape: AppTheme.outlinedBorderChip,
+            onSelected: (_) => controller.setReleaseTypeWeb(type),
+          );
+        }).toList(),
+      )),
+    );
   }
 
-  // ─── Track list section (DistroKid-style) ───
+  // ═══════════════════════════════════════════
+  //  2. Info Card (Author, Title, Desc)
+  // ═══════════════════════════════════════════
+
+  Widget _buildInfoCard(BuildContext context, ReleaseUploadController controller) {
+    return _glassCard(
+      title: ReleaseTranslationConstants.releaseUploadNameDesc.tr.toUpperCase(),
+      icon: FontAwesomeIcons.penFancy,
+      child: Column(
+        children: [
+          TextFormField(
+            controller: controller.authorController,
+            onChanged: (_) => controller.setReleaseAuthor(),
+            decoration: _inputDecoration(ReleaseTranslationConstants.releaseAuthor.tr),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: controller.titleController,
+            onChanged: (_) => controller.setReleaseTitle(),
+            decoration: _inputDecoration(ReleaseTranslationConstants.releaseTitle.tr),
+          ),
+          const SizedBox(height: 12),
+          TextFormField(
+            controller: controller.descController,
+            onChanged: (_) => controller.setReleaseDesc(),
+            minLines: 2,
+            maxLines: 6,
+            decoration: _inputDecoration(ReleaseTranslationConstants.releaseDesc.tr),
+          ),
+          // Duration / Physical price (EMXI only)
+          if (AppConfig.instance.appInUse == AppInUse.e) ...[
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: controller.durationController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      NumberLimitInputFormatter(1000),
+                    ],
+                    decoration: _inputDecoration(
+                      ReleaseTranslationConstants.appItemDurationShort.tr,
+                    ),
+                    onChanged: (_) => controller.setReleaseDuration(),
+                  ),
+                ),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: TextFormField(
+                    controller: controller.physicalPriceController,
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.digitsOnly,
+                      NumberLimitInputFormatter(500),
+                    ],
+                    decoration: _inputDecoration(
+                      ReleaseTranslationConstants.physicalReleasePrice.tr,
+                      hint: '(${AppTranslationConstants.optional.tr})',
+                      suffix: AppCurrency.mxn.value.tr.toUpperCase(),
+                    ),
+                    onChanged: (_) => controller.setPhysicalReleasePrice(),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════
+  //  3. Tracks Card
+  // ═══════════════════════════════════════════
+
+  Widget _buildTracksCard(ReleaseUploadController controller) {
+    return _glassCard(
+      title: ReleaseTranslationConstants.trackList.tr.toUpperCase(),
+      icon: FontAwesomeIcons.music,
+      child: _buildTrackListSection(controller),
+    );
+  }
 
   Widget _buildTrackListSection(ReleaseUploadController controller) {
     final isSingle = controller.releaseItemsQty.value <= 1;
 
-    // For singles, show simple file picker
     if (isSingle) {
       return Obx(() => Column(
         children: [
-          _buildAddTracksButton(controller),
+          _buildDropZone(controller),
           if (controller.releaseFilePreviewURL.isNotEmpty)
             Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Text(
-                controller.releaseFilePreviewURL.value,
-                style: const TextStyle(color: Colors.white54, fontSize: 13),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                textAlign: TextAlign.center,
+              padding: const EdgeInsets.only(top: 12),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(FontAwesomeIcons.fileAudio, size: 14, color: AppColor.bondiBlue),
+                  const SizedBox(width: 8),
+                  Flexible(
+                    child: Text(
+                      controller.releaseFilePreviewURL.value,
+                      style: const TextStyle(color: Colors.white54, fontSize: 13),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ),
         ],
       ));
     }
 
-    // For albums/EPs, show full track list
     return Obx(() => Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header row
-        Row(
-          children: [
-            Icon(FontAwesomeIcons.listOl, size: 14, color: Colors.white54),
-            const SizedBox(width: 8),
-            Text(
-              ReleaseTranslationConstants.trackList.tr,
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.5,
+        if (controller.appReleaseItems.isNotEmpty) ...[
+          Row(
+            children: [
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColor.bondiBlue.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '${controller.appReleaseItems.length} ${ReleaseTranslationConstants.tracksSelected.tr}',
+                  style: TextStyle(color: AppColor.bondiBlue, fontSize: 12, fontWeight: FontWeight.w600),
+                ),
               ),
-            ),
-            const Spacer(),
-            if (controller.appReleaseItems.isNotEmpty)
-              Text(
-                '${controller.appReleaseItems.length} ${ReleaseTranslationConstants.tracksSelected.tr}',
-                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-          ],
-        ),
-        const SizedBox(height: 12),
-
-        // Track list or empty state
-        if (controller.appReleaseItems.isEmpty)
-          _buildEmptyTrackState(controller)
-        else
+            ],
+          ),
+          const SizedBox(height: 12),
           _buildReorderableTrackList(controller),
-
-        const SizedBox(height: 12),
-
-        // Add/Change tracks button
-        _buildAddTracksButton(controller),
+          const SizedBox(height: 16),
+        ],
+        _buildDropZone(controller),
       ],
     ));
   }
 
-  Widget _buildEmptyTrackState(ReleaseUploadController controller) {
-    return GestureDetector(
-      onTap: () => controller.addReleaseFilesWeb(),
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 24),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.03),
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: Colors.white12,
-            width: 1.5,
+  Widget _buildDropZone(ReleaseUploadController controller) {
+    final hasFiles = controller.appReleaseItems.isNotEmpty
+        || controller.releaseFilePreviewURL.isNotEmpty;
+
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: () {
+          if (controller.releaseItemsQty.value <= 1) {
+            controller.addReleaseFile();
+          } else {
+            controller.addReleaseFilesWeb();
+          }
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(
+            vertical: hasFiles ? 16 : 36,
+            horizontal: 24,
           ),
-        ),
-        child: Column(
-          children: [
-            Icon(FontAwesomeIcons.cloudArrowUp, size: 36, color: Colors.white24),
-            const SizedBox(height: 16),
-            Text(
-              ReleaseTranslationConstants.noTracksAdded.tr,
-              style: const TextStyle(color: Colors.white38, fontSize: 14),
-              textAlign: TextAlign.center,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.02),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.12),
+              width: 1.5,
             ),
-            const SizedBox(height: 8),
-            Text(
-              ReleaseTranslationConstants.selectAudioFiles.tr,
-              style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600),
-            ),
-          ],
+          ),
+          child: Column(
+            children: [
+              Icon(
+                hasFiles ? Icons.swap_horiz : FontAwesomeIcons.cloudArrowUp,
+                size: hasFiles ? 20 : 32,
+                color: Colors.white24,
+              ),
+              SizedBox(height: hasFiles ? 6 : 12),
+              Text(
+                hasFiles
+                    ? ReleaseTranslationConstants.changeReleaseFile.tr
+                    : ReleaseTranslationConstants.noTracksAdded.tr,
+                style: TextStyle(
+                  color: hasFiles ? Colors.white54 : Colors.white38,
+                  fontSize: 13,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              if (!hasFiles) ...[
+                const SizedBox(height: 6),
+                Text(
+                  ReleaseTranslationConstants.selectAudioFiles.tr,
+                  style: TextStyle(
+                    color: AppColor.bondiBlue,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );
@@ -424,7 +400,7 @@ class ReleaseUploadWebPage extends StatelessWidget {
   Widget _buildReorderableTrackList(ReleaseUploadController controller) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.03),
+        color: Colors.white.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white10),
       ),
@@ -458,76 +434,104 @@ class ReleaseUploadWebPage extends StatelessWidget {
     );
   }
 
-  Widget _buildAddTracksButton(ReleaseUploadController controller) {
-    final hasFiles = controller.appReleaseItems.isNotEmpty
-        || controller.releaseFilePreviewURL.isNotEmpty;
+  // ═══════════════════════════════════════════
+  //  4. Instruments Card (Gigmeout only)
+  // ═══════════════════════════════════════════
 
-    return Center(
-      child: OutlinedButton.icon(
-        onPressed: () {
-          if (controller.releaseItemsQty.value <= 1) {
-            controller.addReleaseFile();
-          } else {
-            controller.addReleaseFilesWeb();
-          }
-        },
-        icon: Icon(hasFiles ? Icons.swap_horiz : FontAwesomeIcons.music, size: 16),
-        label: Text(
-          hasFiles
-              ? ReleaseTranslationConstants.changeReleaseFile.tr
-              : ReleaseTranslationConstants.addTracks.tr,
-        ),
-        style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white70,
-          side: const BorderSide(color: Colors.white24),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-        ),
-      ),
+  Widget _buildInstrumentsCard(ReleaseUploadController controller) {
+    return _glassCard(
+      title: ReleaseTranslationConstants.releaseUploadInstr.tr.toUpperCase(),
+      icon: FontAwesomeIcons.guitar,
+      child: Obx(() {
+        final instruments = controller.instrumentServiceImpl.instruments.values.toList();
+        if (instruments.isEmpty) return const SizedBox.shrink();
+
+        return Wrap(
+          spacing: 6,
+          runSpacing: 6,
+          children: instruments.where((i) => i.name.isNotEmpty).map((instrument) {
+            final isSelected = controller.instrumentsUsed.contains(instrument.name);
+            return FilterChip(
+              label: Text(
+                instrument.name.tr.capitalizeFirst,
+                style: TextStyle(
+                  fontSize: AppTheme.chipsFontSize,
+                  color: isSelected ? Colors.white : Colors.white70,
+                ),
+              ),
+              selected: isSelected,
+              selectedColor: AppColor.surfaceCard,
+              backgroundColor: AppColor.surfaceElevated,
+              checkmarkColor: Colors.white,
+              onSelected: (selected) {
+                final index = instruments.indexOf(instrument);
+                if (selected) {
+                  controller.addInstrument(index);
+                } else {
+                  controller.removeInstrument(index);
+                }
+              },
+            );
+          }).toList(),
+        );
+      }),
     );
   }
 
-  // ─── Instruments ───
+  // ═══════════════════════════════════════════
+  //  5. Genres Card
+  // ═══════════════════════════════════════════
 
-  Widget _buildInstrumentChips(ReleaseUploadController controller) {
-    return Obx(() {
-      final instruments = controller.instrumentServiceImpl.instruments.values.toList();
-      if (instruments.isEmpty) return const SizedBox.shrink();
-
-      return Wrap(
-        spacing: 4,
-        runSpacing: 4,
-        children: instruments.where((i) => i.name.isNotEmpty).map((instrument) {
-          final isSelected = controller.instrumentsUsed.contains(instrument.name);
-          return FilterChip(
-            label: Text(
-              instrument.name.tr.capitalizeFirst,
-              style: TextStyle(
-                fontSize: AppTheme.chipsFontSize,
-                color: isSelected ? Colors.white : Colors.white70,
-              ),
+  Widget _buildGenresCard(ReleaseUploadController controller) {
+    return Obx(() => controller.genres.isNotEmpty
+        ? _glassCard(
+            title: ReleaseTranslationConstants.releaseUploadGenres.tr.toUpperCase(),
+            icon: FontAwesomeIcons.tags,
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: controller.genreChips.toList(),
             ),
-            selected: isSelected,
-            selectedColor: AppColor.surfaceCard,
-            backgroundColor: AppColor.surfaceElevated,
-            checkmarkColor: Colors.white,
-            onSelected: (selected) {
-              final index = instruments.indexOf(instrument);
-              if (selected) {
-                controller.addInstrument(index);
-              } else {
-                controller.removeInstrument(index);
-              }
-            },
-          );
-        }).toList(),
-      );
-    });
+          )
+        : const SizedBox.shrink());
   }
 
-  // ─── Auto-publish checkbox ───
+  // ═══════════════════════════════════════════
+  //  6. Publication Card
+  // ═══════════════════════════════════════════
+
+  Widget _buildPublicationCard(BuildContext context, ReleaseUploadController controller) {
+    return _glassCard(
+      title: ReleaseTranslationConstants.releaseUploadPLaceDate.tr.toUpperCase(),
+      icon: FontAwesomeIcons.calendarCheck,
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(flex: 3, child: _autoPublishCheckbox(controller)),
+              const SizedBox(width: 16),
+              Expanded(flex: 2, child: _yearDropdown(controller)),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Obx(() => !controller.isAutoPublished.value
+              ? AppConfig.instance.appInUse == AppInUse.e
+                  ? PublisherSearchField(
+                      controller: controller.placeController,
+                      onPublisherSelected: controller.onPublisherSelected,
+                    )
+                  : TextFormField(
+                      controller: controller.placeController,
+                      onTap: () => controller.getPublisherPlace(context),
+                      decoration: _inputDecoration(
+                        ReleaseTranslationConstants.specifyPublishingPlace.tr,
+                      ),
+                    )
+              : const SizedBox.shrink()),
+        ],
+      ),
+    );
+  }
 
   Widget _autoPublishCheckbox(ReleaseUploadController controller) {
     return Obx(() => GestureDetector(
@@ -548,8 +552,6 @@ class ReleaseUploadWebPage extends StatelessWidget {
       ),
     ));
   }
-
-  // ─── Year dropdown ───
 
   Widget _yearDropdown(ReleaseUploadController controller) {
     return Obx(() => DropdownButton<int>(
@@ -579,67 +581,291 @@ class ReleaseUploadWebPage extends StatelessWidget {
     ));
   }
 
-  // ─── Cover image ───
+  // ═══════════════════════════════════════════
+  //  Right Sidebar (sticky)
+  // ═══════════════════════════════════════════
 
-  Widget _buildCoverImageSection(
-      BuildContext context, ReleaseUploadController controller) {
+  Widget _buildSidebar(BuildContext context, ReleaseUploadController controller) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          // ─── Cover image ───
+          _buildCoverCard(context, controller),
+          const SizedBox(height: 16),
+          // ─── Preview card ───
+          _buildPreviewCard(controller),
+          const SizedBox(height: 16),
+          // ─── Upload progress ───
+          Obx(() => controller.uploadStatusMessage.value.isNotEmpty
+              ? _buildUploadProgress(controller)
+              : const SizedBox.shrink()),
+          // ─── Submit button ───
+          SizedBox(
+            width: double.infinity,
+            child: Obx(() => SubmitButton(
+              context,
+              text: AppConfig.instance.appInfo.releaseRevisionEnabled
+                  ? ReleaseTranslationConstants.submitRelease.tr
+                  : ReleaseTranslationConstants.publishOnPlatform.tr,
+              isLoading: controller.isLoading.value && controller.uploadStatusMessage.value.isNotEmpty,
+              isEnabled: !controller.isButtonDisabled.value
+                  && controller.titleController.text.isNotEmpty
+                  && (controller.appReleaseItems.isNotEmpty
+                      || controller.releaseFilePreviewURL.isNotEmpty),
+              onPressed: () => AuthGuard.protect(context, () => controller.createReleaseDirect(context)),
+            )),
+          ),
+          const SizedBox(height: 8),
+          Obx(() => !controller.isLoading.value
+              ? Text(
+                  AppConfig.instance.appInfo.releaseRevisionEnabled
+                      ? ReleaseTranslationConstants.submitReleaseMsg.tr
+                      : ReleaseTranslationConstants.publishOnPlatformMsg.tr,
+                  style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                  textAlign: TextAlign.center,
+                )
+              : const SizedBox.shrink()),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCoverCard(BuildContext context, ReleaseUploadController controller) {
     return Obx(() {
       final hasImage = controller.mediaUploadServiceImpl?.mediaFileExists() ?? false;
       final isBookApp = AppConfig.instance.appInUse == AppInUse.e;
 
-      return Column(
-        children: [
-          if (hasImage)
-            Stack(
-              alignment: Alignment.topRight,
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColor.borderSubtle),
+        ),
+        child: Column(
+          children: [
+            Row(
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: buildMediaPreview(
-                    controller.mediaUploadServiceImpl,
-                    height: isBookApp ? 280 : 200,
-                    width: isBookApp ? 186 : 200,
-                    fit: BoxFit.cover,
-                  ) ?? const SizedBox.shrink(),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(6),
-                  child: CircleAvatar(
-                    radius: 14,
-                    backgroundColor: Colors.black54,
-                    child: IconButton(
-                      icon: const Icon(Icons.close, size: 14, color: Colors.white),
-                      padding: EdgeInsets.zero,
-                      onPressed: () => controller.clearReleaseCoverImg(),
-                    ),
+                Icon(Icons.image_outlined, size: 16, color: AppColor.bondiBlue),
+                const SizedBox(width: 10),
+                Text(
+                  ReleaseTranslationConstants.addReleaseCoverImg.tr.toUpperCase(),
+                  style: TextStyle(
+                    color: AppColor.bondiBlue,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
                   ),
                 ),
               ],
             ),
-          const SizedBox(height: 8),
-          OutlinedButton.icon(
-            onPressed: () => controller.addReleaseCoverImg(),
-            icon: const Icon(Icons.add_photo_alternate_outlined, size: 20),
-            label: Text(
-              hasImage
-                  ? AppTranslationConstants.changeImage.tr
-                  : ReleaseTranslationConstants.addReleaseCoverImg.tr,
-            ),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.white70,
-              side: const BorderSide(color: Colors.white24),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
+            const SizedBox(height: 16),
+            if (hasImage)
+              Stack(
+                alignment: Alignment.topRight,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: buildMediaPreview(
+                      controller.mediaUploadServiceImpl,
+                      height: isBookApp ? 320 : 240,
+                      width: isBookApp ? 213 : 240,
+                      fit: BoxFit.cover,
+                    ) ?? const SizedBox.shrink(),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: CircleAvatar(
+                      radius: 14,
+                      backgroundColor: Colors.black54,
+                      child: IconButton(
+                        icon: const Icon(Icons.close, size: 14, color: Colors.white),
+                        padding: EdgeInsets.zero,
+                        onPressed: () => controller.clearReleaseCoverImg(),
+                      ),
+                    ),
+                  ),
+                ],
+              )
+            else
+              MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: GestureDetector(
+                  onTap: () => controller.addReleaseCoverImg(),
+                  child: Container(
+                    height: 180,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.02),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.white12, width: 1.5),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.add_photo_alternate_outlined, size: 36, color: Colors.white24),
+                        const SizedBox(height: 10),
+                        Text(
+                          ReleaseTranslationConstants.addReleaseCoverImg.tr,
+                          style: const TextStyle(color: Colors.white38, fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-          ),
-        ],
+            if (hasImage) ...[
+              const SizedBox(height: 10),
+              TextButton.icon(
+                onPressed: () => controller.addReleaseCoverImg(),
+                icon: const Icon(Icons.swap_horiz, size: 16),
+                label: Text(AppTranslationConstants.changeImage.tr),
+                style: TextButton.styleFrom(foregroundColor: Colors.white54),
+              ),
+            ],
+          ],
+        ),
       );
     });
   }
 
-  // ─── Upload progress indicator ───
+  // ─── Album preview card ───
+
+  Widget _buildPreviewCard(ReleaseUploadController controller) {
+    return Obx(() {
+      final title = controller.titleController.text;
+      final author = controller.authorController.text;
+      final trackCount = controller.appReleaseItems.length;
+      final hasImage = controller.mediaUploadServiceImpl?.mediaFileExists() ?? false;
+      final type = controller.appReleaseItem.value.type;
+
+      if (title.isEmpty && !hasImage && trackCount == 0) {
+        return const SizedBox.shrink();
+      }
+
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              AppColor.bondiBlue.withValues(alpha: 0.08),
+              Colors.white.withValues(alpha: 0.03),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColor.bondiBlue.withValues(alpha: 0.2)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.preview_outlined, size: 16, color: AppColor.bondiBlue),
+                const SizedBox(width: 10),
+                Text(
+                  'PREVIEW',
+                  style: TextStyle(
+                    color: AppColor.bondiBlue,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (title.isNotEmpty)
+              Text(
+                title,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            if (author.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                author,
+                style: const TextStyle(color: Colors.white54, fontSize: 14),
+              ),
+            ],
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                if (type.value.isNotEmpty)
+                  _previewChip(type.value.tr.capitalizeFirst, FontAwesomeIcons.compactDisc),
+                if (trackCount > 0) ...[
+                  const SizedBox(width: 8),
+                  _previewChip('$trackCount tracks', FontAwesomeIcons.music),
+                ],
+              ],
+            ),
+            // Track names preview
+            if (trackCount > 0) ...[
+              const SizedBox(height: 12),
+              ...controller.appReleaseItems.take(5).toList().asMap().entries.map((e) =>
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 4),
+                  child: Row(
+                    children: [
+                      Text(
+                        '${e.key + 1}.',
+                        style: TextStyle(color: Colors.white30, fontSize: 12),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          e.value.name.isNotEmpty ? e.value.name : '...',
+                          style: TextStyle(
+                            color: e.value.name.isNotEmpty ? Colors.white70 : Colors.white24,
+                            fontSize: 13,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              if (trackCount > 5)
+                Text(
+                  '+${trackCount - 5} more',
+                  style: const TextStyle(color: Colors.white30, fontSize: 12),
+                ),
+            ],
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _previewChip(String label, IconData icon) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 10, color: Colors.white38),
+          const SizedBox(width: 6),
+          Text(label, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+        ],
+      ),
+    );
+  }
+
+  // ─── Upload progress ───
 
   Widget _buildUploadProgress(ReleaseUploadController controller) {
     return Obx(() {
@@ -649,43 +875,49 @@ class ReleaseUploadWebPage extends StatelessWidget {
 
       return Padding(
         padding: const EdgeInsets.only(bottom: 16),
-        child: Column(
-          children: [
-            // Per-track progress bar
-            if (total > 1) ...[
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: Colors.white10,
-                  valueColor: AlwaysStoppedAnimation(AppColor.bondiBlue),
-                  minHeight: 6,
-                ),
-              ),
-              const SizedBox(height: 8),
-            ],
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white70,
+        child: Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AppColor.bondiBlue.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AppColor.bondiBlue.withValues(alpha: 0.2)),
+          ),
+          child: Column(
+            children: [
+              if (total > 1) ...[
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(4),
+                  child: LinearProgressIndicator(
+                    value: progress,
+                    backgroundColor: Colors.white10,
+                    valueColor: AlwaysStoppedAnimation(AppColor.bondiBlue),
+                    minHeight: 6,
                   ),
                 ),
-                const SizedBox(width: 10),
-                Text(
-                  controller.uploadStatusMessage.value,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.white70,
-                  ),
-                ),
+                const SizedBox(height: 10),
               ],
-            ),
-          ],
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(
+                    width: 14,
+                    height: 14,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70),
+                  ),
+                  const SizedBox(width: 10),
+                  Flexible(
+                    child: Text(
+                      controller.uploadStatusMessage.value,
+                      style: const TextStyle(fontSize: 13, color: Colors.white70),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       );
     });
@@ -836,10 +1068,7 @@ class _TrackRowState extends State<_TrackRow> {
                           ),
                           Text(
                             widget.fileName,
-                            style: const TextStyle(
-                              color: Colors.white30,
-                              fontSize: 11,
-                            ),
+                            style: const TextStyle(color: Colors.white30, fontSize: 11),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -848,7 +1077,7 @@ class _TrackRowState extends State<_TrackRow> {
                     ),
             ),
 
-            // MP3 badge
+            // File format badge
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 8),
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

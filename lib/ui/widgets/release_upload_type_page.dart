@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
-import 'package:neom_commons/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/ui/widgets/core_widgets.dart';
 import 'package:neom_commons/ui/widgets/header_intro.dart';
 import 'package:neom_commons/ui/widgets/title_subtitle_row.dart';
@@ -35,7 +34,7 @@ class ReleaseUploadType extends StatelessWidget {
         init: ReleaseUploadController(),
         builder: (controller) => Obx(()=> Scaffold(
           extendBodyBehindAppBar: true,
-          appBar: AppBarChild(color: Colors.transparent),
+          appBar: SintAppBar(backgroundColor: Colors.transparent),
           backgroundColor: AppFlavour.getBackgroundColor(),
           body: Container(
             padding: const EdgeInsets.symmetric(horizontal: 10),

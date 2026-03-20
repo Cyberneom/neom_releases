@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
-import 'package:neom_commons/ui/widgets/appbar_child.dart';
 import 'package:neom_commons/ui/widgets/header_intro.dart';
 import 'package:neom_commons/ui/widgets/title_subtitle_row.dart';
 import 'package:neom_commons/utils/constants/app_hero_tag_constants.dart';
@@ -27,7 +26,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
       builder: (controller) {
          return Scaffold(
            extendBodyBehindAppBar: true,
-           appBar: AppBarChild(color: Colors.transparent),
+           appBar: SintAppBar(backgroundColor: Colors.transparent),
            backgroundColor: AppFlavour.getBackgroundColor(),
            body: Container(
              height: AppTheme.fullHeight(context),
