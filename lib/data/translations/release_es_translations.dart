@@ -95,6 +95,33 @@ class ReleaseEsTranslations {
     ReleaseTranslationConstants.tracksSelected: 'tracks seleccionados',
     ReleaseTranslationConstants.removeTrack: 'Eliminar track',
     ReleaseTranslationConstants.trackName: 'Nombre del track',
+
+    // Release type names
+    ReleaseTranslationConstants.whatToUpload: '¿Que te gustaria subir?',
+    ReleaseTranslationConstants.chooseOption: 'Elige una opcion para comenzar.',
+    ReleaseTranslationConstants.newRelease: 'Nueva Obra',
+    ReleaseTranslationConstants.information: 'Informacion',
+    ReleaseTranslationConstants.confirm: 'Confirmar',
+    ReleaseTranslationConstants.file: 'Archivo',
+    ReleaseTranslationConstants.tracks: 'Tracks',
+    ReleaseTranslationConstants.literaryGenre: 'Genero Literario',
+    ReleaseTranslationConstants.subgenres: 'Subgeneros',
+    ReleaseTranslationConstants.selectLiteraryGenre: 'Selecciona genero literario',
+    ReleaseTranslationConstants.selectSubgenres: 'Selecciona subgeneros (hasta 10)',
+    ReleaseTranslationConstants.addSubgenre: 'Agregar subgenero',
+    ReleaseTranslationConstants.releaseCover: 'Portada',
+    ReleaseTranslationConstants.singleTypeNameE: 'Obra / Libro',
+    ReleaseTranslationConstants.singleTypeNameG: 'Tema / Sencillo',
+    ReleaseTranslationConstants.singleTypeNameC: 'Musica Meditativa',
+    ReleaseTranslationConstants.albumTypeNameE: 'Audiolibro / Podcast',
+    ReleaseTranslationConstants.albumTypeNameG: 'Album',
+    ReleaseTranslationConstants.albumTypeNameC: 'Album / Podcast',
+    ReleaseTranslationConstants.singleTypeDescE: 'Sube un PDF de tu obra literaria para posicionarla en la plataforma.',
+    ReleaseTranslationConstants.singleTypeDescG: 'Sube un track y personaliza la informacion de tu lanzamiento.',
+    ReleaseTranslationConstants.singleTypeDescC: 'Sube una pieza de musica meditativa o relajante.',
+    ReleaseTranslationConstants.albumTypeDescE: 'Sube multiples archivos de audio para crear un audiolibro o podcast.',
+    ReleaseTranslationConstants.albumTypeDescG: 'Sube entre 2 y 20 tracks para un album o EP coordinado.',
+    ReleaseTranslationConstants.albumTypeDescC: 'Sube multiples archivos de audio para crear un album o podcast.',
   };
 
 }

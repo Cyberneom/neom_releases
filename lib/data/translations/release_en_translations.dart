@@ -95,6 +95,33 @@ class ReleaseEnTranslations {
     ReleaseTranslationConstants.tracksSelected: 'tracks selected',
     ReleaseTranslationConstants.removeTrack: 'Remove track',
     ReleaseTranslationConstants.trackName: 'Track name',
+
+    // Release type names
+    ReleaseTranslationConstants.whatToUpload: 'What would you like to upload?',
+    ReleaseTranslationConstants.chooseOption: 'Choose an option to get started.',
+    ReleaseTranslationConstants.newRelease: 'New Release',
+    ReleaseTranslationConstants.information: 'Information',
+    ReleaseTranslationConstants.confirm: 'Confirm',
+    ReleaseTranslationConstants.file: 'File',
+    ReleaseTranslationConstants.tracks: 'Tracks',
+    ReleaseTranslationConstants.literaryGenre: 'Literary Genre',
+    ReleaseTranslationConstants.subgenres: 'Subgenres',
+    ReleaseTranslationConstants.selectLiteraryGenre: 'Select literary genre',
+    ReleaseTranslationConstants.selectSubgenres: 'Select subgenres (up to 10)',
+    ReleaseTranslationConstants.addSubgenre: 'Add subgenre',
+    ReleaseTranslationConstants.releaseCover: 'Cover',
+    ReleaseTranslationConstants.singleTypeNameE: 'Work / Book',
+    ReleaseTranslationConstants.singleTypeNameG: 'Track / Single',
+    ReleaseTranslationConstants.singleTypeNameC: 'Meditative Music',
+    ReleaseTranslationConstants.albumTypeNameE: 'Audiobook / Podcast',
+    ReleaseTranslationConstants.albumTypeNameG: 'Album',
+    ReleaseTranslationConstants.albumTypeNameC: 'Album / Podcast',
+    ReleaseTranslationConstants.singleTypeDescE: 'Upload a PDF of your literary work to position it on the platform.',
+    ReleaseTranslationConstants.singleTypeDescG: 'Upload a track and customize your release information.',
+    ReleaseTranslationConstants.singleTypeDescC: 'Upload a piece of meditative or relaxing music.',
+    ReleaseTranslationConstants.albumTypeDescE: 'Upload multiple audio files to create an audiobook or podcast.',
+    ReleaseTranslationConstants.albumTypeDescG: 'Upload 2 to 20 tracks for a coordinated album or EP.',
+    ReleaseTranslationConstants.albumTypeDescC: 'Upload multiple audio files to create an album or podcast.',
   };
 
 }

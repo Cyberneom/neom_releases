@@ -1,4 +1,4 @@
-import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:neom_core/app_config.dart';
 import 'package:neom_core/utils/neom_error_logger.dart';
@@ -6,8 +6,9 @@ import 'package:neom_core/domain/model/app_release_item.dart';
 import 'package:neom_core/domain/model/item_list.dart';
 import 'package:neom_core/domain/model/place.dart';
 import 'package:neom_core/utils/enums/release_type.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sint/sint.dart';
+
+import 'release_hive_controller.dart';
 
 /// Enum representing the upload steps for tracking progress
 enum ReleaseUploadStep {
@@ -19,7 +20,7 @@ enum ReleaseUploadStep {
   instrumentsSet,    // Instruments selected
   genresSet,         // Genres selected
   infoSet,           // Publisher info set
-  coverUploaded,     // Cover image uploaded to WordPress
+  coverUploaded,     // Cover image uploaded
   itemlistCreated,   // Itemlist created in Firestore
   itemsUploading,    // Items being uploaded
   itemsUploaded,     // All items uploaded
@@ -141,25 +142,25 @@ class ReleaseCacheDraft {
       case ReleaseUploadStep.bandOrSoloSelected:
         return 'Artista configurado';
       case ReleaseUploadStep.itemlistNameDescSet:
-        return 'Info del álbum configurada';
+        return 'Info del album configurada';
       case ReleaseUploadStep.nameDescSet:
-        return 'Nombre y descripción listos';
+        return 'Nombre y descripcion listos';
       case ReleaseUploadStep.instrumentsSet:
         return 'Instrumentos seleccionados';
       case ReleaseUploadStep.genresSet:
-        return 'Géneros seleccionados';
+        return 'Generos seleccionados';
       case ReleaseUploadStep.infoSet:
-        return 'Información de publicación lista';
+        return 'Informacion de publicacion lista';
       case ReleaseUploadStep.coverUploaded:
         return 'Portada subida';
       case ReleaseUploadStep.itemlistCreated:
-        return 'Catálogo creado';
+        return 'Catalogo creado';
       case ReleaseUploadStep.itemsUploading:
         return 'Subiendo archivos (${currentItemIndex + 1}/${releaseItems.length})';
       case ReleaseUploadStep.itemsUploaded:
         return 'Archivos subidos';
       case ReleaseUploadStep.postCreated:
-        return 'Publicación creada';
+        return 'Publicacion creada';
       case ReleaseUploadStep.completed:
         return 'Completado';
       case ReleaseUploadStep.failed:
@@ -168,10 +169,10 @@ class ReleaseCacheDraft {
   }
 }
 
-/// Controller to manage release upload cache/drafts
+/// Controller to manage release upload cache/drafts using Hive.
 class ReleaseCacheController extends SintController {
 
-  static const String _cacheKey = 'release_upload_draft';
+  final _hive = ReleaseHiveController();
 
   final Rx<ReleaseCacheDraft?> currentDraft = Rx<ReleaseCacheDraft?>(null);
   final RxBool hasPendingDraft = false.obs;
@@ -183,24 +184,16 @@ class ReleaseCacheController extends SintController {
     _loadExistingDraft();
   }
 
-  /// Load any existing draft from SharedPreferences
+  /// Load any existing draft from Hive
   Future<void> _loadExistingDraft() async {
     try {
       isLoading.value = true;
-      final prefs = await SharedPreferences.getInstance();
-      final draftJson = prefs.getString(_cacheKey);
+      final draft = await _hive.loadActiveDraft();
 
-      if (draftJson != null && draftJson.isNotEmpty) {
-        final draft = ReleaseCacheDraft.fromJson(jsonDecode(draftJson));
-        if (draft.canResume) {
-          currentDraft.value = draft;
-          hasPendingDraft.value = true;
-          AppConfig.logger.i('Found resumable release draft: ${draft.progressDescription}');
-        } else {
-          // Draft is too old or completed, clear it
-          await clearDraft();
-          AppConfig.logger.d('Cleared old/completed release draft');
-        }
+      if (draft != null) {
+        currentDraft.value = draft;
+        hasPendingDraft.value = true;
+        AppConfig.logger.i('Found resumable release draft: ${draft.progressDescription}');
       }
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: '_loadExistingDraft');
@@ -277,21 +270,24 @@ class ReleaseCacheController extends SintController {
 
   /// Mark the upload as completed and clear the draft
   Future<void> markAsCompleted() async {
+    final draftId = currentDraft.value?.id;
     if (currentDraft.value != null) {
       currentDraft.value!.lastCompletedStep = ReleaseUploadStep.completed;
       currentDraft.value!.updatedAt = DateTime.now();
     }
-    await clearDraft();
+    if (draftId != null) {
+      await _hive.clearDraft(draftId);
+    }
+    currentDraft.value = null;
+    hasPendingDraft.value = false;
     AppConfig.logger.i('Release upload completed successfully');
   }
 
-  /// Save the current draft to SharedPreferences
+  /// Save the current draft to Hive
   Future<void> _saveDraft() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
       if (currentDraft.value != null) {
-        final jsonString = jsonEncode(currentDraft.value!.toJson());
-        await prefs.setString(_cacheKey, jsonString);
+        await _hive.saveDraft(currentDraft.value!);
       }
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: '_saveDraft');
@@ -301,8 +297,10 @@ class ReleaseCacheController extends SintController {
   /// Clear the current draft
   Future<void> clearDraft() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove(_cacheKey);
+      final draftId = currentDraft.value?.id;
+      if (draftId != null) {
+        await _hive.clearDraft(draftId);
+      }
       currentDraft.value = null;
       hasPendingDraft.value = false;
       AppConfig.logger.d('Cleared release draft');
@@ -318,5 +316,44 @@ class ReleaseCacheController extends SintController {
       return currentDraft.value;
     }
     return null;
+  }
+
+  // ============================================================
+  // FILE BYTES CACHE (web resume support)
+  // ============================================================
+
+  /// Cache a release file's bytes for web resume.
+  Future<void> cacheFileBytes(int fileIndex, String fileName, Uint8List bytes) async {
+    final draftId = currentDraft.value?.id;
+    if (draftId == null) return;
+    await _hive.cacheFileBytes(draftId, fileIndex, fileName, bytes);
+  }
+
+  /// Cache the cover image bytes.
+  Future<void> cacheCoverBytes(Uint8List bytes) async {
+    final draftId = currentDraft.value?.id;
+    if (draftId == null) return;
+    await _hive.cacheCoverBytes(draftId, bytes);
+  }
+
+  /// Get cached file bytes for resume.
+  Future<({String fileName, Uint8List bytes})?> getCachedFileBytes(int fileIndex) async {
+    final draftId = currentDraft.value?.id;
+    if (draftId == null) return null;
+    return _hive.getCachedFileBytes(draftId, fileIndex);
+  }
+
+  /// Get all cached files for resume.
+  Future<List<({String fileName, Uint8List bytes})>> getAllCachedFiles() async {
+    final draftId = currentDraft.value?.id;
+    if (draftId == null) return [];
+    return _hive.getAllCachedFiles(draftId);
+  }
+
+  /// Get cached cover bytes for resume.
+  Future<Uint8List?> getCachedCoverBytes() async {
+    final draftId = currentDraft.value?.id;
+    if (draftId == null) return null;
+    return _hive.getCachedCoverBytes(draftId);
   }
 }

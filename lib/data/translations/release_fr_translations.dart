@@ -95,6 +95,33 @@ class ReleaseFrTranslations {
     ReleaseTranslationConstants.tracksSelected: 'pistes sélectionnées',
     ReleaseTranslationConstants.removeTrack: 'Supprimer la piste',
     ReleaseTranslationConstants.trackName: 'Nom de la piste',
+
+    // Release type names
+    ReleaseTranslationConstants.whatToUpload: 'Que souhaitez-vous publier ?',
+    ReleaseTranslationConstants.chooseOption: 'Choisissez une option pour commencer.',
+    ReleaseTranslationConstants.newRelease: 'Nouvelle Sortie',
+    ReleaseTranslationConstants.information: 'Informations',
+    ReleaseTranslationConstants.confirm: 'Confirmer',
+    ReleaseTranslationConstants.file: 'Fichier',
+    ReleaseTranslationConstants.tracks: 'Pistes',
+    ReleaseTranslationConstants.literaryGenre: 'Genre Litteraire',
+    ReleaseTranslationConstants.subgenres: 'Sous-genres',
+    ReleaseTranslationConstants.selectLiteraryGenre: 'Selectionner le genre litteraire',
+    ReleaseTranslationConstants.selectSubgenres: 'Selectionner sous-genres (jusqu\'a 10)',
+    ReleaseTranslationConstants.addSubgenre: 'Ajouter sous-genre',
+    ReleaseTranslationConstants.releaseCover: 'Couverture',
+    ReleaseTranslationConstants.singleTypeNameE: 'Oeuvre / Livre',
+    ReleaseTranslationConstants.singleTypeNameG: 'Titre / Single',
+    ReleaseTranslationConstants.singleTypeNameC: 'Musique Meditative',
+    ReleaseTranslationConstants.albumTypeNameE: 'Livre Audio / Podcast',
+    ReleaseTranslationConstants.albumTypeNameG: 'Album',
+    ReleaseTranslationConstants.albumTypeNameC: 'Album / Podcast',
+    ReleaseTranslationConstants.singleTypeDescE: 'Telechargez un PDF de votre oeuvre litteraire pour la positionner sur la plateforme.',
+    ReleaseTranslationConstants.singleTypeDescG: 'Telechargez un titre et personnalisez les informations de votre sortie.',
+    ReleaseTranslationConstants.singleTypeDescC: 'Telechargez une piece de musique meditative ou relaxante.',
+    ReleaseTranslationConstants.albumTypeDescE: 'Telechargez plusieurs fichiers audio pour creer un livre audio ou un podcast.',
+    ReleaseTranslationConstants.albumTypeDescG: 'Telechargez entre 2 et 20 titres pour un album ou EP coordonne.',
+    ReleaseTranslationConstants.albumTypeDescC: 'Telechargez plusieurs fichiers audio pour creer un album ou un podcast.',
   };
 
 }

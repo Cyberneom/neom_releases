@@ -96,6 +96,33 @@ class ReleaseTranslationConstants {
   static const String sharePubliclyYes = 'sharePubliclyYes';
   static const String sharePubliclyNo = 'sharePubliclyNo';
 
+  // Release type names per flavour (e = EMXI, g = Gigmeout, c = Cyberneom)
+  static const String singleTypeNameE = 'singleTypeNameE';
+  static const String singleTypeNameG = 'singleTypeNameG';
+  static const String singleTypeNameC = 'singleTypeNameC';
+  static const String albumTypeNameE = 'albumTypeNameE';
+  static const String albumTypeNameG = 'albumTypeNameG';
+  static const String albumTypeNameC = 'albumTypeNameC';
+  static const String singleTypeDescE = 'singleTypeDescE';
+  static const String singleTypeDescG = 'singleTypeDescG';
+  static const String singleTypeDescC = 'singleTypeDescC';
+  static const String albumTypeDescE = 'albumTypeDescE';
+  static const String albumTypeDescG = 'albumTypeDescG';
+  static const String albumTypeDescC = 'albumTypeDescC';
+  static const String whatToUpload = 'whatToUpload';
+  static const String chooseOption = 'chooseOption';
+  static const String newRelease = 'newRelease';
+  static const String information = 'information';
+  static const String confirm = 'confirm';
+  static const String file = 'file';
+  static const String tracks = 'tracks';
+  static const String literaryGenre = 'literaryGenre';
+  static const String subgenres = 'subgenres';
+  static const String selectLiteraryGenre = 'selectLiteraryGenre';
+  static const String selectSubgenres = 'selectSubgenres';
+  static const String addSubgenre = 'addSubgenre';
+  static const String releaseCover = 'releaseCover';
+
   static const String digitalSalesModel = 'digitalSalesModel';
   static const String digitalSalesModelMsg = 'digitalSalesModelMsg';
   static const String physicalSalesModel = 'physicalSalesModel';

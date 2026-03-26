@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:neom_commons/ui/widgets/images/handled_cached_network_image.dart';
 import 'package:flutter/foundation.dart';
@@ -56,6 +57,7 @@ import 'package:neom_core/utils/enums/activity_feed_type.dart';
 import 'package:neom_core/utils/enums/app_currency.dart';
 import 'package:neom_core/utils/enums/app_in_use.dart';
 import 'package:neom_core/utils/enums/app_media_type.dart';
+import 'package:neom_core/utils/enums/media_item_type.dart';
 import 'package:neom_core/utils/enums/media_type.dart';
 import 'package:neom_core/utils/enums/itemlist_type.dart';
 import 'package:neom_core/utils/enums/media_upload_destination.dart';
@@ -2026,6 +2028,68 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     }
 
     update([AppPageIdConstants.releaseUpload]);
+  }
+
+  // ── Web Modal Helpers ──
+
+  /// Cover image bytes from web file picker (used by web modal)
+  Uint8List? releaseCoverImgBytes;
+
+  /// Web file bytes map: filename → bytes
+  final List<MapEntry<String, Uint8List>> _webFileEntries = [];
+
+  void addWebFileBytes(String fileName, Uint8List bytes) {
+    _webFileEntries.add(MapEntry(fileName, bytes));
+  }
+
+  /// Build release items from the web form data (called before uploadReleaseItem).
+  void buildItemsFromWebForm() {
+    appReleaseItems.clear();
+
+    final isEmxi = AppConfig.instance.appInUse == AppInUse.e;
+
+    releaseItemlist.name = titleController.text.trim().isNotEmpty
+        ? titleController.text.trim()
+        : itemlistNameController.text.trim();
+    releaseItemlist.description = descController.text.trim().isNotEmpty
+        ? descController.text.trim()
+        : itemlistDescController.text.trim();
+    releaseItemlist.ownerName = authorController.text.trim().isNotEmpty
+        ? authorController.text.trim()
+        : profile.name;
+    releaseItemlist.ownerType = OwnerType.profile;
+
+    for (int i = 0; i < _webFileEntries.length; i++) {
+      final entry = _webFileEntries[i];
+      final name = releaseItemsQty.value == 1
+          ? titleController.text.trim()
+          : entry.key.replaceAll(RegExp(r'\.[^.]+$'), '');
+
+      final item = AppReleaseItem(
+        name: name,
+        description: descController.text.trim(),
+        ownerEmail: user.email,
+        ownerName: authorController.text.trim().isNotEmpty ? authorController.text.trim() : profile.name,
+        ownerType: OwnerType.profile,
+        type: appReleaseItem.value.type,
+        mediaType: isEmxi ? MediaItemType.pdf : MediaItemType.song,
+        categories: selectedGenres.toList(),
+        galleryUrls: [profile.photoUrl],
+        metaOwnerId: user.email,
+        boughtUsers: [],
+        createdTime: DateTime.now().millisecondsSinceEpoch,
+        state: 5,
+      );
+
+      appReleaseItems.add(item);
+    }
+
+    // Store bytes in mediaUploadService for the upload pipeline
+    if (mediaUploadServiceImpl != null) {
+      for (final entry in _webFileEntries) {
+        mediaUploadServiceImpl!.addWebReleaseFileBytes(entry.key, entry.value);
+      }
+    }
   }
 
 }

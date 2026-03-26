@@ -95,6 +95,33 @@ class ReleaseDeTranslations {
     ReleaseTranslationConstants.tracksSelected: 'Titel ausgewählt',
     ReleaseTranslationConstants.removeTrack: 'Titel entfernen',
     ReleaseTranslationConstants.trackName: 'Titelname',
+
+    // Release type names
+    ReleaseTranslationConstants.whatToUpload: 'Was mochten Sie hochladen?',
+    ReleaseTranslationConstants.chooseOption: 'Wahlen Sie eine Option, um zu beginnen.',
+    ReleaseTranslationConstants.newRelease: 'Neue Veroffentlichung',
+    ReleaseTranslationConstants.information: 'Informationen',
+    ReleaseTranslationConstants.confirm: 'Bestatigen',
+    ReleaseTranslationConstants.file: 'Datei',
+    ReleaseTranslationConstants.tracks: 'Titel',
+    ReleaseTranslationConstants.literaryGenre: 'Literarisches Genre',
+    ReleaseTranslationConstants.subgenres: 'Untergenres',
+    ReleaseTranslationConstants.selectLiteraryGenre: 'Literarisches Genre wahlen',
+    ReleaseTranslationConstants.selectSubgenres: 'Untergenres wahlen (bis zu 10)',
+    ReleaseTranslationConstants.addSubgenre: 'Untergenre hinzufugen',
+    ReleaseTranslationConstants.releaseCover: 'Titelbild',
+    ReleaseTranslationConstants.singleTypeNameE: 'Werk / Buch',
+    ReleaseTranslationConstants.singleTypeNameG: 'Titel / Single',
+    ReleaseTranslationConstants.singleTypeNameC: 'Meditative Musik',
+    ReleaseTranslationConstants.albumTypeNameE: 'Horbuch / Podcast',
+    ReleaseTranslationConstants.albumTypeNameG: 'Album',
+    ReleaseTranslationConstants.albumTypeNameC: 'Album / Podcast',
+    ReleaseTranslationConstants.singleTypeDescE: 'Laden Sie ein PDF Ihres literarischen Werks hoch, um es auf der Plattform zu positionieren.',
+    ReleaseTranslationConstants.singleTypeDescG: 'Laden Sie einen Titel hoch und passen Sie die Informationen Ihrer Veroffentlichung an.',
+    ReleaseTranslationConstants.singleTypeDescC: 'Laden Sie ein Stuck meditative oder entspannende Musik hoch.',
+    ReleaseTranslationConstants.albumTypeDescE: 'Laden Sie mehrere Audiodateien hoch, um ein Horbuch oder einen Podcast zu erstellen.',
+    ReleaseTranslationConstants.albumTypeDescG: 'Laden Sie 2 bis 20 Titel fur ein koordiniertes Album oder eine EP hoch.',
+    ReleaseTranslationConstants.albumTypeDescC: 'Laden Sie mehrere Audiodateien hoch, um ein Album oder einen Podcast zu erstellen.',
   };
 
 }

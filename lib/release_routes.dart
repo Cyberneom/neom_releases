@@ -1,7 +1,9 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:neom_core/utils/constants/app_route_constants.dart';
 import 'package:sint/sint.dart';
 
 import 'ui/release_upload_page.dart';
+import 'ui/web/release_upload_web_page.dart';
 import 'ui/widgets/release_upload_band_or_solo_page.dart';
 import 'ui/widgets/release_upload_genres_page.dart';
 import 'ui/widgets/release_upload_info_page.dart';
@@ -16,7 +18,7 @@ class ReleaseRoutes {
   static final List<SintPage<dynamic>> routes = [
     SintPage(
       name: AppRouteConstants.releaseUpload,
-      page: () => const ReleaseUploadPage(),
+      page: () => kIsWeb ? const ReleaseUploadWebPage() : const ReleaseUploadPage(),
       transition: Transition.leftToRight,
     ),
     SintPage(
