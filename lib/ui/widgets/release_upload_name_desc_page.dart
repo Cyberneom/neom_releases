@@ -99,6 +99,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                     child: TextFormField(
                       minLines: 2,
                       maxLines: 8,
+                      maxLength: 500,
                       controller: controller.descController,
                       onChanged:(text) => controller.setReleaseDesc(),
                       decoration: InputDecoration(

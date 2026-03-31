@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:typed_data';
 
+import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/widgets/images/handled_cached_network_image.dart';
+import 'web/release_upload_web_modal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:neom_core/utils/platform/core_io.dart';
 import 'package:flutter/material.dart';
@@ -77,6 +79,9 @@ import '../data/release_cache_controller.dart';
 import '../utils/constants/release_translation_constants.dart';
 
 class ReleaseUploadController extends SintController with SintTickerProviderStateMixin implements ReleaseUploadService {
+
+  /// When true, skips all internal navigation (used when called from web modal).
+  bool isWebMode = false;
 
   final userServiceImpl = Sint.find<UserService>();
   final MapsService? mapsServiceImpl = Sint.isRegistered<MapsService>() ? Sint.find<MapsService>() : null;
@@ -358,7 +363,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       releaseItemlist.appReleaseItems = [];
 
       authorController.text = profile.name;
-      appReleaseItem.value.digitalPrice = Price(currency: AppCurrency.mxn, amount: double.parse(AppProperties.getInitialPrice()));
+      appReleaseItem.value.digitalPrice = Price(currency: AppCurrency.mxn, amount: double.tryParse(AppProperties.getInitialPrice()) ?? 0.0);
       appReleaseItem.value.ownerEmail = user.email;
       appReleaseItem.value.ownerName =  authorController.text;
       appReleaseItem.value.galleryUrls = [profile.photoUrl];
@@ -366,7 +371,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       appReleaseItem.value.instruments = [];
       appReleaseItem.value.metaOwnerId = userServiceImpl.user.email;
 
-      genres.value = await CoreUtilities.loadGenres();
+      genres.value = await CoreUtilities.loadReleaseGenres();
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'onReady');
     }
@@ -402,7 +407,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   Future<void> setReleaseType(ReleaseType releaseType) async {
     AppConfig.logger.d("Release Type as ${releaseType.name}");
     appReleaseItem.value.type = releaseType;
-    appReleaseItem.value.imgUrl == "";
+    appReleaseItem.value.imgUrl = "";
 
     if(profile.verificationLevel == VerificationLevel.none) {
       if(releaseType != ReleaseType.single) {
@@ -541,19 +546,27 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     update([AppPageIdConstants.releaseUpload]);
 
     try {
-      // STEP 1: Upload cover image to WordPress (skip if already uploaded)
+      // ══════════════════════════════════════════════════════════
+      // STEP 1: Upload cover image
+      // ══════════════════════════════════════════════════════════
+      AppConfig.logger.i('━━━ STEP 1: Cover Image Upload ━━━');
+      AppConfig.logger.d('  resumeStep: ${resumeStep.name}, mediaFileExists: ${mediaUploadServiceImpl?.mediaFileExists()}, '
+          'mediaBytes: ${mediaUploadServiceImpl?.mediaBytes != null ? "${mediaUploadServiceImpl!.mediaBytes!.length} bytes" : "null"}, '
+          'kIsWeb: $kIsWeb');
+
       if (resumeStep.index >= ReleaseUploadStep.coverUploaded.index
           && draft?.coverImageRemoteUrl != null && draft!.coverImageRemoteUrl!.isNotEmpty) {
         releaseCoverImgURL = draft.coverImageRemoteUrl!;
         releaseItemlist.imgUrl = releaseCoverImgURL;
-        AppConfig.logger.i('Resuming: Cover already uploaded, skipping. URL: $releaseCoverImgURL');
-      } else if(mediaUploadServiceImpl!.mediaFileExists()) {
-        AppConfig.logger.d("Uploading releaseCoverImg from: ${mediaUploadServiceImpl!.getMediaFile().path}");
+        AppConfig.logger.i('  ↳ Resuming: Cover already uploaded → $releaseCoverImgURL');
+      } else if(mediaUploadServiceImpl!.mediaFileExists() || (kIsWeb && mediaUploadServiceImpl!.mediaBytes != null)) {
+        AppConfig.logger.d('  ↳ Uploading cover: ${kIsWeb ? "web bytes (${mediaUploadServiceImpl!.mediaBytes?.length ?? 0})" : mediaUploadServiceImpl!.getMediaFile().path}');
         uploadStatusMessage.value = ReleaseTranslationConstants.uploadingCover.tr;
         update([AppPageIdConstants.releaseUpload]);
 
         // Web: upload cover from bytes. Mobile: upload from File via WordPress.
         if (kIsWeb && mediaUploadServiceImpl!.mediaBytes != null) {
+          AppConfig.logger.d('  ↳ Web path: uploading ${mediaUploadServiceImpl!.mediaBytes!.length} bytes via Firebase');
           releaseCoverImgURL = await AppUploadFirestore().uploadMediaBytes(
             mediaUploadServiceImpl!.getMediaId(),
             mediaUploadServiceImpl!.mediaBytes!,
@@ -561,6 +574,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
             MediaUploadDestination.releaseItem,
           );
         } else {
+          AppConfig.logger.d('  ↳ Mobile path: uploading via WordPress');
           releaseCoverImgURL = await wooMediaServiceImpl.uploadMediaToWordPress(
             mediaUploadServiceImpl!.getMediaFile(),
             fileName: releaseItemlist.name
@@ -569,9 +583,11 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
         // CRITICAL: Validate cover upload was successful
         if (releaseCoverImgURL.isEmpty) {
+          AppConfig.logger.e('  ✗ Cover upload returned EMPTY URL');
           throw Exception(ReleaseTranslationConstants.coverUploadFailed.tr);
         }
 
+        AppConfig.logger.i('  ✓ Cover uploaded → $releaseCoverImgURL');
         releaseItemlist.imgUrl = releaseCoverImgURL;
 
         // Save progress to cache
@@ -580,13 +596,21 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
           coverImageRemoteUrl: releaseCoverImgURL,
           itemlist: releaseItemlist,
         );
+      } else {
+        AppConfig.logger.w('  ⚠ No cover image to upload — mediaFileExists=false, mediaBytes=null');
       }
 
-      // STEP 2: Create Itemlist in Firestore (skip if already created)
+      // ══════════════════════════════════════════════════════════
+      // STEP 2: Create Itemlist in Firestore
+      // ══════════════════════════════════════════════════════════
+      AppConfig.logger.i('━━━ STEP 2: Create Itemlist ━━━');
+      AppConfig.logger.d('  itemlist: name="${releaseItemlist.name}", type=${releaseItemlist.type}, '
+          'imgUrl=${releaseItemlist.imgUrl.isNotEmpty ? "SET (${releaseItemlist.imgUrl.length} chars)" : "EMPTY"}');
+
       if (resumeStep.index >= ReleaseUploadStep.itemlistCreated.index
           && releaseItemlist.id.isNotEmpty) {
         releaseItemlistId = releaseItemlist.id;
-        AppConfig.logger.i('Resuming: Itemlist already created, skipping. ID: $releaseItemlistId');
+        AppConfig.logger.i('  ↳ Resuming: Itemlist already created → ID: $releaseItemlistId');
       } else {
         uploadStatusMessage.value = ReleaseTranslationConstants.creatingCatalog.tr;
         update([AppPageIdConstants.releaseUpload]);
@@ -595,10 +619,12 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
         // CRITICAL: Validate itemlist creation
         if (releaseItemlistId.isEmpty) {
+          AppConfig.logger.e('  ✗ Itemlist insert returned EMPTY ID');
           throw Exception(ReleaseTranslationConstants.catalogCreationFailed.tr);
         }
 
         releaseItemlist.id = releaseItemlistId;
+        AppConfig.logger.i('  ✓ Itemlist created → ID: $releaseItemlistId');
 
         // Save progress to cache
         await cacheController.updateDraft(
@@ -607,28 +633,40 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         );
       }
 
+      // ══════════════════════════════════════════════════════════
       // STEP 3: Upload each release item
+      // ══════════════════════════════════════════════════════════
+      AppConfig.logger.i('━━━ STEP 3: Upload Release Items (${appReleaseItems.length} total) ━━━');
+
       // If resuming, skip items that were already uploaded (have remote URL and Firestore ID)
       final resumeItemIndex = (resumeStep == ReleaseUploadStep.itemsUploading)
           ? (draft?.currentItemIndex ?? 0) : 0;
 
       for (AppReleaseItem releaseItem in appReleaseItems) {
+        final itemIdx = releaseItemIndex.value;
+
         // Skip items already fully uploaded (have ID and remote preview URL)
-        if (releaseItemIndex.value < resumeItemIndex && releaseItem.id.isNotEmpty
+        if (itemIdx < resumeItemIndex && releaseItem.id.isNotEmpty
             && releaseItem.previewUrl.startsWith('http')) {
-          AppConfig.logger.i('Resuming: Skipping already uploaded item ${releaseItemIndex.value}: ${releaseItem.name}');
+          AppConfig.logger.i('  [$itemIdx] ↳ Resuming: Skipping "${releaseItem.name}" (already uploaded)');
           releaseItemIndex.value++;
           update([AppPageIdConstants.releaseUpload]);
           continue;
         }
 
-        uploadStatusMessage.value = '${ReleaseTranslationConstants.uploadingFile.tr} ${releaseItemIndex.value + 1}/${appReleaseItems.length}';
+        AppConfig.logger.i('  [$itemIdx] Processing "${releaseItem.name}"');
+        AppConfig.logger.d('  [$itemIdx]   previewUrl (local): "${releaseItem.previewUrl}"');
+        AppConfig.logger.d('  [$itemIdx]   imgUrl: "${releaseItem.imgUrl}"');
+        AppConfig.logger.d('  [$itemIdx]   mediaType: ${releaseItem.mediaType}, type: ${releaseItem.type}');
+        AppConfig.logger.d('  [$itemIdx]   owner: ${releaseItem.ownerName} (${releaseItem.ownerEmail})');
+
+        uploadStatusMessage.value = '${ReleaseTranslationConstants.uploadingFile.tr} ${itemIdx + 1}/${appReleaseItems.length}';
         update([AppPageIdConstants.releaseUpload]);
 
         // Save current item index to cache
         await cacheController.updateDraft(
           step: ReleaseUploadStep.itemsUploading,
-          currentItemIndex: releaseItemIndex.value,
+          currentItemIndex: itemIdx,
         );
 
         // Set metadata from itemlist - preserve categories from selection
@@ -639,18 +677,18 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         releaseItem.metaName = releaseItemlist.name;
         releaseItem.state = 5;
 
-        // Log categories and instruments for debugging
-        AppConfig.logger.d("ReleaseItem categories: ${releaseItem.categories}");
-        AppConfig.logger.d("ReleaseItem instruments: ${releaseItem.instruments}");
+        AppConfig.logger.d('  [$itemIdx]   imgUrl (from itemlist): "${releaseItem.imgUrl}"');
+        AppConfig.logger.d('  [$itemIdx]   categories: ${releaseItem.categories}');
+        AppConfig.logger.d('  [$itemIdx]   instruments: ${releaseItem.instruments}');
 
         releaseItem.status = AppConfig.instance.appInfo.releaseRevisionEnabled
             ? ReleaseStatus.pending : ReleaseStatus.publish;
+        AppConfig.logger.d('  [$itemIdx]   status: ${releaseItem.status?.name} (revision=${AppConfig.instance.appInfo.releaseRevisionEnabled})');
 
         // Step 3a: Upload release file to WordPress/Firebase
         String fileExtension = '';
         bool isPdf = false;
         if(releaseItem.previewUrl.isNotEmpty) {
-          AppConfig.logger.i("Uploading file: ${releaseItem.previewUrl}");
           fileExtension = releaseItem.previewUrl.split('.').last.toLowerCase();
           isPdf = fileExtension == "pdf";
 
@@ -661,44 +699,50 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
             mediaType = AppMediaType.text;
           }
 
+          AppConfig.logger.i('  [$itemIdx]   Uploading file: ext=$fileExtension, isPdf=$isPdf, mediaType=${mediaType.name}');
+
           String uploadedFileUrl = '';
 
           // Web: upload from bytes. Mobile: upload from file path.
           if (kIsWeb && mediaUploadServiceImpl != null) {
-            final bytes = mediaUploadServiceImpl!.getReleaseFileBytes(releaseItemIndex.value);
+            final bytes = mediaUploadServiceImpl!.getReleaseFileBytes(itemIdx);
+            AppConfig.logger.d('  [$itemIdx]   Web upload: bytes=${bytes != null ? "${bytes.length}" : "NULL"}');
             if (bytes != null && bytes.isNotEmpty) {
-              if (AppProperties.mediaToWordpressFlag()) {
-                // WooCommerce upload needs File — not supported on web, use Firebase
-                uploadedFileUrl = await AppUploadFirestore().uploadReleaseItemBytes(releaseItem.name, bytes, mediaType);
-              } else {
-                uploadedFileUrl = await AppUploadFirestore().uploadReleaseItemBytes(releaseItem.name, bytes, mediaType);
-              }
+              uploadedFileUrl = await AppUploadFirestore().uploadReleaseItemBytes(releaseItem.name, bytes, mediaType);
+            } else {
+              AppConfig.logger.e('  [$itemIdx]   ✗ No bytes available for web upload!');
             }
           } else {
-            String filePath = releaseFilePaths.elementAt(releaseItemIndex.value);
+            String filePath = releaseFilePaths.elementAt(itemIdx);
+            AppConfig.logger.d('  [$itemIdx]   Mobile upload: filePath="$filePath"');
             File fileToUpload = await FileSystemUtilities.getFileFromPath(filePath);
 
             if(AppProperties.mediaToWordpressFlag()) {
+              AppConfig.logger.d('  [$itemIdx]   Uploading via WordPress');
               uploadedFileUrl = await wooMediaServiceImpl.uploadMediaToWordPress(fileToUpload, fileName: releaseItem.name);
             } else {
+              AppConfig.logger.d('  [$itemIdx]   Uploading via Firebase Storage');
               uploadedFileUrl = await AppUploadFirestore().uploadReleaseItem(releaseItem.name, fileToUpload, mediaType);
             }
           }
 
           // CRITICAL: Validate file upload was successful
           if (uploadedFileUrl.isEmpty) {
+            AppConfig.logger.e('  [$itemIdx]   ✗ File upload returned EMPTY URL');
             throw Exception('${ReleaseTranslationConstants.fileUploadFailed.tr}: ${releaseItem.name}');
           }
 
           releaseItem.previewUrl = uploadedFileUrl;
-          AppConfig.logger.d("Updating Remote Preview URL as: ${releaseItem.previewUrl}");
+          AppConfig.logger.i('  [$itemIdx]   ✓ File uploaded → ${releaseItem.previewUrl}');
+        } else {
+          AppConfig.logger.w('  [$itemIdx]   ⚠ previewUrl is EMPTY — no file to upload');
         }
 
         // Step 3b: Create WooCommerce product ONLY for PDFs (to sell physical books)
         // MP3s only need file hosting, no WooCommerce product
         String wooProductId = '';
         if (isPdf && AppProperties.createWooProductFlag()) {
-          AppConfig.logger.d('Creating WooCommerce product for PDF: ${releaseItem.name}');
+          AppConfig.logger.i('  [$itemIdx]   Creating WooCommerce product for PDF: ${releaseItem.name}');
           final result = await wooGatewayServiceImpl.createProductFromReleaseItem(
             releaseItem,
             coverImageUrl: releaseCoverImgURL,
@@ -720,30 +764,38 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         }
 
         // Step 3c: Insert to Firestore
+        AppConfig.logger.i('  [$itemIdx]   Inserting to Firestore...');
         // For PDFs: use WordPress product ID to maintain consistency
         // For MP3s: use auto-generated Firestore ID
         if (isPdf && wooProductId.isNotEmpty) {
-          // Use WordPress ID for PDFs - set it before insert
           releaseItem.id = wooProductId;
-          AppConfig.logger.d("Using WordPress ID for PDF: $wooProductId");
+          AppConfig.logger.d('  [$itemIdx]   Using WordPress ID for PDF: $wooProductId');
         }
+
+        // Snapshot of what will be inserted
+        AppConfig.logger.d('  [$itemIdx]   → Firestore payload: name="${releaseItem.name}", '
+            'imgUrl=${releaseItem.imgUrl.isNotEmpty ? "SET" : "EMPTY"}, '
+            'previewUrl=${releaseItem.previewUrl.isNotEmpty ? "SET" : "EMPTY"}, '
+            'status=${releaseItem.status?.name}, mediaType=${releaseItem.mediaType?.name}, '
+            'galleryUrls=${releaseItem.galleryUrls?.length ?? 0} items');
 
         // Insert method will use existing ID if set, otherwise auto-generate
         String releaseItemId = await AppReleaseItemFirestore().insert(releaseItem);
 
         // CRITICAL: Validate item creation in Firestore
         if (releaseItemId.isEmpty) {
+          AppConfig.logger.e('  [$itemIdx]   ✗ Firestore insert returned EMPTY ID');
           throw Exception('${ReleaseTranslationConstants.itemCreationFailed.tr}: ${releaseItem.name}');
         }
 
         releaseItem.id = releaseItemId;
-        AppConfig.logger.d("ReleaseItem Created with Id $releaseItemId");
+        AppConfig.logger.i('  [$itemIdx]   ✓ Firestore insert → ID: $releaseItemId');
 
         if(await ItemlistFirestore().addReleaseItem(releaseItemlist.id, releaseItem)) {
-          AppConfig.logger.i("ReleaseItem ${releaseItem.name} successfully added to itemlist ${releaseItemlist.id}");
+          AppConfig.logger.i('  [$itemIdx]   ✓ Added to itemlist ${releaseItemlist.id}');
           releaseItemlist.appReleaseItems!.add(releaseItem);
         } else {
-          AppConfig.logger.e("Something occurred when adding ReleaseItem ${releaseItem.name} adding to itemlist ${releaseItemlist.id}");
+          AppConfig.logger.e('  [$itemIdx]   ✗ Failed to add to itemlist ${releaseItemlist.id}');
         }
 
         releaseItemIndex.value++;
@@ -755,27 +807,34 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         step: ReleaseUploadStep.itemsUploaded,
         releaseItems: appReleaseItems.toList(),
       );
+      AppConfig.logger.i('━━━ All ${appReleaseItems.length} items uploaded successfully ━━━');
 
-      // STEP 4: Create post (only if user chose to share publicly)
+      // ══════════════════════════════════════════════════════════
+      // STEP 4: Create post (optional)
+      // ══════════════════════════════════════════════════════════
+      AppConfig.logger.i('━━━ STEP 4: Post Creation (sharePublicly=$sharePublicly) ━━━');
       if (sharePublicly) {
         uploadStatusMessage.value = ReleaseTranslationConstants.creatingPost.tr;
         update([AppPageIdConstants.releaseUpload]);
 
         await createReleasePost();
-        // Save progress - post created
         await cacheController.updateDraft(step: ReleaseUploadStep.postCreated);
+        AppConfig.logger.i('  ✓ Post created');
       } else {
-        AppConfig.logger.i("Skipping post creation - user chose not to share publicly");
+        AppConfig.logger.i('  ↳ Skipped — user chose not to share publicly');
       }
 
-      // STEP 5: Create release approval request for admin review
+      // ══════════════════════════════════════════════════════════
+      // STEP 5: Finalize (approval request + timeline refresh)
+      // ══════════════════════════════════════════════════════════
+      AppConfig.logger.i('━━━ STEP 5: Finalize ━━━');
       uploadStatusMessage.value = ReleaseTranslationConstants.finalizingUpload.tr;
       update([AppPageIdConstants.releaseUpload]);
 
       await _createReleaseApprovalRequest(releaseCoverImgURL);
 
       if (Sint.isRegistered<TimelineService>()) {
-        // Force reload of shelf data so the new release appears on Home
+        AppConfig.logger.d('  Refreshing timeline shelf...');
         await Sint.find<TimelineService>().getReleaseItemsFromWoo();
       }
 
@@ -784,15 +843,34 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       _uploadRetryCount = 0;
       NeomFlowTracker.endFlow('release_upload');
 
-      AppUtilities.showSnackBar(
-          title: ReleaseTranslationConstants.digitalPositioning,
-          message: ReleaseTranslationConstants.digitalPositioningSuccess.tr
-      );
+      // ══════════════════════════════════════════════════════════
+      // UPLOAD COMPLETE — Summary
+      // ══════════════════════════════════════════════════════════
+      AppConfig.logger.i('╔══════════════════════════════════════════╗');
+      AppConfig.logger.i('║  RELEASE UPLOAD COMPLETE                 ║');
+      AppConfig.logger.i('╚══════════════════════════════════════════╝');
+      AppConfig.logger.i('  Itemlist: "${releaseItemlist.name}" (${releaseItemlist.id})');
+      AppConfig.logger.i('  Cover: ${releaseCoverImgURL.isNotEmpty ? releaseCoverImgURL : "NONE"}');
+      AppConfig.logger.i('  Items: ${appReleaseItems.length}');
+      for (final item in appReleaseItems) {
+        AppConfig.logger.i('    • "${item.name}" id=${item.id} '
+            'imgUrl=${item.imgUrl.isNotEmpty ? "OK" : "EMPTY"} '
+            'previewUrl=${item.previewUrl.isNotEmpty ? "OK" : "EMPTY"} '
+            'status=${item.status?.name}');
+      }
 
       isButtonDisabled.value = false;
       isLoading.value = false;
       uploadStatusMessage.value = '';
-      Sint.offAllNamed(AppRouteConstants.home);
+
+      if (!isWebMode) {
+        AppUtilities.showSnackBar(
+            title: ReleaseTranslationConstants.digitalPositioning,
+            message: ReleaseTranslationConstants.digitalPositioningSuccess.tr
+        );
+        Sint.offAllNamed(AppRouteConstants.home);
+      }
+      // Web mode: the web modal handles its own success UI
 
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'uploadReleaseItem');
@@ -1103,6 +1181,9 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
   Future<void> addReleaseItemToList() async {
     AppConfig.logger.d("Adding ${appReleaseItem.value.name} to itemList ${releaseItemlist.name}.");
+    AppConfig.logger.d("  item state: previewUrl=\"${appReleaseItem.value.previewUrl}\", "
+        "imgUrl=\"${appReleaseItem.value.imgUrl}\", mediaType=${appReleaseItem.value.mediaType?.name}, "
+        "owner=${appReleaseItem.value.ownerName}, releaseFilePath=\"$releaseFilePath\"");
 
     try {
       appReleaseItems.value.removeWhere((element) => element.name == appReleaseItem.value.name);
@@ -1110,6 +1191,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       if(appReleaseItems.length < releaseItemsQty.value) {
         appReleaseItems.add(AppReleaseItem.fromJSON(appReleaseItem.value.toJSON()));
         releaseFilePaths.add(releaseFilePath);
+        AppConfig.logger.d("  → items count: ${appReleaseItems.length}/${releaseItemsQty.value}, filePaths: ${releaseFilePaths.length}");
       }
 
       // Save release items to cache
@@ -1182,7 +1264,16 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
   @override
   Future<void> gotoReleaseSummary() async {
-    AppConfig.logger.t("Adding final info to release");
+    AppConfig.logger.i("━━━ PRE-UPLOAD SUMMARY ━━━");
+    AppConfig.logger.d("  itemlist: name=\"${releaseItemlist.name}\", type=${releaseItemlist.type}, imgUrl=\"${releaseItemlist.imgUrl}\"");
+    AppConfig.logger.d("  releaseCoverImgPath: \"${releaseCoverImgPath.value}\"");
+    AppConfig.logger.d("  mediaUpload: fileExists=${mediaUploadServiceImpl?.mediaFileExists()}, "
+        "bytes=${mediaUploadServiceImpl?.mediaBytes != null ? "${mediaUploadServiceImpl!.mediaBytes!.length}" : "null"}");
+    AppConfig.logger.d("  appReleaseItems: ${appReleaseItems.length}, releaseFilePaths: ${releaseFilePaths.length}");
+    for (int i = 0; i < appReleaseItems.length; i++) {
+      final ri = appReleaseItems[i];
+      AppConfig.logger.d("    [$i] name=\"${ri.name}\", previewUrl=\"${ri.previewUrl}\", imgUrl=\"${ri.imgUrl}\", mediaType=${ri.mediaType?.name}");
+    }
 
     try {
 
@@ -1190,6 +1281,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
         if(releaseItem.imgUrl.isEmpty) {
           releaseItem.imgUrl = releaseCoverImgPath.isNotEmpty ? releaseCoverImgPath.value : AppProperties.getAppLogoUrl();
+          AppConfig.logger.d("  Set imgUrl fallback for \"${releaseItem.name}\" → \"${releaseItem.imgUrl}\"");
         }
         releaseItem.publishedYear = publishedYear.value;
 
@@ -1696,7 +1788,13 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     update([AppPageIdConstants.releaseUpload]);
   }
 
+  @override
+  void showUploadModal(BuildContext context) {
+    ReleaseUploadWebModal.show(context);
+  }
+
   void gotoNameDesc() {
+    if (isWebMode) return; // Web modal handles its own navigation
     if(AppConfig.instance.appInUse != AppInUse.g || appReleaseItem.value.type == ReleaseType.single) {
       Sint.toNamed(AppRouteConstants.releaseUploadNameDesc);
     } else {
@@ -1859,6 +1957,10 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   }
 
   Future<void> submitRelease(BuildContext context) async {
+   AppConfig.logger.i('━━━ SUBMIT RELEASE ━━━');
+   AppConfig.logger.d('  demoEnabled=${AppConfig.instance.appInfo.demoReleaseEnabled}, '
+       'subscription=${userServiceImpl.userSubscription?.status?.name}');
+
    if(AppConfig.instance.appInfo.demoReleaseEnabled || userServiceImpl.userSubscription?.status == SubscriptionStatus.active) {
      // Validate required fields before proceeding
      final missingFields = <String>[];
@@ -1871,7 +1973,14 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
      }
      if (appReleaseItem.value.categories.isEmpty) missingFields.add(ReleaseTranslationConstants.releaseUploadGenres.tr);
 
+     AppConfig.logger.d('  Validation: name=${appReleaseItem.value.name.isNotEmpty}, '
+         'desc=${appReleaseItem.value.description.isNotEmpty || releaseItemlist.description.isNotEmpty}, '
+         'file=${appReleaseItem.value.previewUrl.isNotEmpty || releaseFilePaths.isNotEmpty}, '
+         'cover=${(mediaUploadServiceImpl?.mediaFileExists() ?? false) || releaseCoverImgPath.value.isNotEmpty || appReleaseItem.value.imgUrl.isNotEmpty || releaseItemlist.imgUrl.isNotEmpty}, '
+         'genres=${appReleaseItem.value.categories.isNotEmpty}');
+
      if (missingFields.isNotEmpty) {
+       AppConfig.logger.w('  ⚠ Missing fields: ${missingFields.join(", ")}');
        AppUtilities.showSnackBar(
          title: ReleaseTranslationConstants.releaseUpload,
          message: '${ReleaseTranslationConstants.missingRequiredFields.tr}: ${missingFields.join(', ')}',
@@ -2046,7 +2155,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   void buildItemsFromWebForm() {
     appReleaseItems.clear();
 
-    final isEmxi = AppConfig.instance.appInUse == AppInUse.e;
+    // Removed: isEmxi check — using AppFlavour instead
 
     releaseItemlist.name = titleController.text.trim().isNotEmpty
         ? titleController.text.trim()
@@ -2072,7 +2181,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         ownerName: authorController.text.trim().isNotEmpty ? authorController.text.trim() : profile.name,
         ownerType: OwnerType.profile,
         type: appReleaseItem.value.type,
-        mediaType: isEmxi ? MediaItemType.pdf : MediaItemType.song,
+        mediaType: AppFlavour.singleAcceptsPdf() ? MediaItemType.pdf : MediaItemType.song,
         categories: selectedGenres.toList(),
         galleryUrls: [profile.photoUrl],
         metaOwnerId: user.email,
@@ -2081,11 +2190,17 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         state: 5,
       );
 
+      // Set previewUrl to filename so the upload gate passes and extension is extractable
+      item.previewUrl = entry.key;
       appReleaseItems.add(item);
     }
 
     // Store bytes in mediaUploadService for the upload pipeline
     if (mediaUploadServiceImpl != null) {
+      // Transfer cover bytes so the upload pipeline can find them
+      if (releaseCoverImgBytes != null) {
+        mediaUploadServiceImpl!.setMediaBytes(releaseCoverImgBytes!);
+      }
       for (final entry in _webFileEntries) {
         mediaUploadServiceImpl!.addWebReleaseFileBytes(entry.key, entry.value);
       }

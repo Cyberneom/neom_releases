@@ -170,7 +170,7 @@ class ReleaseUploadWebPage extends StatelessWidget {
           return ChoiceChip(
             label: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
-              child: Text(type.value.tr.capitalizeFirst),
+              child: Text(type.name.tr.capitalizeFirst),
             ),
             selected: isSelected,
             selectedColor: AppColor.bondiBlue,
@@ -215,6 +215,7 @@ class ReleaseUploadWebPage extends StatelessWidget {
             onChanged: (_) => controller.setReleaseDesc(),
             minLines: 2,
             maxLines: 6,
+            maxLength: 500,
             decoration: _inputDecoration(ReleaseTranslationConstants.releaseDesc.tr),
           ),
           // Duration / Physical price (EMXI only)
@@ -799,8 +800,8 @@ class ReleaseUploadWebPage extends StatelessWidget {
             const SizedBox(height: 10),
             Row(
               children: [
-                if (type.value.isNotEmpty)
-                  _previewChip(type.value.tr.capitalizeFirst, FontAwesomeIcons.compactDisc),
+                if (type.name.isNotEmpty)
+                  _previewChip(type.name.tr.capitalizeFirst, FontAwesomeIcons.compactDisc),
                 if (trackCount > 0) ...[
                   const SizedBox(width: 8),
                   _previewChip('$trackCount tracks', FontAwesomeIcons.music),

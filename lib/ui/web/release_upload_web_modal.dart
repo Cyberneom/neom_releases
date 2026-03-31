@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/utils/app_utilities.dart';
 import 'package:neom_commons/utils/constants/translations/app_translation_constants.dart';
+import 'package:neom_core/app_properties.dart';
+import 'package:neom_core/utils/constants/app_route_constants.dart';
 import 'package:neom_core/utils/neom_error_logger.dart';
 import 'package:sint/sint.dart';
 
@@ -11,6 +13,7 @@ import '../release_upload_controller.dart';
 
 import 'phases/release_form_phase.dart';
 import 'phases/release_summary_phase.dart';
+import 'phases/release_tracks_phase.dart';
 import 'phases/release_type_phase.dart';
 import 'release_upload_web_controller.dart';
 
@@ -102,13 +105,17 @@ class ReleaseUploadWebModal extends StatelessWidget {
 
             const Spacer(),
 
-            // Next / empty
-            if (phase == 1)
+            // Next button — visible in form (1) and tracks (2) phases
+            if (phase == 1 || (phase == 2 && ctrl.isAlbum))
               TextButton(
-                onPressed: ctrl.canProceedToSummary ? ctrl.goNext : null,
+                onPressed: (phase == 1 && ctrl.canProceedToSummary) || (phase == 2 && ctrl.isAlbum)
+                    ? ctrl.goNext
+                    : null,
                 child: Text(AppTranslationConstants.next.tr,
                   style: TextStyle(
-                    color: ctrl.canProceedToSummary ? AppColor.getReleaseShelfColor() : Colors.grey[700],
+                    color: (phase == 1 && ctrl.canProceedToSummary) || (phase == 2 && ctrl.isAlbum)
+                        ? AppColor.getReleaseShelfColor()
+                        : Colors.grey[700],
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -128,21 +135,45 @@ class ReleaseUploadWebModal extends StatelessWidget {
       case 1:
         return ReleaseFormPhase(key: const ValueKey(1), controller: ctrl);
       case 2:
+        // For albums: track naming + cover. For singles: skip to summary.
+        if (ctrl.isAlbum) {
+          return ReleaseTracksPhase(key: const ValueKey(2), controller: ctrl);
+        }
         return ReleaseSummaryPhase(
           key: const ValueKey(2),
           controller: ctrl,
           onUpload: () => _handleUpload(context, ctrl),
         );
+      case 3:
+        // For albums: summary. For singles: success.
+        if (ctrl.isAlbum) {
+          return ReleaseSummaryPhase(
+            key: const ValueKey(3),
+            controller: ctrl,
+            onUpload: () => _handleUpload(context, ctrl),
+          );
+        }
+        return _buildSuccessPhase(context, ctrl);
+      case 4:
+        // Album success
+        return _buildSuccessPhase(context, ctrl);
       default:
         return const SizedBox.shrink();
     }
   }
 
   String _phaseTitle(int phase) {
+    final ctrl = Sint.find<ReleaseUploadWebController>();
     switch (phase) {
       case 0: return ReleaseTranslationConstants.newRelease.tr;
       case 1: return ReleaseTranslationConstants.information.tr;
-      case 2: return ReleaseTranslationConstants.confirm.tr;
+      case 2: return ctrl.isAlbum
+          ? ReleaseTranslationConstants.tracks.tr
+          : ReleaseTranslationConstants.confirm.tr;
+      case 3: return ctrl.isAlbum
+          ? ReleaseTranslationConstants.confirm.tr
+          : '';
+      case 4: return '';
       default: return '';
     }
   }
@@ -192,6 +223,7 @@ class ReleaseUploadWebModal extends StatelessWidget {
 
       // Build items from form data
       webCtrl.uploadStatus.value = ReleaseTranslationConstants.creatingCatalog.tr;
+      uploadCtrl.isWebMode = true; // Prevent internal navigation
       uploadCtrl.buildItemsFromWebForm();
 
       // Execute the full upload pipeline (cover → itemlist → files → post → notifications)
@@ -202,17 +234,146 @@ class ReleaseUploadWebModal extends StatelessWidget {
       webCtrl.isUploading.value = false;
 
       if (context.mounted) {
-        Navigator.of(context).pop();
-        AppUtilities.showSnackBar(
-          title: 'Obra subida',
-          message: '${webCtrl.titleController.text.trim()} se ha subido correctamente.',
-        );
+        // Show success phase in the same modal
+        webCtrl.phase.value = webCtrl.isAlbum ? 4 : 3; // Success phase
       }
     } catch (e, st) {
       webCtrl.isUploading.value = false;
       NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'webUpload');
       AppUtilities.showSnackBar(title: 'Error', message: 'No se pudo subir la obra. Intenta de nuevo.');
     }
+  }
+
+  Widget _buildSuccessPhase(BuildContext context, ReleaseUploadWebController ctrl) {
+    final shelfColor = AppColor.getReleaseShelfColor();
+    final title = ctrl.titleController.text.trim();
+    // Build slug from title for sharing
+    final slug = title.toLowerCase()
+        .replaceAll(RegExp(r'[áàäâ]'), 'a')
+        .replaceAll(RegExp(r'[éèëê]'), 'e')
+        .replaceAll(RegExp(r'[íìïî]'), 'i')
+        .replaceAll(RegExp(r'[óòöô]'), 'o')
+        .replaceAll(RegExp(r'[úùüû]'), 'u')
+        .replaceAll(RegExp(r'[ñ]'), 'n')
+        .replaceAll(RegExp(r'[^a-z0-9\s]'), '')
+        .replaceAll(RegExp(r'\s+'), '-');
+    final shareUrl = '${AppProperties.getAppName().toLowerCase()}.xyz/$slug';
+
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 420),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.check_circle_outline, color: shelfColor, size: 80),
+            const SizedBox(height: 24),
+            Text(
+              ReleaseTranslationConstants.publishSuccess.tr,
+              style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              '$title ${ReleaseTranslationConstants.publishedSuccessfully.tr}',
+              style: TextStyle(color: Colors.grey[400], fontSize: 16),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 36),
+
+            // ── Copy URL to share ──
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: OutlinedButton.icon(
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: Colors.white70,
+                  side: BorderSide(color: shelfColor.withAlpha(100)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                icon: const Icon(Icons.link, size: 18),
+                label: Text(ReleaseTranslationConstants.copyUrlToShare.tr),
+                onPressed: () {
+                  // Copy URL to clipboard
+                  Clipboard.setData(ClipboardData(text: shareUrl));
+                  AppUtilities.showSnackBar(
+                    title: ReleaseTranslationConstants.urlCopied.tr,
+                    message: shareUrl,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // ── Share release post (cover image + link + push notification) ──
+            SizedBox(
+              width: double.infinity,
+              height: 44,
+              child: Obx(() {
+                final isSharing = ctrl.isUploading.value;
+                final alreadyShared = ctrl.hasSharedPost.value;
+                return OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: alreadyShared ? Colors.white38 : Colors.white70,
+                    side: BorderSide(color: alreadyShared ? Colors.white12 : shelfColor.withAlpha(100)),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  ),
+                  icon: isSharing
+                      ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2, color: shelfColor))
+                      : Icon(alreadyShared ? Icons.check : Icons.share, size: 18),
+                  label: Text(isSharing
+                      ? ReleaseTranslationConstants.creatingPost.tr
+                      : alreadyShared
+                          ? '✓ ${ReleaseTranslationConstants.publishSuccess.tr}'
+                          : ReleaseTranslationConstants.shareOnTimeline.tr),
+                  onPressed: (isSharing || alreadyShared) ? null : () async {
+                    final uploadCtrl = Sint.isRegistered<ReleaseUploadController>()
+                        ? Sint.find<ReleaseUploadController>()
+                        : null;
+                    if (uploadCtrl != null) {
+                      ctrl.isUploading.value = true;
+                      try {
+                        await uploadCtrl.createReleasePost();
+                        ctrl.isUploading.value = false;
+                        ctrl.hasSharedPost.value = true;
+                        if (context.mounted) {
+                          AppUtilities.showSnackBar(
+                            title: ReleaseTranslationConstants.publishSuccess.tr,
+                            message: ReleaseTranslationConstants.shareOnTimeline.tr,
+                          );
+                        }
+                      } catch (_) {
+                        ctrl.isUploading.value = false;
+                      }
+                    }
+                  },
+                );
+              }),
+            ),
+            const SizedBox(height: 10),
+
+            // ── Continue to home ──
+            SizedBox(
+              width: double.infinity,
+              height: 48,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: shelfColor,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                ),
+                icon: const Icon(Icons.home_outlined, size: 18),
+                label: Text(AppTranslationConstants.continueExploring.tr,
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  // Go home to see new release
+                  Sint.offAllNamed(AppRouteConstants.home);
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _close(BuildContext context, ReleaseUploadWebController ctrl) {

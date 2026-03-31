@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:neom_commons/app_flavour.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:neom_core/app_config.dart';
 import 'package:neom_core/domain/model/app_release_item.dart';
@@ -23,11 +24,13 @@ class ReleaseUploadWebController extends SintController {
   // ── State ──
   final RxInt phase = 0.obs; // 0=type, 1=form, 2=summary
   final RxBool isUploading = false.obs;
+  final RxBool hasSharedPost = false.obs;
   final RxDouble uploadProgress = 0.0.obs;
   final RxString uploadStatus = ''.obs;
 
   // ── Type selection ──
   final Rx<ReleaseType> releaseType = ReleaseType.single.obs;
+  final Rx<ItemlistType> itemlistType = ItemlistType.single.obs;
   bool get isSingle => releaseType.value == ReleaseType.single;
   bool get isAlbum => !isSingle;
 
@@ -36,12 +39,12 @@ class ReleaseUploadWebController extends SintController {
   final authorController = TextEditingController();
   final descController = TextEditingController();
 
-  // Genres (instruments.json) — multi-select up to 3
+  // Genres (release_genres.json) — multi-select up to 3
   final RxList<String> selectedInstruments = <String>[].obs;
   final RxString selectedInstrument = ''.obs; // legacy compat
   final RxList<String> instrumentNames = <String>[].obs;
 
-  // Subgenres (genres.json) — multi-select up to 5
+  // Subgenres (release_subgenres.json) — multi-select up to 5
   final RxList<String> selectedGenres = <String>[].obs;
   final RxList<String> genreNames = <String>[].obs;
 
@@ -58,17 +61,22 @@ class ReleaseUploadWebController extends SintController {
   final RxString coverFileName = ''.obs;
   final RxList<PlatformFile> releaseFiles = <PlatformFile>[].obs;
 
+  /// Track names for album uploads (one per file, editable by user).
+  final RxList<String> trackNames = <String>[].obs;
+
+  /// Alias for publishedYear (used by ReleaseTracksPhase).
+  Rx<int> get publicationYear => publishedYear;
+
   // ── Reactive title tracker (for Siguiente button) ──
   final RxString _titleText = ''.obs;
 
   // ── Computed ──
-  bool get isEmxi => AppConfig.instance.appInUse == AppInUse.e;
-
-  /// For singles: EMXI accepts PDF (books), others accept audio.
+  /// For singles: EMXI and Cyberneom accept PDF (books/articles), others accept audio.
   /// For albums (tracks): always audio regardless of app.
-  String get acceptedFileType => (isEmxi && isSingle) ? 'PDF' : 'MP3';
+  bool get singleAcceptsPdf => AppFlavour.singleAcceptsPdf() && isSingle;
+  String get acceptedFileType => singleAcceptsPdf ? 'PDF' : 'MP3';
   List<String> get acceptedExtensions =>
-      (isEmxi && isSingle) ? ['pdf'] : ['mp3'];
+      singleAcceptsPdf ? ['pdf'] : ['mp3'];
 
   // ── Reactive description tracker ──
   final RxString _descText = ''.obs;
@@ -99,23 +107,23 @@ class ReleaseUploadWebController extends SintController {
 
   Future<void> _loadInstrumentsAndGenres() async {
     try {
-      // Load instruments
-      final instrumentStr = await rootBundle.loadString(DataAssets.instrumentsJsonPath);
+      // Load release genres
+      final instrumentStr = await rootBundle.loadString(DataAssets.releaseGenresJsonPath);
       final List<dynamic> instrumentsJson = jsonDecode(instrumentStr);
       instrumentNames.value = instrumentsJson
           .map<String>((e) => e['name']?.toString() ?? '')
           .where((n) => n.isNotEmpty)
           .toList();
 
-      // Load genres
-      final genreStr = await rootBundle.loadString(DataAssets.genresJsonPath);
+      // Load release subgenres
+      final genreStr = await rootBundle.loadString(DataAssets.releaseSubgenresJsonPath);
       final List<dynamic> genresJson = jsonDecode(genreStr);
       genreNames.value = genresJson
           .map<String>((e) => e['name']?.toString() ?? '')
           .where((n) => n.isNotEmpty)
           .toList();
 
-      AppConfig.logger.d('Loaded ${instrumentNames.length} instruments, ${genreNames.length} genres');
+      AppConfig.logger.d('Loaded ${instrumentNames.length} release genres, ${genreNames.length} release subgenres');
     } catch (e, st) {
       NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'loadInstrumentsAndGenres');
     }
@@ -131,9 +139,26 @@ class ReleaseUploadWebController extends SintController {
   }
 
   // ── Navigation ──
-  void selectType(ReleaseType type) {
+  void selectType(ReleaseType type, {ItemlistType? subtype}) {
+    // Reset form when changing type
+    if (releaseType.value != type) {
+      _resetForm();
+    }
     releaseType.value = type;
+    itemlistType.value = subtype ?? (type == ReleaseType.single
+        ? ItemlistType.single
+        : ItemlistType.album);
     phase.value = 1;
+  }
+
+  void _resetForm() {
+    titleController.clear();
+    authorController.clear();
+    descController.clear();
+    coverBytes.value = null;
+    releaseFiles.clear();
+    selectedInstruments.clear();
+    selectedGenres.clear();
   }
 
   void goBack() {
@@ -144,7 +169,9 @@ class ReleaseUploadWebController extends SintController {
     if (phase.value == 0) {
       phase.value = 1;
     } else if (phase.value == 1 && canProceedToSummary) {
-      phase.value = 2;
+      phase.value = 2; // Albums go to tracks phase, singles go to summary
+    } else if (phase.value == 2 && isAlbum) {
+      phase.value = 3; // Albums: tracks → summary
     }
   }
 
@@ -226,7 +253,7 @@ class ReleaseUploadWebController extends SintController {
     return Itemlist(
       name: titleController.text.trim(),
       description: descController.text.trim(),
-      type: isSingle ? ItemlistType.single : ItemlistType.album,
+      type: itemlistType.value,
     );
   }
 
@@ -251,7 +278,7 @@ class ReleaseUploadWebController extends SintController {
         ownerEmail: user.user.email,
         ownerName: authorController.text.trim(),
         type: isSingle ? ReleaseType.single : ReleaseType.album,
-        mediaType: (isEmxi && isSingle) ? MediaItemType.pdf : MediaItemType.song,
+        mediaType: singleAcceptsPdf ? MediaItemType.pdf : MediaItemType.song,
         categories: categories,
       ));
     }

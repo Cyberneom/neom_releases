@@ -39,7 +39,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                 children: <Widget>[
                   AppConfig.instance.appInUse == AppInUse.g ? AppTheme.heightSpace100 : const SizedBox.shrink(),
                   HeaderIntro(
-                    subtitle: '${ReleaseTranslationConstants.releaseUploadItemlistNameDesc1.tr} ${controller.appReleaseItem.value.type.value.tr.toUpperCase()}? '
+                    subtitle: '${ReleaseTranslationConstants.releaseUploadItemlistNameDesc1.tr} ${controller.appReleaseItem.value.type.name.tr.toUpperCase()}? '
                         '${ReleaseTranslationConstants.releaseUploadItemlistNameDesc2.tr}',
                     showLogo: AppConfig.instance.appInUse == AppInUse.g,
                   ),
@@ -51,7 +51,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                       onChanged:(text) => controller.setItemlistName() ,
                       decoration: InputDecoration(
                         filled: true,
-                        labelText: '${ReleaseTranslationConstants.releaseItemlistTitle.tr} ${controller.appReleaseItem.value.type.value.tr.toLowerCase()}',
+                        labelText: '${ReleaseTranslationConstants.releaseItemlistTitle.tr} ${controller.appReleaseItem.value.type.name.tr.toLowerCase()}',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -66,7 +66,7 @@ class ReleaseUploadItemlistNameDescPage extends StatelessWidget {
                       onChanged:(text) => controller.setItemlistDesc() ,
                       decoration: InputDecoration(
                         filled: true,
-                        labelText: '${ReleaseTranslationConstants.releaseItemlistDesc.tr} ${controller.appReleaseItem.value.type.value.tr.toLowerCase()}',
+                        labelText: '${ReleaseTranslationConstants.releaseItemlistDesc.tr} ${controller.appReleaseItem.value.type.name.tr.toLowerCase()}',
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),

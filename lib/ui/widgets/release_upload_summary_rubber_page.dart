@@ -148,7 +148,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                               const Icon(FontAwesomeIcons.music, size: 12),
                               AppTheme.widthSpace5,
                               Text(
-                                '${controller.appReleaseItem.value.type.value.tr.toUpperCase()} (${controller.appReleaseItems.length})',
+                                '${controller.appReleaseItem.value.type.name.tr.toUpperCase()} (${controller.appReleaseItems.length})',
                               ),
                             ],
                           ),
@@ -416,7 +416,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                               const Icon(FontAwesomeIcons.music, size: 12),
                               AppTheme.widthSpace5,
                               Text(
-                                '${controller.appReleaseItem.value.type.value.tr.toUpperCase()} (${controller.appReleaseItems.length})',
+                                '${controller.appReleaseItem.value.type.name.tr.toUpperCase()} (${controller.appReleaseItems.length})',
                               ),
                             ],
                           ),

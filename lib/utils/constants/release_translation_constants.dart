@@ -11,6 +11,14 @@ class ReleaseTranslationConstants {
   static const String publishedDate = 'publishedDate';
   static const String digitalPositioning = 'digitalPositioning';
   static const String tapCoverToPreviewRelease = 'tapCoverToPreviewRelease';
+  static const String previewBeforePublish = 'previewBeforePublish';
+  static const String publishSuccess = 'publishSuccess';
+  static const String publishedSuccessfully = 'publishedSuccessfully';
+  static const String copyUrlToShare = 'copyUrlToShare';
+  static const String urlCopied = 'urlCopied';
+  static const String shareOnTimeline = 'shareOnTimeline';
+  static const String newReleaseAvailable = 'newReleaseAvailable';
+  static const String nowAvailableOnPlatform = 'nowAvailableOnPlatform';
   static const String releaseUploadPostCaptionMsg1 = 'releaseUploadPostCaptionMsg1';
   static const String releaseUploadPostCaptionMsg2 = 'releaseUploadPostCaptionMsg2';
   static const String salesModelMsg = 'salesModelMsg';
@@ -96,7 +104,6 @@ class ReleaseTranslationConstants {
   static const String sharePubliclyYes = 'sharePubliclyYes';
   static const String sharePubliclyNo = 'sharePubliclyNo';
 
-  // Release type names per flavour (e = EMXI, g = Gigmeout, c = Cyberneom)
   static const String singleTypeNameE = 'singleTypeNameE';
   static const String singleTypeNameG = 'singleTypeNameG';
   static const String singleTypeNameC = 'singleTypeNameC';
@@ -116,9 +123,12 @@ class ReleaseTranslationConstants {
   static const String confirm = 'confirm';
   static const String file = 'file';
   static const String tracks = 'tracks';
-  static const String literaryGenre = 'literaryGenre';
+  static const String trackNames = 'trackNames';
+  static const String trackNamesDesc = 'trackNamesDesc';
+  static const String dragImageOrClick = 'dragImageOrClick';
+  static const String genre = 'genre';
   static const String subgenres = 'subgenres';
-  static const String selectLiteraryGenre = 'selectLiteraryGenre';
+  static const String selectGenre = 'selectGenre';
   static const String selectSubgenres = 'selectSubgenres';
   static const String addSubgenre = 'addSubgenre';
   static const String releaseCover = 'releaseCover';

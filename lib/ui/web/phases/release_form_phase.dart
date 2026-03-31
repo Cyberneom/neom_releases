@@ -162,9 +162,7 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                 const SizedBox(height: 20),
 
                 // Instrument / Category (single select) — required
-                _requiredLabel(ctrl.isEmxi
-                    ? ReleaseTranslationConstants.literaryGenre.tr
-                    : ReleaseTranslationConstants.releaseUploadGenres.tr),
+                _requiredLabel(ReleaseTranslationConstants.genre.tr),
                 const SizedBox(height: 6),
                 Obx(() => _instrumentSelector(ctrl)),
                 const SizedBox(height: 20),
@@ -181,6 +179,7 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                 TextField(
                   controller: ctrl.descController,
                   maxLines: 5,
+                  maxLength: 500,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                   decoration: _inputDecoration(ReleaseTranslationConstants.releaseDesc.tr),
                 ),
@@ -263,7 +262,7 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                     child: Row(
                       children: [
                         Icon(
-                          (ctrl.isEmxi && ctrl.isSingle) ? Icons.picture_as_pdf : Icons.music_note,
+                          ctrl.singleAcceptsPdf ? Icons.picture_as_pdf : Icons.music_note,
                           color: AppColor.bondiBlue, size: 22,
                         ),
                         const SizedBox(width: 12),
@@ -630,8 +629,8 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
             style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: _inputDecoration(
               selected.isEmpty
-                  ? ReleaseTranslationConstants.selectLiteraryGenre.tr
-                  : '${ReleaseTranslationConstants.selectLiteraryGenre.tr} (${selected.length}/3)',
+                  ? ReleaseTranslationConstants.selectGenre.tr
+                  : '${ReleaseTranslationConstants.selectGenre.tr} (${selected.length}/3)',
             ),
             menuMaxHeight: 300,
             items: available.map((g) => DropdownMenuItem(value: g, child: Text(g))).toList(),
