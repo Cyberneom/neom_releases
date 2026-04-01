@@ -149,4 +149,13 @@ class ReleaseTranslationConstants {
   static const String removeTrack = 'removeTrack';
   static const String trackName = 'trackName';
 
+  // Drag & drop / web form
+  static const String addMore = 'addMore';
+  static const String dropHere = 'dropHere';
+  static const String dragAndDropHere = 'dragAndDropHere';
+  static const String orClickToBrowse = 'orClickToBrowse';
+  static const String dropImage = 'dropImage';
+  static const String supportedFormats = 'supportedFormats';
+  static const String continueExploring = 'continueExploring';
+
 }

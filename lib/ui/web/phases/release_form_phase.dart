@@ -292,7 +292,7 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
               const SizedBox(height: 12),
               OutlinedButton.icon(
                 icon: const Icon(Icons.add, size: 18),
-                label: const Text('Agregar mas'),
+                label: Text(ReleaseTranslationConstants.addMore.tr),
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.white70,
                   side: const BorderSide(color: Colors.white24),
@@ -330,7 +330,7 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                       size: 48, color: _isFileDragOver ? AppColor.bondiBlue : Colors.white38),
                     const SizedBox(height: 16),
                     Text(
-                      _isFileDragOver ? 'Suelta aqui' : 'Arrastra y suelta aqui',
+                      _isFileDragOver ? ReleaseTranslationConstants.dropHere.tr : ReleaseTranslationConstants.dragAndDropHere.tr,
                       style: TextStyle(
                         color: _isFileDragOver ? Colors.white : Colors.white70,
                         fontSize: 16, fontWeight: FontWeight.w600,
@@ -338,7 +338,7 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      'o haz clic para buscar',
+                      ReleaseTranslationConstants.orClickToBrowse.tr,
                       style: TextStyle(color: Colors.grey[500], fontSize: 13),
                     ),
                     const SizedBox(height: 8),
@@ -416,11 +416,11 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                   color: _isCoverDragOver ? AppColor.bondiBlue : Colors.grey[500], size: 48),
                 const SizedBox(height: 8),
                 Text(
-                  _isCoverDragOver ? 'Suelta la imagen' : 'Arrastra una imagen o haz clic',
+                  _isCoverDragOver ? ReleaseTranslationConstants.dropImage.tr : ReleaseTranslationConstants.dragImageOrClick.tr,
                   style: TextStyle(color: _isCoverDragOver ? Colors.white : Colors.grey[500], fontSize: 13),
                 ),
                 const SizedBox(height: 4),
-                Text('JPG, PNG, WebP', style: TextStyle(color: Colors.grey[600], fontSize: 11)),
+                Text(ReleaseTranslationConstants.supportedFormats.tr, style: TextStyle(color: Colors.grey[600], fontSize: 11)),
               ],
             ),
           ),

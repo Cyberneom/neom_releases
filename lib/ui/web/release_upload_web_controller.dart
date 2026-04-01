@@ -10,7 +10,6 @@ import 'package:neom_core/domain/model/app_release_item.dart';
 import 'package:neom_core/domain/model/item_list.dart';
 import 'package:neom_core/domain/use_cases/user_service.dart';
 import 'package:neom_core/utils/constants/data_assets.dart';
-import 'package:neom_core/utils/enums/app_in_use.dart';
 import 'package:neom_core/utils/enums/itemlist_type.dart';
 import 'package:neom_core/utils/enums/media_item_type.dart';
 import 'package:neom_core/utils/enums/release_type.dart';

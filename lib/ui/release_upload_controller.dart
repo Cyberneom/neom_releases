@@ -677,6 +677,20 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         releaseItem.metaName = releaseItemlist.name;
         releaseItem.state = 5;
 
+        // Generate slug if not already set (mobile path)
+        if (releaseItem.slug.isEmpty && releaseItem.name.isNotEmpty) {
+          releaseItem.slug = releaseItem.name.toLowerCase()
+              .replaceAll(RegExp(r'[áàäâ]'), 'a')
+              .replaceAll(RegExp(r'[éèëê]'), 'e')
+              .replaceAll(RegExp(r'[íìïî]'), 'i')
+              .replaceAll(RegExp(r'[óòöô]'), 'o')
+              .replaceAll(RegExp(r'[úùüû]'), 'u')
+              .replaceAll(RegExp(r'[ñ]'), 'n')
+              .replaceAll(RegExp(r'[^a-z0-9\s]'), '')
+              .trim()
+              .replaceAll(RegExp(r'\s+'), '-');
+        }
+
         AppConfig.logger.d('  [$itemIdx]   imgUrl (from itemlist): "${releaseItem.imgUrl}"');
         AppConfig.logger.d('  [$itemIdx]   categories: ${releaseItem.categories}');
         AppConfig.logger.d('  [$itemIdx]   instruments: ${releaseItem.instruments}');
@@ -2192,6 +2206,17 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
       // Set previewUrl to filename so the upload gate passes and extension is extractable
       item.previewUrl = entry.key;
+      // Generate slug from name for vanity URLs
+      item.slug = name.toLowerCase()
+          .replaceAll(RegExp(r'[áàäâ]'), 'a')
+          .replaceAll(RegExp(r'[éèëê]'), 'e')
+          .replaceAll(RegExp(r'[íìïî]'), 'i')
+          .replaceAll(RegExp(r'[óòöô]'), 'o')
+          .replaceAll(RegExp(r'[úùüû]'), 'u')
+          .replaceAll(RegExp(r'[ñ]'), 'n')
+          .replaceAll(RegExp(r'[^a-z0-9\s]'), '')
+          .trim()
+          .replaceAll(RegExp(r'\s+'), '-');
       appReleaseItems.add(item);
     }
 

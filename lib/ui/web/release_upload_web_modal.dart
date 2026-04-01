@@ -240,7 +240,7 @@ class ReleaseUploadWebModal extends StatelessWidget {
     } catch (e, st) {
       webCtrl.isUploading.value = false;
       NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'webUpload');
-      AppUtilities.showSnackBar(title: 'Error', message: 'No se pudo subir la obra. Intenta de nuevo.');
+      AppUtilities.showSnackBar(title: AppTranslationConstants.error.tr, message: ReleaseTranslationConstants.uploadFailedRetry.tr);
     }
   }
 

@@ -196,7 +196,7 @@ class _ReleaseTracksPhaseState extends State<ReleaseTracksPhase> {
                                   controller: _trackNameControllers[i],
                                   style: const TextStyle(color: Colors.white, fontSize: 14),
                                   decoration: InputDecoration(
-                                    hintText: 'Track ${i + 1}',
+                                    hintText: '${ReleaseTranslationConstants.trackNumber.tr} ${i + 1}',
                                     hintStyle: TextStyle(color: Colors.grey[600]),
                                     border: InputBorder.none,
                                     isDense: true,
@@ -375,7 +375,7 @@ class _ReleaseTracksPhaseState extends State<ReleaseTracksPhase> {
             ),
             const SizedBox(height: 4),
             Text(
-              'JPG, PNG, WebP',
+              ReleaseTranslationConstants.supportedFormats.tr,
               style: TextStyle(color: Colors.grey[700], fontSize: 11),
             ),
           ],

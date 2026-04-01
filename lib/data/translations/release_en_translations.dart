@@ -6,8 +6,8 @@ class ReleaseEnTranslations {
     ReleaseTranslationConstants.addReleaseCoverImg: 'Add the cover image',
     ReleaseTranslationConstants.addReleaseFile: 'Add release MP3 file',
     ReleaseTranslationConstants.addedReleaseAppItem: 'has shared a new meditation on our platform.',
-    ReleaseTranslationConstants.appItemTypeA: 'appItemTypeA',
-    ReleaseTranslationConstants.appItemTypeB: 'appItemTypeB',
+    ReleaseTranslationConstants.appItemTypeA: 'Song',
+    ReleaseTranslationConstants.appItemTypeB: 'Album',
     ReleaseTranslationConstants.appReleaseItemsQty: 'Number of songs',
     ReleaseTranslationConstants.autoEditing: 'Self-Editing',
     ReleaseTranslationConstants.autoPublishing: 'Self-Production',
@@ -67,7 +67,7 @@ class ReleaseEnTranslations {
     ReleaseTranslationConstants.publishedSuccessfully: 'has been published successfully.',
     ReleaseTranslationConstants.copyUrlToShare: 'Copy link to share',
     ReleaseTranslationConstants.urlCopied: 'Link copied',
-    ReleaseTranslationConstants.shareOnTimeline: 'Share on my timeline',
+    ReleaseTranslationConstants.shareOnTimeline: 'Share release on platform',
     ReleaseTranslationConstants.newReleaseAvailable: 'New release available',
     ReleaseTranslationConstants.nowAvailableOnPlatform: 'is now available on the platform.',
     ReleaseTranslationConstants.uploadYourReleaseItem: 'Upload meditation to the platform.',
@@ -105,6 +105,12 @@ class ReleaseEnTranslations {
     ReleaseTranslationConstants.trackName: 'Track name',
 
     // Release type names
+    ReleaseTranslationConstants.freeSingleReleaseUploadMsg: 'Positioning singles on our platform is free.',
+    ReleaseTranslationConstants.useAsCustomPublisher: 'Use as custom publisher',
+    ReleaseTranslationConstants.searchPublisher: 'Search publisher',
+    ReleaseTranslationConstants.appItemDurationShort: 'Duration',
+    ReleaseTranslationConstants.outOf: 'of',
+    ReleaseTranslationConstants.publishOnPlatformMsg: 'Would you like to publish this work on the platform?',
     ReleaseTranslationConstants.whatToUpload: 'What would you like to upload?',
     ReleaseTranslationConstants.chooseOption: 'Choose an option to get started.',
     ReleaseTranslationConstants.newRelease: 'New Release',
@@ -133,6 +139,13 @@ class ReleaseEnTranslations {
     ReleaseTranslationConstants.albumTypeDescE: 'Upload multiple audio files to create an audiobook or podcast.',
     ReleaseTranslationConstants.albumTypeDescG: 'Upload 2 to 20 tracks for a coordinated album or EP.',
     ReleaseTranslationConstants.albumTypeDescC: 'Upload guided meditation audio or sound therapy sessions.',
+    ReleaseTranslationConstants.addMore: 'Add more',
+    ReleaseTranslationConstants.dropHere: 'Drop here',
+    ReleaseTranslationConstants.dragAndDropHere: 'Drag and drop here',
+    ReleaseTranslationConstants.orClickToBrowse: 'or click to browse',
+    ReleaseTranslationConstants.dropImage: 'Drop the image',
+    ReleaseTranslationConstants.supportedFormats: 'JPG, PNG, WebP',
+    ReleaseTranslationConstants.continueExploring: 'Continue exploring',
   };
 
 }
