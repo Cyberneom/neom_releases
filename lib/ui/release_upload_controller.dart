@@ -1,14 +1,11 @@
 import 'dart:async';
-import 'dart:typed_data';
 
-import 'package:neom_commons/app_flavour.dart';
-import 'package:neom_commons/ui/widgets/images/handled_cached_network_image.dart';
-import 'web/release_upload_web_modal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:neom_core/utils/platform/core_io.dart';
 import 'package:flutter/material.dart';
+import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
+import 'package:neom_commons/ui/widgets/images/handled_cached_network_image.dart';
 import 'package:neom_commons/utils/app_alerts.dart';
 import 'package:neom_commons/utils/app_utilities.dart';
 import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
@@ -17,8 +14,6 @@ import 'package:neom_commons/utils/constants/translations/common_translation_con
 import 'package:neom_commons/utils/dialog_factory.dart';
 import 'package:neom_commons/utils/file_system_utilities.dart';
 import 'package:neom_core/app_config.dart';
-import 'package:neom_core/utils/neom_error_logger.dart';
-import 'package:neom_core/utils/neom_flow_tracker.dart';
 import 'package:neom_core/app_properties.dart';
 import 'package:neom_core/data/api_services/push_notification/firebase_messaging_calls.dart';
 import 'package:neom_core/data/firestore/activity_feed_firestore.dart';
@@ -59,9 +54,9 @@ import 'package:neom_core/utils/enums/activity_feed_type.dart';
 import 'package:neom_core/utils/enums/app_currency.dart';
 import 'package:neom_core/utils/enums/app_in_use.dart';
 import 'package:neom_core/utils/enums/app_media_type.dart';
+import 'package:neom_core/utils/enums/itemlist_type.dart';
 import 'package:neom_core/utils/enums/media_item_type.dart';
 import 'package:neom_core/utils/enums/media_type.dart';
-import 'package:neom_core/utils/enums/itemlist_type.dart';
 import 'package:neom_core/utils/enums/media_upload_destination.dart';
 import 'package:neom_core/utils/enums/owner_type.dart';
 import 'package:neom_core/utils/enums/post_type.dart';
@@ -70,6 +65,9 @@ import 'package:neom_core/utils/enums/release_status.dart';
 import 'package:neom_core/utils/enums/release_type.dart';
 import 'package:neom_core/utils/enums/subscription_status.dart';
 import 'package:neom_core/utils/enums/verification_level.dart';
+import 'package:neom_core/utils/neom_error_logger.dart';
+import 'package:neom_core/utils/neom_flow_tracker.dart';
+import 'package:neom_core/utils/platform/core_io.dart';
 import 'package:neom_maps_services/domain/models/prediction.dart';
 import 'package:pdfx/pdfx.dart';
 import 'package:rubber/rubber.dart';
@@ -77,6 +75,7 @@ import 'package:sint/sint.dart';
 
 import '../data/release_cache_controller.dart';
 import '../utils/constants/release_translation_constants.dart';
+import 'web/release_upload_web_modal.dart';
 
 class ReleaseUploadController extends SintController with SintTickerProviderStateMixin implements ReleaseUploadService {
 
@@ -697,7 +696,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
         releaseItem.status = AppConfig.instance.appInfo.releaseRevisionEnabled
             ? ReleaseStatus.pending : ReleaseStatus.publish;
-        AppConfig.logger.d('  [$itemIdx]   status: ${releaseItem.status?.name} (revision=${AppConfig.instance.appInfo.releaseRevisionEnabled})');
+        AppConfig.logger.d('  [$itemIdx]   status: ${releaseItem.status.name} (revision=${AppConfig.instance.appInfo.releaseRevisionEnabled})');
 
         // Step 3a: Upload release file to WordPress/Firebase
         String fileExtension = '';
@@ -754,43 +753,19 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
         // Step 3b: Create WooCommerce product ONLY for PDFs (to sell physical books)
         // MP3s only need file hosting, no WooCommerce product
-        String wooProductId = '';
-        if (isPdf && AppProperties.createWooProductFlag()) {
-          AppConfig.logger.i('  [$itemIdx]   Creating WooCommerce product for PDF: ${releaseItem.name}');
-          final result = await wooGatewayServiceImpl.createProductFromReleaseItem(
-            releaseItem,
-            coverImageUrl: releaseCoverImgURL,
-            downloadFileUrl: releaseItem.previewUrl,
-          );
-
-          if (result != null && result.isNotEmpty) {
-            wooProductId = result['id'] ?? '';
-            final permalink = result['permalink'] ?? '';
-            releaseItem.externalUrl = permalink;
-            releaseItem.webPreviewUrl = permalink;
-            AppConfig.logger.i('WooProduct created with ID: $wooProductId, permalink: $permalink');
-          } else {
-            // WooProduct creation failed — stop the process
-            throw Exception(ReleaseTranslationConstants.wooProductCreationFailed.tr);
-          }
-        } else if (!isPdf) {
-          AppConfig.logger.d('Skipping WooCommerce product for MP3 - only file hosting needed');
+        String wooProductId = await _createWooProduct(itemIdx, releaseItem, releaseCoverImgURL);
+        if(wooProductId.isNotEmpty) {
+          releaseItem.id = wooProductId;
+          AppConfig.logger.d('  [$itemIdx]   Using WordPress ID: $wooProductId');
         }
 
         // Step 3c: Insert to Firestore
         AppConfig.logger.i('  [$itemIdx]   Inserting to Firestore...');
-        // For PDFs: use WordPress product ID to maintain consistency
-        // For MP3s: use auto-generated Firestore ID
-        if (isPdf && wooProductId.isNotEmpty) {
-          releaseItem.id = wooProductId;
-          AppConfig.logger.d('  [$itemIdx]   Using WordPress ID for PDF: $wooProductId');
-        }
-
         // Snapshot of what will be inserted
         AppConfig.logger.d('  [$itemIdx]   → Firestore payload: name="${releaseItem.name}", '
             'imgUrl=${releaseItem.imgUrl.isNotEmpty ? "SET" : "EMPTY"}, '
             'previewUrl=${releaseItem.previewUrl.isNotEmpty ? "SET" : "EMPTY"}, '
-            'status=${releaseItem.status?.name}, mediaType=${releaseItem.mediaType?.name}, '
+            'status=${releaseItem.status.name}, mediaType=${releaseItem.mediaType?.name}, '
             'galleryUrls=${releaseItem.galleryUrls?.length ?? 0} items');
 
         // Insert method will use existing ID if set, otherwise auto-generate
@@ -870,7 +845,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         AppConfig.logger.i('    • "${item.name}" id=${item.id} '
             'imgUrl=${item.imgUrl.isNotEmpty ? "OK" : "EMPTY"} '
             'previewUrl=${item.previewUrl.isNotEmpty ? "OK" : "EMPTY"} '
-            'status=${item.status?.name}');
+            'status=${item.status.name}');
       }
 
       isButtonDisabled.value = false;
@@ -917,6 +892,30 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       // DON'T navigate away - let user see the error and potentially retry
       update([AppPageIdConstants.releaseUpload]);
     }
+  }
+
+  Future<String> _createWooProduct(int itemIdx, AppReleaseItem releaseItem, String releaseCoverImgURL) async {
+    String wooProductId = '';
+    if (AppProperties.createWooProductFlag()) {
+      AppConfig.logger.i('  [$itemIdx]   Creating WooCommerce product for: ${releaseItem.name}');
+      final result = await wooGatewayServiceImpl.createProductFromReleaseItem(
+        releaseItem,
+        coverImageUrl: releaseCoverImgURL,
+        downloadFileUrl: releaseItem.previewUrl,
+      );
+
+      if (result != null && result.isNotEmpty) {
+        wooProductId = result['id'] ?? '';
+        final permalink = result['permalink'] ?? '';
+        releaseItem.externalUrl = permalink;
+        releaseItem.webPreviewUrl = permalink;
+        AppConfig.logger.i('WooProduct created with ID: $wooProductId, permalink: $permalink');
+      } else {
+        // WooProduct creation failed — stop the process
+        throw Exception(ReleaseTranslationConstants.wooProductCreationFailed.tr);
+      }
+    }
+    return wooProductId;
   }
 
   /// Creates a global notification when release is published (revision disabled)
@@ -1804,6 +1803,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
   @override
   void showUploadModal(BuildContext context) {
+    AppConfig.logger.d("showUploadModal");
     ReleaseUploadWebModal.show(context);
   }
 

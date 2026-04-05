@@ -8,7 +8,6 @@ import 'package:neom_core/utils/enums/media_item_type.dart';
 import 'package:neom_core/utils/enums/owner_type.dart';
 import 'package:neom_core/utils/enums/release_status.dart';
 import 'package:neom_core/utils/enums/release_type.dart';
-import 'package:neom_core/utils/enums/itemlist_type.dart';
 
 import 'package:neom_releases/data/release_cache_controller.dart';
 
@@ -607,11 +606,11 @@ void main() {
     });
 
     test('ReleaseType EP should be used for multi-track (Gigmeout)', () {
-      expect(ReleaseType.ep.value, 'ep');
+      expect(ReleaseType.ep.name, 'ep');
     });
 
     test('ReleaseType single should be used for EMXI + Cyberneom', () {
-      expect(ReleaseType.single.value, 'single');
+      expect(ReleaseType.single.name, 'single');
     });
 
     test('MediaItemType audio subtypes should all report isAudio', () {

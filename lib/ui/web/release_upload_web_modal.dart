@@ -114,7 +114,7 @@ class ReleaseUploadWebModal extends StatelessWidget {
                 child: Text(AppTranslationConstants.next.tr,
                   style: TextStyle(
                     color: (phase == 1 && ctrl.canProceedToSummary) || (phase == 2 && ctrl.isAlbum)
-                        ? AppColor.getReleaseShelfColor()
+                        ? AppColor.white80
                         : Colors.grey[700],
                     fontWeight: FontWeight.w600,
                   ),
