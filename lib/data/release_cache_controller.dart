@@ -14,7 +14,7 @@ import 'release_hive_controller.dart';
 enum ReleaseUploadStep {
   initial,           // Just started
   typeSelected,      // Release type selected
-  bandOrSoloSelected, // Band/Solo selection done
+  collectiveOrSoloSelected, // Collective/Solo selection done
   itemlistNameDescSet, // Itemlist name/desc set (for albums/EPs)
   nameDescSet,       // Name and description set
   instrumentsSet,    // Instruments selected
@@ -139,28 +139,28 @@ class ReleaseCacheDraft {
         return 'Iniciado';
       case ReleaseUploadStep.typeSelected:
         return 'Tipo seleccionado';
-      case ReleaseUploadStep.bandOrSoloSelected:
+      case ReleaseUploadStep.collectiveOrSoloSelected:
         return 'Artista configurado';
       case ReleaseUploadStep.itemlistNameDescSet:
-        return 'Info del album configurada';
+        return 'Info del álbum configurada';
       case ReleaseUploadStep.nameDescSet:
-        return 'Nombre y descripcion listos';
+        return 'Nombre y descripción listos';
       case ReleaseUploadStep.instrumentsSet:
         return 'Instrumentos seleccionados';
       case ReleaseUploadStep.genresSet:
-        return 'Generos seleccionados';
+        return 'Géneros seleccionados';
       case ReleaseUploadStep.infoSet:
-        return 'Informacion de publicacion lista';
+        return 'Información de publicación lista';
       case ReleaseUploadStep.coverUploaded:
         return 'Portada subida';
       case ReleaseUploadStep.itemlistCreated:
-        return 'Catalogo creado';
+        return 'Catálogo creado';
       case ReleaseUploadStep.itemsUploading:
         return 'Subiendo archivos (${currentItemIndex + 1}/${releaseItems.length})';
       case ReleaseUploadStep.itemsUploaded:
         return 'Archivos subidos';
       case ReleaseUploadStep.postCreated:
-        return 'Publicacion creada';
+        return 'Publicación creada';
       case ReleaseUploadStep.completed:
         return 'Completado';
       case ReleaseUploadStep.failed:

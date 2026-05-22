@@ -120,8 +120,8 @@ class ReleaseUploadType extends StatelessWidget {
             child: const Icon(Icons.navigate_next),
             onPressed: () {
               if(AppConfig.instance.appInUse == AppInUse.g) {
-                if(controller.bandServiceImpl.bands.isNotEmpty) {
-                  Sint.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
+                if(controller.collectiveServiceImpl.collectives.isNotEmpty) {
+                  Sint.toNamed(AppRouteConstants.releaseUploadCollectiveOrSolo);
                 } else {
                   controller.setAsSolo();
                 }

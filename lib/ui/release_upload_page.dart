@@ -181,7 +181,7 @@ class ReleaseUploadPage extends StatelessWidget {
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColor.bondiBlue,
+                backgroundColor: AppColor.getReleaseShelfColor(),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(14),

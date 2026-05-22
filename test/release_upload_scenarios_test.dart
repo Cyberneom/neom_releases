@@ -16,7 +16,7 @@ import 'package:neom_releases/data/release_cache_controller.dart';
 ///
 /// Simulates three end-to-end upload flows:
 ///  1. EMXI — Single PDF file upload (book/document)
-///  2. Gigmeout — EP with 3 MP3s from a rock band
+///  2. Gigmeout — EP with 3 MP3s from a rock collective
 ///  3. Cyberneom — Single MP3 meditation audio
 ///
 /// Each test validates: model creation → serialization → draft caching
@@ -189,9 +189,9 @@ void main() {
   });
 
   // ════════════════════════════════════════════════════════════════
-  // TEST 2: Gigmeout — 3 MP3s Rock Band EP Upload
+  // TEST 2: Gigmeout — 3 MP3s Rock Collective EP Upload
   // ════════════════════════════════════════════════════════════════
-  group('Gigmeout — Rock Band EP (3 MP3s)', () {
+  group('Gigmeout — Rock Collective EP (3 MP3s)', () {
     late List<AppReleaseItem> tracks;
     late Itemlist epItemlist;
     late ReleaseCacheDraft draft;
@@ -216,7 +216,7 @@ void main() {
         mediaType: MediaItemType.song,
         ownerEmail: 'losvoltios@gigmeout.com',
         ownerName: 'Los Voltios',
-        ownerType: OwnerType.band,
+        ownerType: OwnerType.collective,
         categories: ['Rock Alternativo', 'Post-Punk'],
         instruments: ['Guitarra Eléctrica', 'Bajo', 'Batería', 'Voz'],
         language: 'es',
@@ -245,7 +245,7 @@ void main() {
         mediaType: MediaItemType.song,
         ownerEmail: 'losvoltios@gigmeout.com',
         ownerName: 'Los Voltios',
-        ownerType: OwnerType.band,
+        ownerType: OwnerType.collective,
         categories: ['Rock Alternativo', 'Indie'],
         instruments: ['Guitarra Eléctrica', 'Sintetizador', 'Batería', 'Voz'],
         language: 'es',
@@ -272,7 +272,7 @@ void main() {
         mediaType: MediaItemType.song,
         ownerEmail: 'losvoltios@gigmeout.com',
         ownerName: 'Los Voltios',
-        ownerType: OwnerType.band,
+        ownerType: OwnerType.collective,
         categories: ['Rock Alternativo', 'Rock Pesado'],
         instruments: ['Guitarra Eléctrica', 'Bajo', 'Batería', 'Voz'],
         language: 'es',
@@ -327,9 +327,9 @@ void main() {
       expect(noType.isBookContent, isFalse);
     });
 
-    test('All tracks should share the same band owner', () {
+    test('All tracks should share the same collective owner', () {
       for (final track in tracks) {
-        expect(track.ownerType, OwnerType.band);
+        expect(track.ownerType, OwnerType.collective);
         expect(track.ownerName, 'Los Voltios');
         expect(track.ownerEmail, 'losvoltios@gigmeout.com');
       }
@@ -370,7 +370,7 @@ void main() {
         expect(restored.duration, tracks[i].duration);
         expect(restored.type, ReleaseType.ep);
         expect(restored.mediaType, MediaItemType.song);
-        expect(restored.ownerType, OwnerType.band);
+        expect(restored.ownerType, OwnerType.collective);
         expect(restored.slug, tracks[i].slug);
         expect(restored.instruments, isNotNull);
         expect(restored.instruments!.contains('Batería'), isTrue,

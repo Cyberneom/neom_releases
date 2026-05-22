@@ -8,17 +8,17 @@ import 'package:neom_commons/ui/widgets/header_intro.dart';
 import 'package:neom_commons/ui/widgets/images/handled_cached_network_image.dart';
 import 'package:neom_commons/utils/constants/app_constants.dart';
 import 'package:neom_commons/utils/constants/app_page_id_constants.dart';
-import 'package:neom_core/domain/model/band.dart';
-import 'package:neom_core/domain/model/band_member.dart';
+import 'package:neom_core/domain/model/collective.dart';
+import 'package:neom_core/domain/model/collective_member.dart';
 import 'package:neom_core/utils/core_utilities.dart';
-import 'package:neom_core/utils/enums/band_member_role.dart';
+import 'package:neom_core/utils/enums/collective_member_role.dart';
 import 'package:sint/sint.dart';
 
 import '../../utils/constants/release_translation_constants.dart';
 import '../release_upload_controller.dart';
 
-class ReleaseUploadBandOrSoloPage extends StatelessWidget {
-  const ReleaseUploadBandOrSoloPage({super.key});
+class ReleaseUploadCollectiveOrSoloPage extends StatelessWidget {
+  const ReleaseUploadCollectiveOrSoloPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -46,32 +46,32 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
                 height: AppTheme.fullHeight(context)*0.60,
                 child: Obx(()=> ListView.builder(
                   padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-                  itemCount: controller.bandServiceImpl.bands.length,
+                  itemCount: controller.collectiveServiceImpl.collectives.length,
                   itemBuilder: (context, index) {
-                    Band band = controller.bandServiceImpl.bands.values.elementAt(index);
-                    BandMember profileMember = band.members!.values.firstWhere((element) => element.profileId == controller.profile.id);
-                    bool canUploadItems = profileMember.role != BandMemberRole.member; ///VERIFY IF IS MORE THAN JUST A MEMBER
+                    Collective collective = controller.collectiveServiceImpl.collectives.values.elementAt(index);
+                    CollectiveMember profileMember = collective.members!.values.firstWhere((element) => element.profileId == controller.profile.id);
+                    bool canUploadItems = profileMember.role != CollectiveMemberRole.member; ///VERIFY IF IS MORE THAN JUST A MEMBER
 
                     return canUploadItems ? GestureDetector(
                       child: ListTile(
                         leading: SizedBox(
                           width: 50,
-                          child: HandledCachedNetworkImage(band.photoUrl)
+                          child: HandledCachedNetworkImage(collective.photoUrl)
                         ),
-                        title: Text(band.name.length > AppConstants.maxItemlistNameLength
-                          ? "${band.name.substring(0,AppConstants.maxItemlistNameLength)}..."
-                          : band.name
+                        title: Text(collective.name.length > AppConstants.maxItemlistNameLength
+                          ? "${collective.name.substring(0,AppConstants.maxItemlistNameLength)}..."
+                          : collective.name
                         ),
-                        subtitle: Text(band.description),
+                        subtitle: Text(collective.description),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: <Widget>[
-                            (CoreUtilities.getTotalItemsQty(band.itemlists ?? {}) > 0)
+                            (CoreUtilities.getTotalItemsQty(collective.itemlists ?? {}) > 0)
                               ? ActionChip(
                                 backgroundColor: AppColor.surfaceBright,
                                 avatar: CircleAvatar(
                                   backgroundColor: AppColor.white80,
-                                  child: Text(CoreUtilities.getTotalItemsQty(band.itemlists ?? {}).toString()),
+                                  child: Text(CoreUtilities.getTotalItemsQty(collective.itemlists ?? {}).toString()),
                                 ),
                                 label: Icon(
                                     AppFlavour.getAppItemIcon(),
@@ -83,7 +83,7 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
                         ),
                       ),
                       onTap: () async {
-                        controller.setSelectedBand(band);
+                        controller.setSelectedCollective(collective);
                       },
                     ) : const SizedBox.shrink();
                   },
@@ -111,7 +111,7 @@ class ReleaseUploadBandOrSoloPage extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(50, 10, 50, 10),
             child: ElevatedButton.icon(
               style: ButtonStyle(
-                backgroundColor: WidgetStateProperty.all<Color>(AppColor.bondiBlue75),
+                backgroundColor: WidgetStateProperty.all<Color>(AppColor.getReleaseShelfColor()),
                 padding: WidgetStateProperty.all<EdgeInsetsGeometry>(const EdgeInsets.symmetric(vertical: 15.0)), // Adjust the padding as needed
 
           ),

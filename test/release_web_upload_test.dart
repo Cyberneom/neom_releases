@@ -136,14 +136,14 @@ void main() {
     test('All album tracks should share the same author', () {
       final items = _buildItems(
         title: 'Test Album',
-        author: 'The Band',
+        author: 'The Collective',
         releaseType: ReleaseType.album,
         isEmxi: false,
         files: [_FakeFile('track1.mp3', 1000), _FakeFile('track2.mp3', 1000)],
       );
 
       for (final item in items) {
-        expect(item.ownerName, 'The Band');
+        expect(item.ownerName, 'The Collective');
       }
     });
 

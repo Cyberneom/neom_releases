@@ -28,7 +28,7 @@ import 'package:neom_core/domain/model/app_profile.dart';
 import 'package:neom_core/domain/model/app_release_item.dart';
 import 'package:neom_core/domain/model/app_request.dart';
 import 'package:neom_core/domain/model/app_user.dart';
-import 'package:neom_core/domain/model/band.dart';
+import 'package:neom_core/domain/model/collective.dart';
 import 'package:neom_core/domain/model/genre.dart';
 import 'package:neom_core/domain/model/instrument.dart';
 import 'package:neom_core/domain/model/item_list.dart';
@@ -36,7 +36,7 @@ import 'package:neom_core/domain/model/place.dart';
 import 'package:neom_core/domain/model/post.dart';
 import 'package:neom_core/domain/model/price.dart';
 import 'package:neom_core/domain/use_cases/audio_lite_player_service.dart';
-import 'package:neom_core/domain/use_cases/band_service.dart';
+import 'package:neom_core/domain/use_cases/collective_service.dart';
 import 'package:neom_core/domain/use_cases/instrument_service.dart';
 import 'package:neom_core/domain/use_cases/maps_service.dart';
 import 'package:neom_core/domain/use_cases/media_player_service.dart';
@@ -85,7 +85,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   final userServiceImpl = Sint.find<UserService>();
   final MapsService? mapsServiceImpl = Sint.isRegistered<MapsService>() ? Sint.find<MapsService>() : null;
   final instrumentServiceImpl = Sint.find<InstrumentService>();
-  final bandServiceImpl = Sint.find<BandService>();
+  final collectiveServiceImpl = Sint.find<CollectiveService>();
   final MediaUploadService? mediaUploadServiceImpl = Sint.isRegistered<MediaUploadService>() ? Sint.find<MediaUploadService>() : null;
   final MediaPlayerService? mediaPlayerServiceImpl = Sint.isRegistered<MediaPlayerService>() ? Sint.find<MediaPlayerService>() : null;
   final wooMediaServiceImpl = Sint.find<WooMediaService>();
@@ -124,7 +124,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   ///DEPRECATED TextEditingController digitalPriceController = TextEditingController();
   TextEditingController physicalPriceController = TextEditingController();
 
-  final Rx<Band> selectedBand = Band().obs;
+  final Rx<Collective> selectedCollective = Collective().obs;
   final RxBool showItemsQtyDropDown = false.obs;
   final RxList<String> instrumentsUsed = <String>[].obs;
   RxList<Genre> genres = <Genre>[].obs;
@@ -145,7 +145,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   final RxString releaseFilePreviewURL = "".obs;
   final RxString releaseCoverImgPath = "".obs;
 
-  List<String> bandInstruments = [];
+  List<String> collectiveInstruments = [];
 
   String releaseFilePath = "";
   List<String> releaseFilePaths = [];
@@ -314,7 +314,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       case ReleaseUploadStep.typeSelected:
         Sint.toNamed(AppRouteConstants.releaseUploadType);
         break;
-      case ReleaseUploadStep.bandOrSoloSelected:
+      case ReleaseUploadStep.collectiveOrSoloSelected:
         gotoNameDesc();
         break;
       case ReleaseUploadStep.itemlistNameDescSet:
@@ -464,8 +464,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       if(appReleaseItem.value.type == ReleaseType.single) {
         releaseItemsQty.value = 1;
         showItemsQtyDropDown.value = false;
-        if(bandServiceImpl.bands.isNotEmpty) {
-          Sint.toNamed(AppRouteConstants.releaseUploadBandOrSolo);
+        if(collectiveServiceImpl.collectives.isNotEmpty) {
+          Sint.toNamed(AppRouteConstants.releaseUploadCollectiveOrSolo);
         } else {
           setAsSolo();
         }
@@ -998,7 +998,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
           ' ${ReleaseTranslationConstants.releaseUploadPostCaptionMsg2.tr}';
     } else {
       postCaption = '${ReleaseTranslationConstants.releaseUploadPostCaptionMsg1.tr} "${releaseItemlist.name}",'
-          ' ${AppTranslationConstants.of.tr} ${ReleaseTranslationConstants.myProject.tr} "${selectedBand.value.name}",'
+          ' ${AppTranslationConstants.of.tr} ${ReleaseTranslationConstants.myProject.tr} "${selectedCollective.value.name}",'
           ' ${ReleaseTranslationConstants.releaseUploadPostCaptionMsg2.tr}';
     }
 
@@ -1727,39 +1727,39 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   }
 
   @override
-  void setSelectedBand(Band band) async {
-    AppConfig.logger.d("Going to Upload Release for Band: ${band.name}");
-    selectedBand.value = band;
+  void setSelectedCollective(Collective collective) async {
+    AppConfig.logger.d("Going to Upload Release for Collective: ${collective.name}");
+    selectedCollective.value = collective;
 
     try {
-      if(selectedBand.value.members != null) {
-        for (var bandMember in selectedBand.value.members!.values) {
-          if (bandMember.instrument != null) {
-            bandInstruments.add(bandMember.instrument!.name);
+      if(selectedCollective.value.members != null) {
+        for (var collectiveMember in selectedCollective.value.members!.values) {
+          if (collectiveMember.instrument != null) {
+            collectiveInstruments.add(collectiveMember.instrument!.name);
           }
         }
-        appReleaseItem.value.instruments = bandInstruments;
+        appReleaseItem.value.instruments = collectiveInstruments;
       }
 
-      appReleaseItem.value.ownerEmail = selectedBand.value.email;
-      appReleaseItem.value.ownerName = selectedBand.value.name;
-      appReleaseItem.value.galleryUrls = [selectedBand.value.photoUrl];
-      appReleaseItem.value.ownerType = OwnerType.band;
+      appReleaseItem.value.ownerEmail = selectedCollective.value.email;
+      appReleaseItem.value.ownerName = selectedCollective.value.name;
+      appReleaseItem.value.galleryUrls = [selectedCollective.value.photoUrl];
+      appReleaseItem.value.ownerType = OwnerType.collective;
 
-      releaseItemlist.ownerId = selectedBand.value.id;
-      releaseItemlist.ownerName = selectedBand.value.name;
-      releaseItemlist.ownerType = OwnerType.band;
-      if (selectedBand.value.position?.latitude != 0.0) {
-        releaseItemlist.position = selectedBand.value.position!;
+      releaseItemlist.ownerId = selectedCollective.value.id;
+      releaseItemlist.ownerName = selectedCollective.value.name;
+      releaseItemlist.ownerType = OwnerType.collective;
+      if (selectedCollective.value.position?.latitude != 0.0) {
+        releaseItemlist.position = selectedCollective.value.position!;
       }
 
       // Save progress to cache
       await cacheController.updateDraft(
-        step: ReleaseUploadStep.bandOrSoloSelected,
+        step: ReleaseUploadStep.collectiveOrSoloSelected,
         itemlist: releaseItemlist,
       );
     } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'setSelectedBand');
+      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'setSelectedCollective');
     }
 
     gotoNameDesc();
@@ -1771,8 +1771,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     AppConfig.logger.d("Going to Upload Release as Soloist");
 
     try {
-      selectedBand.value = Band();
-      bandInstruments = [];
+      selectedCollective.value = Collective();
+      collectiveInstruments = [];
 
       appReleaseItem.value.ownerEmail = user.email;
       appReleaseItem.value.ownerName = authorController.text.trim();
@@ -1789,7 +1789,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
       // Save progress to cache
       await cacheController.updateDraft(
-        step: ReleaseUploadStep.bandOrSoloSelected,
+        step: ReleaseUploadStep.collectiveOrSoloSelected,
         itemlist: releaseItemlist,
       );
 
@@ -1866,9 +1866,9 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
     appReleaseItems.clear();
 
-    // Set as solo for web single-page flow (skip band selection)
-    selectedBand.value = Band();
-    bandInstruments = [];
+    // Set as solo for web single-page flow (skip collective selection)
+    selectedCollective.value = Collective();
+    collectiveInstruments = [];
     appReleaseItem.value.ownerEmail = user.email;
     appReleaseItem.value.ownerName = authorController.text.trim();
     appReleaseItem.value.galleryUrls = [profile.photoUrl];
