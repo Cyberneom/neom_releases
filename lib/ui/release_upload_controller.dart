@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:palette_generator/palette_generator.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
@@ -599,6 +600,36 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         AppConfig.logger.w('  ⚠ No cover image to upload — mediaFileExists=false, mediaBytes=null');
       }
 
+      // Calculate advanced playback metadata before creating Itemlist
+      releaseItemlist.tracksCount = appReleaseItems.length;
+      int totalSecs = 0;
+      for (var item in appReleaseItems) {
+        totalSecs += item.duration;
+      }
+      releaseItemlist.totalDuration = totalSecs;
+      releaseItemlist.isExplicit = appReleaseItems.any((item) => item.isExplicit);
+
+      // Extract dominant color from cover image bytes
+      if (releaseCoverImgBytes != null) {
+        try {
+          final palette = await PaletteGenerator.fromImageProvider(
+            MemoryImage(releaseCoverImgBytes!),
+            size: const Size(60, 60),
+            maximumColorCount: 5,
+          );
+          final color = palette.vibrantColor?.color ?? palette.dominantColor?.color ?? palette.mutedColor?.color;
+          if (color != null) {
+            final hex = '#${color.value.toRadixString(16).substring(2, 8).toUpperCase()}';
+            releaseItemlist.dominantColor = hex;
+            for (var item in appReleaseItems) {
+              item.dominantColor = hex;
+            }
+          }
+        } catch (e) {
+          AppConfig.logger.w("Failed to extract dominant color from cover bytes: $e");
+        }
+      }
+
       // ══════════════════════════════════════════════════════════
       // STEP 2: Create Itemlist in Firestore
       // ══════════════════════════════════════════════════════════
@@ -613,6 +644,9 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       } else {
         uploadStatusMessage.value = ReleaseTranslationConstants.creatingCatalog.tr;
         update([AppPageIdConstants.releaseUpload]);
+
+        final artistSlug = profile.slug.isNotEmpty ? profile.slug : AppProfile.generateSlug(profile.name);
+        releaseItemlist.slug = '$artistSlug/a/${AppReleaseItem.generateSlug(releaseItemlist.name)}';
 
         releaseItemlistId = await ItemlistFirestore().insert(releaseItemlist);
 
@@ -676,18 +710,11 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         releaseItem.metaName = releaseItemlist.name;
         releaseItem.state = 5;
 
-        // Generate slug if not already set (mobile path)
-        if (releaseItem.slug.isEmpty && releaseItem.name.isNotEmpty) {
-          releaseItem.slug = releaseItem.name.toLowerCase()
-              .replaceAll(RegExp(r'[áàäâ]'), 'a')
-              .replaceAll(RegExp(r'[éèëê]'), 'e')
-              .replaceAll(RegExp(r'[íìïî]'), 'i')
-              .replaceAll(RegExp(r'[óòöô]'), 'o')
-              .replaceAll(RegExp(r'[úùüû]'), 'u')
-              .replaceAll(RegExp(r'[ñ]'), 'n')
-              .replaceAll(RegExp(r'[^a-z0-9\s]'), '')
-              .trim()
-              .replaceAll(RegExp(r'\s+'), '-');
+        // Generate slug using artist-scoped format
+        if (releaseItem.name.isNotEmpty) {
+          final artistSlug = profile.slug.isNotEmpty ? profile.slug : AppProfile.generateSlug(profile.name);
+          final trackSlug = AppReleaseItem.generateSlug(releaseItem.name);
+          releaseItem.slug = '$artistSlug/$trackSlug';
         }
 
         AppConfig.logger.d('  [$itemIdx]   imgUrl (from itemlist): "${releaseItem.imgUrl}"');
@@ -2206,17 +2233,10 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
       // Set previewUrl to filename so the upload gate passes and extension is extractable
       item.previewUrl = entry.key;
-      // Generate slug from name for vanity URLs
-      item.slug = name.toLowerCase()
-          .replaceAll(RegExp(r'[áàäâ]'), 'a')
-          .replaceAll(RegExp(r'[éèëê]'), 'e')
-          .replaceAll(RegExp(r'[íìïî]'), 'i')
-          .replaceAll(RegExp(r'[óòöô]'), 'o')
-          .replaceAll(RegExp(r'[úùüû]'), 'u')
-          .replaceAll(RegExp(r'[ñ]'), 'n')
-          .replaceAll(RegExp(r'[^a-z0-9\s]'), '')
-          .trim()
-          .replaceAll(RegExp(r'\s+'), '-');
+      // Generate slug using artist-scoped format
+      final artistSlug = profile.slug.isNotEmpty ? profile.slug : AppProfile.generateSlug(profile.name);
+      final trackSlug = AppReleaseItem.generateSlug(name);
+      item.slug = '$artistSlug/$trackSlug';
       appReleaseItems.add(item);
     }
 

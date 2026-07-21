@@ -1,3 +1,6 @@
+
+## [2.0.0-unreleased] - 2026-07-21
+- Refactor and compatibility updates for release_upload_controller.dart.
 ### 1.1.0 - Major Architectural Refactor & Specialization
 This release represents a major architectural refactor for neom_releases, solidifying its role as the central module for managing the full lifecycle of release uploads within the Open Neom ecosystem. The primary focus has been on achieving greater modularity, testability, and a clear separation of concerns, in line with the overarching Clean Architecture principles.
 
