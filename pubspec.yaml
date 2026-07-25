@@ -22,7 +22,7 @@ dependencies:
     git:
       url: git@github.com:Cyberneom/neom_books.git
 
-  file_picker: ^10.1.9
+  file_picker: ^11.0.2
   percent_indicator: ^4.2.5
   pdfx: ^2.6.0
   universal_html: ^2.2.4
