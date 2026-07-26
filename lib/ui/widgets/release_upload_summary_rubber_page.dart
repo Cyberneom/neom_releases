@@ -145,7 +145,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(FontAwesomeIcons.music, size: 12),
+                              const FaIcon(FontAwesomeIcons.music, size: 12),
                               AppTheme.widthSpace5,
                               Text(
                                 '${controller.appReleaseItem.value.type.name.tr.toUpperCase()} (${controller.appReleaseItems.length})',
@@ -413,7 +413,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(FontAwesomeIcons.music, size: 12),
+                              const FaIcon(FontAwesomeIcons.music, size: 12),
                               AppTheme.widthSpace5,
                               Text(
                                 '${controller.appReleaseItem.value.type.name.tr.toUpperCase()} (${controller.appReleaseItems.length})',

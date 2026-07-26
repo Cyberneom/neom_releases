@@ -197,7 +197,7 @@ class ReleaseUploadWebController extends SintController {
 
   // ── File picking ──
   Future<void> pickCoverImage() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.image,
       withData: true,
     );
@@ -208,7 +208,7 @@ class ReleaseUploadWebController extends SintController {
   }
 
   Future<void> pickReleaseFiles() async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: acceptedExtensions,
       allowMultiple: isAlbum,

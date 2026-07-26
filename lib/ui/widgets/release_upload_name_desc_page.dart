@@ -203,7 +203,7 @@ class ReleaseUploadNameDescPage extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(FontAwesomeIcons.file, size: 20),
+                        const FaIcon(FontAwesomeIcons.file, size: 20),
                         AppTheme.widthSpace5,
                         Obx(()=> Text(controller.releaseFilePreviewURL.isEmpty
                             ? ReleaseTranslationConstants.addReleaseFile.tr

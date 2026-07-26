@@ -102,7 +102,7 @@ class ReleaseUploadWebPage extends StatelessWidget {
   //  Glass card wrapper
   // ═══════════════════════════════════════════
 
-  Widget _glassCard({required String title, required IconData icon, required Widget child}) {
+  Widget _glassCard({required String title, required dynamic icon, required Widget child}) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
@@ -116,7 +116,7 @@ class ReleaseUploadWebPage extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 16, color: AppColor.bondiBlue),
+              icon is FaIconData ? FaIcon(icon, size: 16, color: AppColor.bondiBlue) : Icon(icon as IconData, size: 16, color: AppColor.bondiBlue),
               const SizedBox(width: 10),
               Text(
                 title,
@@ -287,7 +287,7 @@ class ReleaseUploadWebPage extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(FontAwesomeIcons.fileAudio, size: 14, color: AppColor.bondiBlue),
+                  FaIcon(FontAwesomeIcons.fileAudio, size: 14, color: AppColor.bondiBlue),
                   const SizedBox(width: 8),
                   Flexible(
                     child: Text(
@@ -365,7 +365,7 @@ class ReleaseUploadWebPage extends StatelessWidget {
           child: Column(
             children: [
               Icon(
-                hasFiles ? Icons.swap_horiz : FontAwesomeIcons.cloudArrowUp,
+                hasFiles ? Icons.swap_horiz : FontAwesomeIcons.cloudArrowUp.data,
                 size: hasFiles ? 20 : 32,
                 color: Colors.white24,
               ),
@@ -848,7 +848,7 @@ class ReleaseUploadWebPage extends StatelessWidget {
     });
   }
 
-  Widget _previewChip(String label, IconData icon) {
+  Widget _previewChip(String label, dynamic icon) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
@@ -858,7 +858,7 @@ class ReleaseUploadWebPage extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 10, color: Colors.white38),
+          icon is FaIconData ? FaIcon(icon, size: 10, color: Colors.white38) : Icon(icon as IconData, size: 10, color: Colors.white38),
           const SizedBox(width: 6),
           Text(label, style: const TextStyle(color: Colors.white54, fontSize: 11)),
         ],
