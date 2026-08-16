@@ -36,6 +36,7 @@ import 'package:neom_core/domain/model/item_list.dart';
 import 'package:neom_core/domain/model/place.dart';
 import 'package:neom_core/domain/model/post.dart';
 import 'package:neom_core/domain/model/price.dart';
+import 'package:neom_core/domain/model/subscription_plan.dart';
 import 'package:neom_core/domain/use_cases/audio_lite_player_service.dart';
 import 'package:neom_core/domain/use_cases/collective_service.dart';
 import 'package:neom_core/domain/use_cases/instrument_service.dart';
@@ -64,6 +65,7 @@ import 'package:neom_core/utils/enums/post_type.dart';
 import 'package:neom_core/utils/enums/push_notification_type.dart';
 import 'package:neom_core/utils/enums/release_status.dart';
 import 'package:neom_core/utils/enums/release_type.dart';
+import 'package:neom_core/utils/enums/subscription_level.dart';
 import 'package:neom_core/utils/enums/subscription_status.dart';
 import 'package:neom_core/utils/enums/verification_level.dart';
 import 'package:neom_core/utils/neom_error_logger.dart';
@@ -89,8 +91,11 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   final collectiveServiceImpl = Sint.find<CollectiveService>();
   final MediaUploadService? mediaUploadServiceImpl = Sint.isRegistered<MediaUploadService>() ? Sint.find<MediaUploadService>() : null;
   final MediaPlayerService? mediaPlayerServiceImpl = Sint.isRegistered<MediaPlayerService>() ? Sint.find<MediaPlayerService>() : null;
-  final wooMediaServiceImpl = Sint.find<WooMediaService>();
-  final wooGatewayServiceImpl = Sint.find<WooGatewayService>();
+  /// WooCommerce/WordPress services are OPTIONAL — apps that have
+  /// decommissioned their WordPress backend (e.g. Gigmeout, Stripe-only)
+  /// don't register them; uploads fall back to Firebase Storage.
+  final WooMediaService? wooMediaServiceImpl = Sint.isRegistered<WooMediaService>() ? Sint.find<WooMediaService>() : null;
+  final WooGatewayService? wooGatewayServiceImpl = Sint.isRegistered<WooGatewayService>() ? Sint.find<WooGatewayService>() : null;
   final AudioLitePlayerService? audioLitePlayerServiceImpl = Sint.isRegistered<AudioLitePlayerService>() ? Sint.find<AudioLitePlayerService>() : null;
 
   /// Cache controller for draft management
@@ -564,7 +569,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         uploadStatusMessage.value = ReleaseTranslationConstants.uploadingCover.tr;
         update([AppPageIdConstants.releaseUpload]);
 
-        // Web: upload cover from bytes. Mobile: upload from File via WordPress.
+        // Web: upload cover from bytes. Mobile: WordPress only when the
+        // optional Woo service is registered and the flag is on; otherwise Firebase.
         if (kIsWeb && mediaUploadServiceImpl!.mediaBytes != null) {
           AppConfig.logger.d('  ↳ Web path: uploading ${mediaUploadServiceImpl!.mediaBytes!.length} bytes via Firebase');
           releaseCoverImgURL = await AppUploadFirestore().uploadMediaBytes(
@@ -573,11 +579,19 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
             MediaType.image,
             MediaUploadDestination.releaseItem,
           );
-        } else {
+        } else if (wooMediaServiceImpl != null && AppProperties.mediaToWordpressFlag()) {
           AppConfig.logger.d('  ↳ Mobile path: uploading via WordPress');
-          releaseCoverImgURL = await wooMediaServiceImpl.uploadMediaToWordPress(
+          releaseCoverImgURL = await wooMediaServiceImpl!.uploadMediaToWordPress(
             mediaUploadServiceImpl!.getMediaFile(),
             fileName: releaseItemlist.name
+          );
+        } else {
+          AppConfig.logger.d('  ↳ Mobile path: uploading via Firebase Storage');
+          releaseCoverImgURL = await AppUploadFirestore().uploadMediaFile(
+            mediaUploadServiceImpl!.getMediaId(),
+            mediaUploadServiceImpl!.getMediaFile(),
+            MediaType.image,
+            MediaUploadDestination.releaseItem,
           );
         }
 
@@ -757,9 +771,9 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
             AppConfig.logger.d('  [$itemIdx]   Mobile upload: filePath="$filePath"');
             File fileToUpload = await FileSystemUtilities.getFileFromPath(filePath);
 
-            if(AppProperties.mediaToWordpressFlag()) {
+            if(AppProperties.mediaToWordpressFlag() && wooMediaServiceImpl != null) {
               AppConfig.logger.d('  [$itemIdx]   Uploading via WordPress');
-              uploadedFileUrl = await wooMediaServiceImpl.uploadMediaToWordPress(fileToUpload, fileName: releaseItem.name);
+              uploadedFileUrl = await wooMediaServiceImpl!.uploadMediaToWordPress(fileToUpload, fileName: releaseItem.name);
             } else {
               AppConfig.logger.d('  [$itemIdx]   Uploading via Firebase Storage');
               uploadedFileUrl = await AppUploadFirestore().uploadReleaseItem(releaseItem.name, fileToUpload, mediaType);
@@ -923,9 +937,9 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
   Future<String> _createWooProduct(int itemIdx, AppReleaseItem releaseItem, String releaseCoverImgURL) async {
     String wooProductId = '';
-    if (AppProperties.createWooProductFlag()) {
+    if (AppProperties.createWooProductFlag() && wooGatewayServiceImpl != null) {
       AppConfig.logger.i('  [$itemIdx]   Creating WooCommerce product for: ${releaseItem.name}');
-      final result = await wooGatewayServiceImpl.createProductFromReleaseItem(
+      final result = await wooGatewayServiceImpl!.createProductFromReleaseItem(
         releaseItem,
         coverImageUrl: releaseCoverImgURL,
         downloadFileUrl: releaseItem.previewUrl,
@@ -2054,78 +2068,6 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
    }
   }
 
-  Future<void> uploadMedia() async {
-    AppConfig.logger.d("Initiating Upload for Media ${releaseItemlist.name} "
-        "- Type: ${releaseItemlist.type} with ${appReleaseItems.length} items");
-
-    String releaseCoverImgURL = '';
-
-    releaseItemIndex.value = 0;
-    isLoading.value = true;
-    update([AppPageIdConstants.releaseUpload]);
-
-    try {
-
-      if(mediaUploadServiceImpl!.mediaFileExists()) {
-        AppConfig.logger.d("Uploading releaseCoverImg from: ${mediaUploadServiceImpl!.getMediaFile().path}");
-        releaseCoverImgURL = await wooMediaServiceImpl.uploadMediaToWordPress(mediaUploadServiceImpl!.getMediaFile(), fileName: releaseItemlist.name);
-        releaseItemlist.imgUrl = releaseCoverImgURL;
-      }
-
-      for (AppReleaseItem releaseItem in appReleaseItems) {
-        releaseItem.imgUrl = releaseItemlist.imgUrl;
-        releaseItem.categories = [];
-        releaseItem.boughtUsers = [];
-        releaseItem.createdTime = DateTime.now().millisecondsSinceEpoch;
-        releaseItem.metaId = releaseItemlist.id;
-        releaseItem.state = 5;
-
-        releaseItem.status = AppConfig.instance.appInfo.releaseRevisionEnabled
-            ? ReleaseStatus.pending : ReleaseStatus.publish;
-
-        if(releaseItem.previewUrl.isNotEmpty) {
-          AppConfig.logger.i("Uploading file: ${releaseItem.previewUrl}");
-          String fileExtension = releaseItem.previewUrl.split('.').last.toLowerCase();
-
-          AppMediaType mediaType = AppMediaType.audio;
-          if(fileExtension == "mp3") {
-            mediaType = AppMediaType.audio;
-          } else if (fileExtension == "pdf") {
-            mediaType = AppMediaType.text;
-          }
-
-          String filePath = releaseFilePaths.elementAt(releaseItemIndex.value);
-
-          File fileToUpload = await FileSystemUtilities.getFileFromPath(filePath);
-
-          if(AppProperties.mediaToWordpressFlag()) {
-            releaseItem.previewUrl = await wooMediaServiceImpl.uploadMediaToWordPress(fileToUpload, fileName: releaseItem.name);
-          } else {
-            releaseItem.previewUrl = await AppUploadFirestore().uploadReleaseItem(releaseItem.name, fileToUpload, mediaType);
-          }
-
-          AppConfig.logger.d("Updating Remote Preview URL as: ${releaseItem.previewUrl}");
-        }
-
-        releaseItemIndex.value++;
-        update([AppPageIdConstants.releaseUpload]);
-      }
-
-      AppUtilities.showSnackBar(
-          title: ReleaseTranslationConstants.digitalPositioning,
-          message: ReleaseTranslationConstants.digitalPositioningSuccess.tr
-      );
-    } catch (e, st) {
-      NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'uploadMedia');
-      AppUtilities.showSnackBar(title: ReleaseTranslationConstants.digitalPositioning, message: e.toString());
-      isButtonDisabled.value = false;
-      isLoading.value = false;
-    }
-
-    isLoading.value = false;
-    update();
-  }
-
   Future<void> playPreview(AppReleaseItem item) async {
     if(audioLitePlayerServiceImpl == null) return;
     AppConfig.logger.d("Playing preview for item: ${item.name} - ${item.previewUrl}");
@@ -2178,6 +2120,58 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     }
 
     update([AppPageIdConstants.releaseUpload]);
+  }
+
+  // ── Dynamic plan pricing ──
+
+  /// Resolves an active subscription plan by level from the app's own
+  /// Stripe-backed catalog (fetched by SubscriptionService on init).
+  SubscriptionPlan? _planByLevel(SubscriptionLevel level) {
+    if (!Sint.isRegistered<SubscriptionService>()) return null;
+    try {
+      final plans = Sint.find<SubscriptionService>().subscriptionPlans;
+      for (final plan in plans.values) {
+        if (plan.level == level && plan.isActive) return plan;
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  /// Formats a plan's monthly price as "$59.00 MXN". Falls back to the
+  /// app's configured subscription price (properties.json) when the live
+  /// Stripe price is unavailable. Returns '' when no price can be resolved.
+  String _formatMonthlyPrice(SubscriptionPlan? plan) {
+    Price? price = plan?.price;
+    if (price == null || price.amount <= 0) {
+      final fallback = AppProperties.getSubscriptionPrice();
+      if (fallback.amount > 0) price = fallback;
+    }
+    if (price == null || price.amount <= 0) return '';
+    return '\$${price.amount.toStringAsFixed(2)} ${price.currency.name.toUpperCase()}';
+  }
+
+  /// Intro text with plan names and the live Stripe price injected.
+  /// Templates use @creatorPlan, @creatorPrice and @artistPlan placeholders.
+  String getReleaseUploadIntro() {
+    final creatorPlan = _planByLevel(SubscriptionLevel.creator);
+    final artistPlan = _planByLevel(SubscriptionLevel.artist);
+    return ReleaseTranslationConstants.releaseUploadIntro.trParams({
+      'creatorPlan': creatorPlan != null && creatorPlan.name.isNotEmpty
+          ? creatorPlan.name : CommonTranslationConstants.creatorPlan.tr,
+      'creatorPrice': _formatMonthlyPrice(creatorPlan),
+      'artistPlan': artistPlan != null && artistPlan.name.isNotEmpty
+          ? artistPlan.name : CommonTranslationConstants.artistPlan.tr,
+    });
+  }
+
+  /// Submit message with the artist plan name injected. The price itself is
+  /// shown on the subscription plans page, which reads live Stripe data.
+  String getSubmitReleaseMsg() {
+    final artistPlan = _planByLevel(SubscriptionLevel.artist);
+    return ReleaseTranslationConstants.submitReleaseMsg.trParams({
+      'artistPlan': artistPlan != null && artistPlan.name.isNotEmpty
+          ? artistPlan.name : CommonTranslationConstants.artistPlan.tr,
+    });
   }
 
   // ── Web Modal Helpers ──

@@ -241,7 +241,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                         "",
                         showDivider: false,
                         subtitle: AppConfig.instance.appInfo.releaseRevisionEnabled
-                            ? ReleaseTranslationConstants.submitReleaseMsg.tr
+                            ? controller.getSubmitReleaseMsg()
                             : ReleaseTranslationConstants.publishOnPlatformMsg.tr,
                         titleFontSize: 14,
                         subTitleFontSize: 12,
@@ -509,7 +509,7 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                         "",
                         showDivider: false,
                         subtitle: AppConfig.instance.appInfo.releaseRevisionEnabled
-                            ? ReleaseTranslationConstants.submitReleaseMsg.tr
+                            ? controller.getSubmitReleaseMsg()
                             : ReleaseTranslationConstants.publishOnPlatformMsg.tr,
                         titleFontSize: 14,
                         subTitleFontSize: 12,

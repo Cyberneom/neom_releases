@@ -620,7 +620,7 @@ class ReleaseUploadWebPage extends StatelessWidget {
           Obx(() => !controller.isLoading.value
               ? Text(
                   AppConfig.instance.appInfo.releaseRevisionEnabled
-                      ? ReleaseTranslationConstants.submitReleaseMsg.tr
+                      ? controller.getSubmitReleaseMsg()
                       : ReleaseTranslationConstants.publishOnPlatformMsg.tr,
                   style: TextStyle(color: Colors.grey[600], fontSize: 11),
                   textAlign: TextAlign.center,

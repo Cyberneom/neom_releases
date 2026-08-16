@@ -60,7 +60,7 @@ class ReleaseUploadPage extends StatelessWidget {
                               Column(
                                 children: [
                                   TitleSubtitleRow(ReleaseTranslationConstants.digitalPositioning.tr,
-                                    subtitle: ReleaseTranslationConstants.releaseUploadIntro.tr,
+                                    subtitle: controller.getReleaseUploadIntro(),
                                     showDivider: false,
                                   ),
                                   AppTheme.heightSpace10,
