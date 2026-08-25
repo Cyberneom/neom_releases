@@ -3,6 +3,8 @@ import 'dart:typed_data';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:neom_core/domain/model/app_release_item.dart';
 import 'package:neom_core/domain/model/item_list.dart';
+import 'package:neom_core/domain/model/price.dart';
+import 'package:neom_core/utils/enums/app_currency.dart';
 import 'package:neom_core/utils/enums/itemlist_type.dart';
 import 'package:neom_core/utils/enums/media_item_type.dart';
 import 'package:neom_core/utils/enums/release_type.dart';
@@ -277,6 +279,103 @@ void main() {
       }
     });
   });
+
+  // ════════════════════════════════════════════════════════════════
+  // TEST 6: Artwork upload (EMXI Museum / Virtual Gallery)
+  // ════════════════════════════════════════════════════════════════
+  group('Web Modal — Visual Artwork Upload', () {
+    test('Artwork release should produce 1 item with MediaItemType.artwork', () {
+      final items = _buildItems(
+        title: 'La Noche Estrellada en Oaxaca',
+        author: 'Francisco Toledo',
+        description: 'Óleo sobre lienzo representando una noche mística.',
+        genre: 'Pintura',
+        releaseType: ReleaseType.artwork,
+        isEmxi: true,
+        files: [_FakeFile('noche_oaxaca.jpg', 4500000)],
+      );
+
+      expect(items.length, 1);
+      expect(items.first.name, 'La Noche Estrellada en Oaxaca');
+      expect(items.first.ownerName, 'Francisco Toledo');
+      expect(items.first.type, ReleaseType.artwork);
+      expect(items.first.mediaType, MediaItemType.artwork);
+      expect(items.first.categories, contains('Pintura'));
+    });
+
+    test('Artwork itemlist should have type gallery', () {
+      final itemlist = _buildItemlist(
+        title: 'Colección Surrealismo',
+        description: 'Obras surrealistas de gran formato.',
+        releaseType: ReleaseType.artwork,
+      );
+
+      expect(itemlist.type, ItemlistType.gallery);
+    });
+
+    test('Artwork can proceed with cover image alone or image files', () {
+      expect(_canProceedArtwork(title: 'Obra Sin Archivo Extra', hasCover: true, fileCount: 0), isTrue);
+      expect(_canProceedArtwork(title: 'Obra Con Archivo', hasCover: false, fileCount: 1), isTrue);
+      expect(_canProceedArtwork(title: '', hasCover: true, fileCount: 1), isFalse);
+      expect(_canProceedArtwork(title: 'Obra Vacía', hasCover: false, fileCount: 0), isFalse);
+    });
+  });
+
+  // ════════════════════════════════════════════════════════════════
+  // TEST 7: Physical Edition / Dropshipping (Books, CDs & Art)
+  // ════════════════════════════════════════════════════════════════
+  group('Web Modal — Physical Edition / Dropshipping', () {
+    test('EMXI physical book sale should store physicalPrice in MXN', () {
+      final items = _buildItems(
+        title: 'El Laberinto de la Soledad',
+        author: 'Octavio Paz',
+        description: 'Ensayo emblemático sobre la identidad mexicana.',
+        genre: 'Ensayo',
+        releaseType: ReleaseType.single,
+        isEmxi: true,
+        files: [_FakeFile('laberinto.pdf', 2500000)],
+        physicalPrice: Price(amount: 380.0, currency: AppCurrency.mxn),
+      );
+
+      expect(items.first.physicalPrice, isNotNull);
+      expect(items.first.physicalPrice!.amount, 380.0);
+      expect(items.first.physicalPrice!.currency, AppCurrency.mxn);
+    });
+
+    test('Gigmeout physical CD sale should attach physicalPrice to all tracks', () {
+      final items = _buildItems(
+        title: 'Revolución Sonora EP',
+        author: 'Los Caifanes',
+        description: 'Edición física en CD con librillo incluido.',
+        genre: 'Rock',
+        releaseType: ReleaseType.ep,
+        isEmxi: false,
+        files: [
+          _FakeFile('01-viento.mp3', 4000000),
+          _FakeFile('02-afuera.mp3', 5000000),
+        ],
+        physicalPrice: Price(amount: 250.0, currency: AppCurrency.mxn),
+      );
+
+      expect(items.length, 2);
+      for (final item in items) {
+        expect(item.physicalPrice, isNotNull);
+        expect(item.physicalPrice!.amount, 250.0);
+      }
+    });
+
+    test('Item without physical option enabled should have null physicalPrice', () {
+      final items = _buildItems(
+        title: 'Solo Digital',
+        author: 'Autor Digital',
+        releaseType: ReleaseType.single,
+        isEmxi: true,
+        files: [_FakeFile('digital.pdf', 1000000)],
+      );
+
+      expect(items.first.physicalPrice, isNull);
+    });
+  });
 }
 
 // ── Test Helpers ──
@@ -291,23 +390,35 @@ List<AppReleaseItem> _buildItems({
   required List<_FakeFile> files,
   String email = 'test@test.com',
   String photoUrl = 'https://example.com/photo.jpg',
+  Price? physicalPrice,
 }) {
   final isSingle = releaseType == ReleaseType.single;
+  final isArtwork = releaseType == ReleaseType.artwork;
+  final MediaItemType mediaType;
+  if (isArtwork) {
+    mediaType = MediaItemType.artwork;
+  } else if (isEmxi) {
+    mediaType = MediaItemType.pdf;
+  } else {
+    mediaType = MediaItemType.song;
+  }
+
   return files.map((file) {
-    final name = isSingle ? title : file.name.replaceAll(RegExp(r'\.[^.]+$'), '');
+    final name = (isSingle || isArtwork) ? title : file.name.replaceAll(RegExp(r'\.[^.]+$'), '');
     return AppReleaseItem(
       name: name,
       description: description,
       ownerEmail: email,
       ownerName: author,
       type: releaseType,
-      mediaType: isEmxi ? MediaItemType.pdf : MediaItemType.song,
+      mediaType: mediaType,
       categories: genre.isNotEmpty ? [genre] : [],
       galleryUrls: [photoUrl],
       metaOwnerId: email,
       boughtUsers: [],
       createdTime: DateTime.now().millisecondsSinceEpoch,
       state: 5,
+      physicalPrice: physicalPrice,
     );
   }).toList();
 }
@@ -317,13 +428,26 @@ Itemlist _buildItemlist({
   String description = '',
   required ReleaseType releaseType,
 }) {
+  final ItemlistType type;
+  if (releaseType == ReleaseType.artwork) {
+    type = ItemlistType.gallery;
+  } else if (releaseType == ReleaseType.single) {
+    type = ItemlistType.single;
+  } else {
+    type = ItemlistType.album;
+  }
+
   return Itemlist(
     name: title,
     description: description,
-    type: releaseType == ReleaseType.single ? ItemlistType.single : ItemlistType.album,
+    type: type,
   );
 }
 
 bool _canProceed({required String title, required int fileCount}) {
   return title.trim().isNotEmpty && fileCount > 0;
+}
+
+bool _canProceedArtwork({required String title, required bool hasCover, required int fileCount}) {
+  return title.trim().isNotEmpty && (hasCover || fileCount > 0);
 }

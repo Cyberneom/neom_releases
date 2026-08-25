@@ -455,6 +455,10 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         releaseItemsQty.value = 1;
         releaseItemlist.type = ItemlistType.audiobook;
         break;
+      case ReleaseType.artwork:
+        releaseItemsQty.value = 1;
+        releaseItemlist.type = ItemlistType.gallery;
+        break;
     }
 
     appReleaseItems.clear();
@@ -742,18 +746,32 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         // Step 3a: Upload release file to WordPress/Firebase
         String fileExtension = '';
         bool isPdf = false;
-        if(releaseItem.previewUrl.isNotEmpty) {
+        bool isImage = false;
+
+        // If artwork and no separate file was added, previewUrl defaults to cover image URL
+        if (releaseItem.type == ReleaseType.artwork && releaseItem.previewUrl.isEmpty && releaseCoverImgURL.isNotEmpty) {
+          releaseItem.previewUrl = releaseCoverImgURL;
+          releaseItem.imgUrl = releaseCoverImgURL;
+          if (releaseItem.galleryUrls == null || releaseItem.galleryUrls!.isEmpty) {
+            releaseItem.galleryUrls = [releaseCoverImgURL];
+          }
+        }
+
+        if(releaseItem.previewUrl.isNotEmpty && !releaseItem.previewUrl.startsWith('http')) {
           fileExtension = releaseItem.previewUrl.split('.').last.toLowerCase();
           isPdf = fileExtension == "pdf";
+          isImage = ['jpg', 'jpeg', 'png', 'webp'].contains(fileExtension);
 
           AppMediaType mediaType = AppMediaType.audio;
           if(fileExtension == "mp3") {
             mediaType = AppMediaType.audio;
           } else if (isPdf) {
             mediaType = AppMediaType.text;
+          } else if (isImage) {
+            mediaType = AppMediaType.image;
           }
 
-          AppConfig.logger.i('  [$itemIdx]   Uploading file: ext=$fileExtension, isPdf=$isPdf, mediaType=${mediaType.name}');
+          AppConfig.logger.i('  [$itemIdx]   Uploading file: ext=$fileExtension, isPdf=$isPdf, isImage=$isImage, mediaType=${mediaType.name}');
 
           String uploadedFileUrl = '';
 
@@ -787,7 +805,12 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
           }
 
           releaseItem.previewUrl = uploadedFileUrl;
+          if (isImage && releaseItem.imgUrl.isEmpty) {
+            releaseItem.imgUrl = uploadedFileUrl;
+          }
           AppConfig.logger.i('  [$itemIdx]   ✓ File uploaded → ${releaseItem.previewUrl}');
+        } else if (releaseItem.previewUrl.startsWith('http')) {
+          AppConfig.logger.i('  [$itemIdx]   ✓ Using remote URL → ${releaseItem.previewUrl}');
         } else {
           AppConfig.logger.w('  [$itemIdx]   ⚠ previewUrl is EMPTY — no file to upload');
         }
@@ -1903,6 +1926,10 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         releaseItemsQty.value = 1;
         releaseItemlist.type = ItemlistType.audiobook;
         break;
+      case ReleaseType.artwork:
+        releaseItemsQty.value = 1;
+        releaseItemlist.type = ItemlistType.gallery;
+        break;
     }
 
     appReleaseItems.clear();
@@ -2203,35 +2230,82 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         : profile.name;
     releaseItemlist.ownerType = OwnerType.profile;
 
-    for (int i = 0; i < _webFileEntries.length; i++) {
-      final entry = _webFileEntries[i];
-      final name = releaseItemsQty.value == 1
-          ? titleController.text.trim()
-          : entry.key.replaceAll(RegExp(r'\.[^.]+$'), '');
+    final isArt = appReleaseItem.value.type == ReleaseType.artwork;
+    final MediaItemType determinedMediaType;
+    if (isArt) {
+      determinedMediaType = MediaItemType.artwork;
+    } else if (appReleaseItem.value.type == ReleaseType.episode) {
+      determinedMediaType = MediaItemType.podcast;
+    } else if (appReleaseItem.value.type == ReleaseType.chapter) {
+      determinedMediaType = MediaItemType.audiobook;
+    } else if (AppFlavour.singleAcceptsPdf() && appReleaseItem.value.type == ReleaseType.single) {
+      determinedMediaType = MediaItemType.pdf;
+    } else {
+      determinedMediaType = MediaItemType.song;
+    }
 
+    Price? physicalPrice;
+    if (isPhysical.value && physicalPriceController.text.trim().isNotEmpty) {
+      final physAmt = double.tryParse(physicalPriceController.text.trim());
+      if (physAmt != null && physAmt > 0) {
+        physicalPrice = Price(amount: physAmt, currency: AppCurrency.mxn);
+      }
+    }
+
+    if (isArt && _webFileEntries.isEmpty) {
+      final name = titleController.text.trim().isNotEmpty ? titleController.text.trim() : 'Sin título';
       final item = AppReleaseItem(
         name: name,
         description: descController.text.trim(),
         ownerEmail: user.email,
         ownerName: authorController.text.trim().isNotEmpty ? authorController.text.trim() : profile.name,
         ownerType: OwnerType.profile,
-        type: appReleaseItem.value.type,
-        mediaType: AppFlavour.singleAcceptsPdf() ? MediaItemType.pdf : MediaItemType.song,
+        type: ReleaseType.artwork,
+        mediaType: MediaItemType.artwork,
         categories: selectedGenres.toList(),
         galleryUrls: [profile.photoUrl],
         metaOwnerId: user.email,
         boughtUsers: [],
         createdTime: DateTime.now().millisecondsSinceEpoch,
         state: 5,
+        physicalPrice: physicalPrice,
       );
-
-      // Set previewUrl to filename so the upload gate passes and extension is extractable
-      item.previewUrl = entry.key;
-      // Generate slug using artist-scoped format
       final artistSlug = profile.slug.isNotEmpty ? profile.slug : AppProfile.generateSlug(profile.name);
       final trackSlug = AppReleaseItem.generateSlug(name);
       item.slug = '$artistSlug/$trackSlug';
       appReleaseItems.add(item);
+    } else {
+      for (int i = 0; i < _webFileEntries.length; i++) {
+        final entry = _webFileEntries[i];
+        final name = (releaseItemsQty.value == 1 || isArt)
+            ? titleController.text.trim()
+            : entry.key.replaceAll(RegExp(r'\.[^.]+$'), '');
+
+        final item = AppReleaseItem(
+          name: name,
+          description: descController.text.trim(),
+          ownerEmail: user.email,
+          ownerName: authorController.text.trim().isNotEmpty ? authorController.text.trim() : profile.name,
+          ownerType: OwnerType.profile,
+          type: appReleaseItem.value.type,
+          mediaType: determinedMediaType,
+          categories: selectedGenres.toList(),
+          galleryUrls: [profile.photoUrl],
+          metaOwnerId: user.email,
+          boughtUsers: [],
+          createdTime: DateTime.now().millisecondsSinceEpoch,
+          state: 5,
+          physicalPrice: physicalPrice,
+        );
+
+        // Set previewUrl to filename so the upload gate passes and extension is extractable
+        item.previewUrl = entry.key;
+        // Generate slug using artist-scoped format
+        final artistSlug = profile.slug.isNotEmpty ? profile.slug : AppProfile.generateSlug(profile.name);
+        final trackSlug = AppReleaseItem.generateSlug(name);
+        item.slug = '$artistSlug/$trackSlug';
+        appReleaseItems.add(item);
+      }
     }
 
     // Store bytes in mediaUploadService for the upload pipeline

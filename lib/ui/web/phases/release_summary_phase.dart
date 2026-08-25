@@ -190,6 +190,30 @@ class _ReleaseSummaryPhaseState extends State<ReleaseSummaryPhase>
                       ),
                   ],
 
+                  // Physical edition info badge
+                  if (ctrl.isPhysical.value && ctrl.physicalPriceController.text.trim().isNotEmpty) ...[
+                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColor.bondiBlue.withAlpha(20),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: AppColor.bondiBlue.withAlpha(70)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.local_shipping_outlined, color: AppColor.bondiBlue, size: 16),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${AppFlavour.getPhysicalSaleTitleKey().tr}: \$${ctrl.physicalPriceController.text.trim()} MXN',
+                            style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
                   const SizedBox(height: 28),
 
                   // Publish button / progress

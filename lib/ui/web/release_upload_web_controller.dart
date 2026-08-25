@@ -8,8 +8,10 @@ import 'package:flutter/services.dart' show rootBundle;
 import 'package:neom_core/app_config.dart';
 import 'package:neom_core/domain/model/app_release_item.dart';
 import 'package:neom_core/domain/model/item_list.dart';
+import 'package:neom_core/domain/model/price.dart';
 import 'package:neom_core/domain/use_cases/user_service.dart';
 import 'package:neom_core/utils/constants/data_assets.dart';
+import 'package:neom_core/utils/enums/app_currency.dart';
 import 'package:neom_core/utils/enums/itemlist_type.dart';
 import 'package:neom_core/utils/enums/media_item_type.dart';
 import 'package:neom_core/utils/enums/release_type.dart';
@@ -31,12 +33,24 @@ class ReleaseUploadWebController extends SintController {
   final Rx<ReleaseType> releaseType = ReleaseType.single.obs;
   final Rx<ItemlistType> itemlistType = ItemlistType.single.obs;
   bool get isSingle => releaseType.value == ReleaseType.single;
-  bool get isAlbum => !isSingle;
+  bool get isArtwork => releaseType.value == ReleaseType.artwork;
+  bool get isAlbum => releaseType.value == ReleaseType.album ||
+      releaseType.value == ReleaseType.ep ||
+      releaseType.value == ReleaseType.demo;
 
   // ── Form fields ──
   final titleController = TextEditingController();
   final authorController = TextEditingController();
   final descController = TextEditingController();
+
+  // Curatorial fields for Artwork (ReleaseType.artwork)
+  final artCategoryController = TextEditingController();
+  final artTechniqueController = TextEditingController();
+  final artMediumController = TextEditingController();
+  final artDimensionsController = TextEditingController();
+  final RxBool artIsOriginal = true.obs;
+  final RxBool artIsSigned = true.obs;
+  final RxBool artIsFramed = false.obs;
 
   // Genres (release_genres.json) — multi-select up to 3
   final RxList<String> selectedInstruments = <String>[].obs;
@@ -55,6 +69,10 @@ class ReleaseUploadWebController extends SintController {
   final publisherController = TextEditingController();
   final Rx<int> publishedYear = DateTime.now().year.obs;
 
+  // Physical Sale / Dropshipping
+  final RxBool isPhysical = false.obs;
+  final physicalPriceController = TextEditingController();
+
   // ── Files ──
   final Rx<Uint8List?> coverBytes = Rx(null);
   final RxString coverFileName = ''.obs;
@@ -72,20 +90,30 @@ class ReleaseUploadWebController extends SintController {
   // ── Computed ──
   /// For singles: EMXI and Cyberneom accept PDF (books/articles), others accept audio.
   /// For albums (tracks): always audio regardless of app.
+  /// For artworks: accept image formats (JPG, PNG, WebP).
   bool get singleAcceptsPdf => AppFlavour.singleAcceptsPdf() && isSingle;
-  String get acceptedFileType => singleAcceptsPdf ? 'PDF' : 'MP3';
-  List<String> get acceptedExtensions =>
-      singleAcceptsPdf ? ['pdf'] : ['mp3'];
+  String get acceptedFileType => isArtwork
+      ? 'JPG, PNG, WebP'
+      : (singleAcceptsPdf ? 'PDF' : 'MP3');
+  List<String> get acceptedExtensions => isArtwork
+      ? ['jpg', 'jpeg', 'png', 'webp']
+      : (singleAcceptsPdf ? ['pdf'] : ['mp3']);
 
   // ── Reactive description tracker ──
   final RxString _descText = ''.obs;
 
   bool get canProceedToForm => true; // Type is always selected
-  bool get canProceedToSummary =>
-      _titleText.value.isNotEmpty &&
-      selectedInstruments.isNotEmpty &&
-      _descText.value.isNotEmpty &&
-      releaseFiles.isNotEmpty;
+  bool get canProceedToSummary {
+    if (isArtwork) {
+      return _titleText.value.isNotEmpty &&
+          _descText.value.isNotEmpty &&
+          (coverBytes.value != null || releaseFiles.isNotEmpty);
+    }
+    return _titleText.value.isNotEmpty &&
+        selectedInstruments.isNotEmpty &&
+        _descText.value.isNotEmpty &&
+        releaseFiles.isNotEmpty;
+  }
 
   @override
   void onInit() {
@@ -134,6 +162,11 @@ class ReleaseUploadWebController extends SintController {
     authorController.dispose();
     descController.dispose();
     publisherController.dispose();
+    artCategoryController.dispose();
+    artTechniqueController.dispose();
+    artMediumController.dispose();
+    artDimensionsController.dispose();
+    physicalPriceController.dispose();
     super.onClose();
   }
 
@@ -146,7 +179,7 @@ class ReleaseUploadWebController extends SintController {
     releaseType.value = type;
     itemlistType.value = subtype ?? (type == ReleaseType.single
         ? ItemlistType.single
-        : ItemlistType.album);
+        : (type == ReleaseType.artwork ? ItemlistType.gallery : ItemlistType.album));
     phase.value = 1;
   }
 
@@ -154,6 +187,15 @@ class ReleaseUploadWebController extends SintController {
     titleController.clear();
     authorController.clear();
     descController.clear();
+    artCategoryController.clear();
+    artTechniqueController.clear();
+    artMediumController.clear();
+    artDimensionsController.clear();
+    artIsOriginal.value = true;
+    artIsSigned.value = true;
+    artIsFramed.value = false;
+    isPhysical.value = false;
+    physicalPriceController.clear();
     coverBytes.value = null;
     releaseFiles.clear();
     selectedInstruments.clear();
@@ -168,7 +210,7 @@ class ReleaseUploadWebController extends SintController {
     if (phase.value == 0) {
       phase.value = 1;
     } else if (phase.value == 1 && canProceedToSummary) {
-      phase.value = 2; // Albums go to tracks phase, singles go to summary
+      phase.value = isAlbum ? 2 : 2; // Albums go to tracks phase (phase 2), others go to summary (phase 2)
     } else if (phase.value == 2 && isAlbum) {
       phase.value = 3; // Albums: tracks → summary
     }
@@ -211,7 +253,7 @@ class ReleaseUploadWebController extends SintController {
     final result = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: acceptedExtensions,
-      allowMultiple: isAlbum,
+      allowMultiple: isAlbum || isArtwork,
       withData: true,
     );
     if (result != null && result.files.isNotEmpty) {
@@ -252,7 +294,7 @@ class ReleaseUploadWebController extends SintController {
     return Itemlist(
       name: titleController.text.trim(),
       description: descController.text.trim(),
-      type: itemlistType.value,
+      type: isArtwork ? ItemlistType.gallery : itemlistType.value,
     );
   }
 
@@ -260,10 +302,37 @@ class ReleaseUploadWebController extends SintController {
     final items = <AppReleaseItem>[];
     final user = Sint.find<UserService>();
 
-    // Merge instruments + subgenres into categories
+    Price? physicalPrice;
+    if (isPhysical.value && physicalPriceController.text.trim().isNotEmpty) {
+      final physAmt = double.tryParse(physicalPriceController.text.trim());
+      if (physAmt != null && physAmt > 0) {
+        physicalPrice = Price(amount: physAmt, currency: AppCurrency.mxn);
+      }
+    }
+
+    // Merge instruments + subgenres + art category into categories
     final categories = <String>[];
+    if (isArtwork && artCategoryController.text.trim().isNotEmpty) {
+      categories.add(artCategoryController.text.trim());
+    }
     categories.addAll(selectedInstruments);
     categories.addAll(selectedGenres);
+
+    if (isArtwork) {
+      final name = titleController.text.trim();
+      items.add(AppReleaseItem(
+        name: name,
+        description: descController.text.trim(),
+        ownerEmail: user.user.email,
+        ownerName: authorController.text.trim(),
+        type: ReleaseType.artwork,
+        mediaType: MediaItemType.artwork,
+        categories: categories.isNotEmpty ? categories : ['Arte'],
+        publishedYear: publishedYear.value,
+        physicalPrice: physicalPrice,
+      ));
+      return items;
+    }
 
     for (int i = 0; i < releaseFiles.length; i++) {
       final file = releaseFiles[i];
@@ -279,6 +348,7 @@ class ReleaseUploadWebController extends SintController {
         type: isSingle ? ReleaseType.single : ReleaseType.album,
         mediaType: singleAcceptsPdf ? MediaItemType.pdf : MediaItemType.song,
         categories: categories,
+        physicalPrice: physicalPrice,
       ));
     }
     return items;

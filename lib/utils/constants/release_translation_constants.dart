@@ -158,4 +158,28 @@ class ReleaseTranslationConstants {
   static const String supportedFormats = 'supportedFormats';
   static const String continueExploring = 'continueExploring';
 
+  // Visual Artwork Constants
+  static const String artworkTypeName = 'artworkTypeName';
+  static const String artworkTypeDesc = 'artworkTypeDesc';
+  static const String artCategory = 'artCategory';
+  static const String artTechnique = 'artTechnique';
+  static const String artMedium = 'artMedium';
+  static const String artDimensions = 'artDimensions';
+  static const String artYear = 'artYear';
+  static const String artStyle = 'artStyle';
+  static const String artIsOriginal = 'artIsOriginal';
+  static const String artIsSigned = 'artIsSigned';
+  static const String artIsFramed = 'artIsFramed';
+  static const String uploadArtworkImage = 'uploadArtworkImage';
+  static const String uploadArtworkImageDesc = 'uploadArtworkImageDesc';
+
+  // Physical Sale / Dropshipping Constants
+  static const String physicalSaleTitleE = 'physicalSaleTitleE';
+  static const String physicalSaleTitleG = 'physicalSaleTitleG';
+  static const String physicalSaleTitleGeneric = 'physicalSaleTitleGeneric';
+  static const String physicalSaleDescMsg = 'physicalSaleDescMsg';
+  static const String physicalSaleCheckbox = 'physicalSaleCheckbox';
+  static const String physicalSalePriceHint = 'physicalSalePriceHint';
+  static const String physicalSaleBadge = 'physicalSaleBadge';
+
 }

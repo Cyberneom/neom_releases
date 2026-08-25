@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
+import 'package:neom_core/utils/enums/itemlist_type.dart';
 import 'package:neom_core/utils/enums/release_type.dart';
 import 'package:sint/sint.dart';
 
@@ -46,7 +47,19 @@ class ReleaseTypePhase extends StatelessWidget {
               onTap: () => controller.selectType(ReleaseType.single),
               fullWidth: true,
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
+
+            // Artwork card (for EMXI and apps supporting visual art)
+            if (AppFlavour.showArtworkUpload()) ...[
+              _TypeCard(
+                icon: AppFlavour.getArtworkIcon(),
+                title: ReleaseTranslationConstants.artworkTypeName.tr,
+                description: ReleaseTranslationConstants.artworkTypeDesc.tr,
+                onTap: () => controller.selectType(ReleaseType.artwork, subtype: ItemlistType.gallery),
+                fullWidth: true,
+              ),
+              const SizedBox(height: 16),
+            ],
 
             // Album subtypes header
             if (subtypes.isNotEmpty) ...[

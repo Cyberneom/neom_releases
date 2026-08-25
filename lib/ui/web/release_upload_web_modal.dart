@@ -199,6 +199,10 @@ class ReleaseUploadWebModal extends StatelessWidget {
       uploadCtrl.authorController.text = webCtrl.authorController.text.trim();
       uploadCtrl.descController.text = webCtrl.descController.text.trim();
 
+      // Physical sale / Dropshipping
+      uploadCtrl.isPhysical.value = webCtrl.isPhysical.value;
+      uploadCtrl.physicalPriceController.text = webCtrl.physicalPriceController.text.trim();
+
       // Set genres (instruments + subgenres)
       final categories = <String>[];
       categories.addAll(webCtrl.selectedInstruments);

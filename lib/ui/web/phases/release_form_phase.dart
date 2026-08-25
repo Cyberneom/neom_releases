@@ -3,6 +3,7 @@ import 'package:universal_html/html.dart' as html;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:sint/sint.dart';
 
@@ -151,37 +152,89 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                 _requiredLabel(ReleaseTranslationConstants.releaseTitle.tr),
                 const SizedBox(height: 6),
                 _textField(ctrl.titleController, ReleaseTranslationConstants.releaseTitle.tr),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                // Author
+                // Author / Artist
                 _requiredLabel(ReleaseTranslationConstants.releaseAuthor.tr),
                 const SizedBox(height: 6),
                 _textField(ctrl.authorController, ReleaseTranslationConstants.releaseAuthor.tr),
-                const SizedBox(height: 20),
+                const SizedBox(height: 16),
 
-                // Instrument / Category (single select) — required
-                _requiredLabel(ReleaseTranslationConstants.genre.tr),
-                const SizedBox(height: 6),
-                Obx(() => _instrumentSelector(ctrl)),
-                const SizedBox(height: 20),
+                if (ctrl.isArtwork) ...[
+                  // Art Category
+                  _label(ReleaseTranslationConstants.artCategory.tr),
+                  const SizedBox(height: 6),
+                  _textField(ctrl.artCategoryController, 'Pintura, Escultura, Fotografía, Grabado, Arte Digital...'),
+                  const SizedBox(height: 16),
 
-                // Subgenres (multi-select, up to 10) — optional
-                _label(ReleaseTranslationConstants.subgenres.tr),
-                const SizedBox(height: 6),
-                Obx(() => _subgenreSelector(ctrl)),
-                const SizedBox(height: 20),
+                  // Technique & Medium in a Row
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _label(ReleaseTranslationConstants.artTechnique.tr),
+                            const SizedBox(height: 6),
+                            _textField(ctrl.artTechniqueController, 'Óleo, Acrílico, Temple, Acuarela...'),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _label(ReleaseTranslationConstants.artMedium.tr),
+                            const SizedBox(height: 6),
+                            _textField(ctrl.artMediumController, 'Lienzo, Madera, Papel, Bronce...'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Dimensions
+                  _label(ReleaseTranslationConstants.artDimensions.tr),
+                  const SizedBox(height: 6),
+                  _textField(ctrl.artDimensionsController, '120 × 90 cm'),
+                  const SizedBox(height: 16),
+                ] else ...[
+                  // Instrument / Category (single select) — required
+                  _requiredLabel(ReleaseTranslationConstants.genre.tr),
+                  const SizedBox(height: 6),
+                  Obx(() => _instrumentSelector(ctrl)),
+                  const SizedBox(height: 20),
+
+                  // Subgenres (multi-select, up to 10) — optional
+                  _label(ReleaseTranslationConstants.subgenres.tr),
+                  const SizedBox(height: 6),
+                  Obx(() => _subgenreSelector(ctrl)),
+                  const SizedBox(height: 20),
+                ],
 
                 // Description — required
                 _requiredLabel(ReleaseTranslationConstants.releaseDesc.tr),
                 const SizedBox(height: 6),
                 TextField(
                   controller: ctrl.descController,
-                  maxLines: 5,
+                  maxLines: 4,
                   maxLength: 500,
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                   decoration: _inputDecoration(ReleaseTranslationConstants.releaseDesc.tr),
                 ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 16),
+
+                // Artwork authenticity attributes
+                if (ctrl.isArtwork) ...[
+                  Obx(() => _artworkAuthenticityToggles(ctrl)),
+                  const SizedBox(height: 16),
+                ],
+
+                // Physical Sale / Dropshipping
+                Obx(() => _buildPhysicalSaleSection(ctrl)),
+                const SizedBox(height: 16),
 
                 // File drop zone inline (for single/book)
                 if (ctrl.isSingle) ...[
@@ -200,19 +253,21 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
         // Divider
         VerticalDivider(width: 1, color: Colors.white.withAlpha(15)),
 
-        // ── Right: Publisher info + Cover (for single/book) or Tracks drop zone (for album) ──
+        // ── Right: Publisher info + Cover (for single/book/artwork) or Tracks drop zone (for album) ──
         Expanded(
           child: Padding(
             padding: const EdgeInsets.all(28),
-            child: ctrl.isSingle
+            child: (ctrl.isSingle || ctrl.isArtwork)
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Self-published checkbox + Year dropdown
                       Obx(() => _publisherSection(ctrl)),
                       const SizedBox(height: 16),
-                      // Cover
-                      _label(ReleaseTranslationConstants.releaseCover.tr),
+                      // Cover / Artwork Image
+                      _label(ctrl.isArtwork
+                          ? ReleaseTranslationConstants.uploadArtworkImage.tr
+                          : ReleaseTranslationConstants.releaseCover.tr),
                       const SizedBox(height: 8),
                       Expanded(child: Obx(() => _coverPickerExpanded(ctrl))),
                     ],
@@ -231,6 +286,122 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _artworkAuthenticityToggles(ReleaseUploadWebController ctrl) {
+    return Wrap(
+      spacing: 10,
+      runSpacing: 8,
+      children: [
+        FilterChip(
+          label: Text(ReleaseTranslationConstants.artIsOriginal.tr, style: const TextStyle(fontSize: 12)),
+          selected: ctrl.artIsOriginal.value,
+          onSelected: (v) => ctrl.artIsOriginal.value = v,
+          selectedColor: AppColor.bondiBlue.withAlpha(50),
+          checkmarkColor: AppColor.bondiBlue,
+          side: BorderSide(color: ctrl.artIsOriginal.value ? AppColor.bondiBlue : Colors.white24),
+        ),
+        FilterChip(
+          label: Text(ReleaseTranslationConstants.artIsSigned.tr, style: const TextStyle(fontSize: 12)),
+          selected: ctrl.artIsSigned.value,
+          onSelected: (v) => ctrl.artIsSigned.value = v,
+          selectedColor: AppColor.bondiBlue.withAlpha(50),
+          checkmarkColor: AppColor.bondiBlue,
+          side: BorderSide(color: ctrl.artIsSigned.value ? AppColor.bondiBlue : Colors.white24),
+        ),
+        FilterChip(
+          label: Text(ReleaseTranslationConstants.artIsFramed.tr, style: const TextStyle(fontSize: 12)),
+          selected: ctrl.artIsFramed.value,
+          onSelected: (v) => ctrl.artIsFramed.value = v,
+          selectedColor: AppColor.bondiBlue.withAlpha(50),
+          checkmarkColor: AppColor.bondiBlue,
+          side: BorderSide(color: ctrl.artIsFramed.value ? AppColor.bondiBlue : Colors.white24),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPhysicalSaleSection(ReleaseUploadWebController ctrl) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(8),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: ctrl.isPhysical.value
+              ? AppColor.bondiBlue.withAlpha(120)
+              : Colors.white.withAlpha(15),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                AppFlavour.singleAcceptsPdf()
+                    ? Icons.menu_book_outlined
+                    : (ctrl.isArtwork ? Icons.brush_outlined : Icons.album_outlined),
+                color: ctrl.isPhysical.value ? AppColor.bondiBlue : Colors.white60,
+                size: 20,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  AppFlavour.getPhysicalSaleTitleKey().tr,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+              Switch(
+                value: ctrl.isPhysical.value,
+                onChanged: (val) => ctrl.isPhysical.value = val,
+                activeColor: AppColor.bondiBlue,
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            AppFlavour.getPhysicalSaleDescKey().tr,
+            style: TextStyle(color: Colors.grey[400], fontSize: 12, height: 1.35),
+          ),
+          if (ctrl.isPhysical.value) ...[
+            const SizedBox(height: 12),
+            TextField(
+              controller: ctrl.physicalPriceController,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+              decoration: InputDecoration(
+                labelText: ReleaseTranslationConstants.physicalReleasePrice.tr,
+                hintText: 'ej. 350.00',
+                prefixText: '\$ ',
+                suffixText: 'MXN',
+                prefixStyle: const TextStyle(color: Colors.white70, fontSize: 13),
+                suffixStyle: const TextStyle(color: Colors.white70, fontSize: 12),
+                filled: true,
+                fillColor: Colors.white.withAlpha(10),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: AppColor.bondiBlue.withAlpha(80)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.white.withAlpha(20)),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: AppColor.bondiBlue),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 

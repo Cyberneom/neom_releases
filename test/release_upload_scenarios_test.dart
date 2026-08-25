@@ -4,6 +4,7 @@ import 'package:neom_core/domain/model/item_list.dart';
 import 'package:neom_core/domain/model/place.dart';
 import 'package:neom_core/domain/model/price.dart';
 import 'package:neom_core/utils/enums/app_currency.dart';
+import 'package:neom_core/utils/enums/itemlist_type.dart';
 import 'package:neom_core/utils/enums/media_item_type.dart';
 import 'package:neom_core/utils/enums/owner_type.dart';
 import 'package:neom_core/utils/enums/release_status.dart';
@@ -591,7 +592,69 @@ void main() {
   });
 
   // ════════════════════════════════════════════════════════════════
-  // CROSS-SCENARIO: Upload step progression
+  // SCENARIO 4: EMXI — Visual Artwork Upload (1 High-Res JPG)
+  // ════════════════════════════════════════════════════════════════
+  group('EMXI — Visual Artwork Upload (1 High-Res JPG)', () {
+    test('Artwork release item should have type artwork and mediaType artwork', () {
+      final artwork = AppReleaseItem(
+        name: 'El Vuelo de Quetzalcoatl',
+        description: 'Pintura al oleo sobre tela de lino.',
+        ownerEmail: 'artista@galeria.com',
+        ownerName: 'Gerardo Murillo',
+        type: ReleaseType.artwork,
+        mediaType: MediaItemType.artwork,
+        categories: ['Pintura', 'Surrealismo'],
+        previewUrl: 'https://storage.googleapis.com/emxi-art/quetzalcoatl.jpg',
+        imgUrl: 'https://storage.googleapis.com/emxi-art/quetzalcoatl.jpg',
+        galleryUrls: ['https://storage.googleapis.com/emxi-art/quetzalcoatl_detail1.jpg'],
+        publishedYear: 2026,
+        createdTime: DateTime.now().millisecondsSinceEpoch,
+      );
+
+      expect(artwork.type, ReleaseType.artwork);
+      expect(artwork.mediaType, MediaItemType.artwork);
+      expect(artwork.name, 'El Vuelo de Quetzalcoatl');
+      expect(artwork.categories, contains('Pintura'));
+      expect(artwork.galleryUrls, isNotEmpty);
+    });
+
+    test('Artwork release should serialize and deserialize correctly', () {
+      final artwork = AppReleaseItem(
+        name: 'Escultura Cosmica',
+        description: 'Bronce fundido a la cera perdida.',
+        ownerEmail: 'sculptor@emxi.com',
+        ownerName: 'Leonora Carrington',
+        type: ReleaseType.artwork,
+        mediaType: MediaItemType.artwork,
+        categories: ['Escultura'],
+        previewUrl: 'https://storage.googleapis.com/emxi-art/cosmica.jpg',
+        imgUrl: 'https://storage.googleapis.com/emxi-art/cosmica.jpg',
+        publishedYear: 2024,
+        createdTime: 1700000000,
+      );
+
+      final json = artwork.toJSON();
+      expect(json['type'], ReleaseType.artwork.name);
+
+      final reconstructed = AppReleaseItem.fromJSON(json);
+      expect(reconstructed.type, ReleaseType.artwork);
+      expect(reconstructed.name, 'Escultura Cosmica');
+      expect(reconstructed.ownerName, 'Leonora Carrington');
+    });
+
+    test('Artwork itemlist should have type gallery', () {
+      final itemlist = Itemlist(
+        name: 'Galeria de Verano',
+        description: 'Exposicion virtual de arte contemporaneo.',
+        type: ItemlistType.gallery,
+      );
+
+      expect(itemlist.type, ItemlistType.gallery);
+    });
+  });
+
+  // ════════════════════════════════════════════════════════════════
+  // CROSS-SCENARIO: Upload step progression & ReleaseType coverage
   // ════════════════════════════════════════════════════════════════
   group('Cross-scenario — Upload step progression', () {
     test('ReleaseUploadStep enum should have correct order', () {
@@ -605,12 +668,31 @@ void main() {
       expect(ReleaseUploadStep.failed.index, 14);
     });
 
+    test('ReleaseType enum should support all expected release types', () {
+      final expectedTypes = [
+        ReleaseType.single,
+        ReleaseType.ep,
+        ReleaseType.album,
+        ReleaseType.demo,
+        ReleaseType.episode,
+        ReleaseType.chapter,
+        ReleaseType.artwork,
+      ];
+      for (final type in expectedTypes) {
+        expect(ReleaseType.values, contains(type));
+      }
+    });
+
     test('ReleaseType EP should be used for multi-track (Gigmeout)', () {
       expect(ReleaseType.ep.name, 'ep');
     });
 
     test('ReleaseType single should be used for EMXI + Cyberneom', () {
       expect(ReleaseType.single.name, 'single');
+    });
+
+    test('ReleaseType artwork should be named artwork', () {
+      expect(ReleaseType.artwork.name, 'artwork');
     });
 
     test('MediaItemType audio subtypes should all report isAudio', () {
@@ -633,6 +715,7 @@ void main() {
         MediaItemType.book,
         MediaItemType.pdf,
         MediaItemType.video,
+        MediaItemType.artwork,
       ];
       for (final t in nonAudioTypes) {
         expect(t.isAudio, isFalse, reason: '${t.name} should NOT be isAudio');
