@@ -182,4 +182,18 @@ class ReleaseTranslationConstants {
   static const String physicalSalePriceHint = 'physicalSalePriceHint';
   static const String physicalSaleBadge = 'physicalSaleBadge';
 
+  // Subtype constants (Album / Itemlist subtypes)
+  static const String audiobook = 'audiobook';
+  static const String audiobookDesc = 'audiobookDesc';
+  static const String podcast = 'podcast';
+  static const String podcastDesc = 'podcastDesc';
+  static const String ep = 'ep';
+  static const String epDesc = 'epDesc';
+  static const String album = 'album';
+  static const String albumDesc = 'albumDesc';
+  static const String demo = 'demo';
+  static const String demoDesc = 'demoDesc';
+  static const String meditation = 'meditation';
+  static const String meditationDesc = 'meditationDesc';
+
 }

@@ -166,6 +166,20 @@ class ReleaseEnTranslations {
     ReleaseTranslationConstants.physicalSaleCheckbox: 'Offer physical edition for sale (Dropshipping)',
     ReleaseTranslationConstants.physicalSalePriceHint: 'Physical sale price (e.g. 350 MXN)',
     ReleaseTranslationConstants.physicalSaleBadge: 'Physical (Dropshipping)',
+
+    // Subtypes
+    ReleaseTranslationConstants.audiobook: 'Audiobook',
+    ReleaseTranslationConstants.audiobookDesc: 'Upload chapters or tracks of your narrated book.',
+    ReleaseTranslationConstants.podcast: 'Podcast',
+    ReleaseTranslationConstants.podcastDesc: 'Upload audio episodes organized by season.',
+    ReleaseTranslationConstants.ep: 'EP',
+    ReleaseTranslationConstants.epDesc: 'Extended play release of 3 to 6 songs.',
+    ReleaseTranslationConstants.album: 'Album',
+    ReleaseTranslationConstants.albumDesc: 'Full-length album release.',
+    ReleaseTranslationConstants.demo: 'Demo',
+    ReleaseTranslationConstants.demoDesc: 'Preliminary recording or demo track.',
+    ReleaseTranslationConstants.meditation: 'Meditation',
+    ReleaseTranslationConstants.meditationDesc: 'Guided meditation and mindfulness sessions.',
   };
 
 }
