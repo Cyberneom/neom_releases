@@ -205,8 +205,6 @@ class _ReleaseSummaryPhaseState extends State<ReleaseSummaryPhase>
                           _specChip(Icons.aspect_ratio, ctrl.artDimensionsController.text.trim()),
                         if (ctrl.artIsOriginal.value)
                           _specChip(Icons.verified_outlined, ReleaseTranslationConstants.artIsOriginal.tr),
-                        if (ctrl.artIsSigned.value)
-                          _specChip(Icons.draw_outlined, ReleaseTranslationConstants.artIsSigned.tr),
                         if (ctrl.artIsFramed.value)
                           _specChip(Icons.crop_square, ReleaseTranslationConstants.artIsFramed.tr),
                       ],

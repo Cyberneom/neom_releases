@@ -226,12 +226,6 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                 ),
                 const SizedBox(height: 16),
 
-                // Artwork authenticity attributes
-                if (ctrl.isArtwork) ...[
-                  Obx(() => _artworkAuthenticityToggles(ctrl)),
-                  const SizedBox(height: 16),
-                ],
-
                 // Physical Sale / Dropshipping
                 Obx(() => _buildPhysicalSaleSection(ctrl)),
                 const SizedBox(height: 16),
@@ -284,39 +278,6 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                     ],
                   ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _artworkAuthenticityToggles(ReleaseUploadWebController ctrl) {
-    return Wrap(
-      spacing: 10,
-      runSpacing: 8,
-      children: [
-        FilterChip(
-          label: Text(ReleaseTranslationConstants.artIsOriginal.tr, style: const TextStyle(fontSize: 12)),
-          selected: ctrl.artIsOriginal.value,
-          onSelected: (v) => ctrl.artIsOriginal.value = v,
-          selectedColor: AppColor.bondiBlue.withAlpha(50),
-          checkmarkColor: AppColor.bondiBlue,
-          side: BorderSide(color: ctrl.artIsOriginal.value ? AppColor.bondiBlue : Colors.white24),
-        ),
-        FilterChip(
-          label: Text(ReleaseTranslationConstants.artIsSigned.tr, style: const TextStyle(fontSize: 12)),
-          selected: ctrl.artIsSigned.value,
-          onSelected: (v) => ctrl.artIsSigned.value = v,
-          selectedColor: AppColor.bondiBlue.withAlpha(50),
-          checkmarkColor: AppColor.bondiBlue,
-          side: BorderSide(color: ctrl.artIsSigned.value ? AppColor.bondiBlue : Colors.white24),
-        ),
-        FilterChip(
-          label: Text(ReleaseTranslationConstants.artIsFramed.tr, style: const TextStyle(fontSize: 12)),
-          selected: ctrl.artIsFramed.value,
-          onSelected: (v) => ctrl.artIsFramed.value = v,
-          selectedColor: AppColor.bondiBlue.withAlpha(50),
-          checkmarkColor: AppColor.bondiBlue,
-          side: BorderSide(color: ctrl.artIsFramed.value ? AppColor.bondiBlue : Colors.white24),
         ),
       ],
     );
@@ -675,32 +636,103 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
     final currentYear = DateTime.now().year;
     final years = List.generate(currentYear - 1960 + 1, (i) => currentYear - i);
 
-    final isArtwork = ctrl.isArtwork;
-    final checkboxLabel = isArtwork
-        ? ReleaseTranslationConstants.artIsOriginal.tr
-        : ReleaseTranslationConstants.selfPublished.tr;
-    final yearLabel = isArtwork
-        ? ReleaseTranslationConstants.artCreationYear.tr
-        : ReleaseTranslationConstants.publishedYear.tr;
+    if (ctrl.isArtwork) {
+      return Row(
+        children: [
+          // Obra original checkbox
+          InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => ctrl.artIsOriginal.value = !ctrl.artIsOriginal.value,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 20, height: 20,
+                  child: Checkbox(
+                    value: ctrl.artIsOriginal.value,
+                    onChanged: (v) => ctrl.artIsOriginal.value = v ?? true,
+                    activeColor: AppColor.bondiBlue,
+                    side: BorderSide(color: Colors.grey[600]!),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  ReleaseTranslationConstants.artIsOriginal.tr,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 16),
+          // Incluye marco checkbox
+          InkWell(
+            borderRadius: BorderRadius.circular(8),
+            onTap: () => ctrl.artIsFramed.value = !ctrl.artIsFramed.value,
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                SizedBox(
+                  width: 20, height: 20,
+                  child: Checkbox(
+                    value: ctrl.artIsFramed.value,
+                    onChanged: (v) => ctrl.artIsFramed.value = v ?? false,
+                    activeColor: AppColor.bondiBlue,
+                    side: BorderSide(color: Colors.grey[600]!),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  ReleaseTranslationConstants.artIsFramed.tr,
+                  style: const TextStyle(color: Colors.white, fontSize: 13),
+                ),
+              ],
+            ),
+          ),
+          const Spacer(),
+          // Dropdown: Año de realización
+          SizedBox(
+            width: 155,
+            child: DropdownButtonFormField<int>(
+              value: ctrl.publishedYear.value,
+              dropdownColor: AppColor.surfaceElevated,
+              style: const TextStyle(color: Colors.white, fontSize: 13),
+              decoration: InputDecoration(
+                labelText: ReleaseTranslationConstants.artCreationYear.tr,
+                labelStyle: TextStyle(color: Colors.grey[500], fontSize: 12),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.white.withAlpha(15)),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                  borderSide: BorderSide(color: Colors.white.withAlpha(15)),
+                ),
+              ),
+              menuMaxHeight: 200,
+              items: years.map((y) => DropdownMenuItem(value: y, child: Text('$y'))).toList(),
+              onChanged: (v) => ctrl.publishedYear.value = v ?? currentYear,
+            ),
+          ),
+        ],
+      );
+    }
 
+    // Single / Book / Music Album
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Row: checkbox + year dropdown
+        // Row: self-published checkbox + year dropdown
         Row(
           children: [
-            // Checkbox: Obra Original (Artwork) or Autopublicación (Single/Album)
+            // Self-published checkbox
             Expanded(
               child: InkWell(
                 borderRadius: BorderRadius.circular(8),
                 onTap: () {
-                  if (isArtwork) {
-                    ctrl.artIsOriginal.value = !ctrl.artIsOriginal.value;
-                  } else {
-                    ctrl.isSelfPublished.value = !ctrl.isSelfPublished.value;
-                    if (ctrl.isSelfPublished.value) {
-                      ctrl.publisherController.clear();
-                    }
+                  ctrl.isSelfPublished.value = !ctrl.isSelfPublished.value;
+                  if (ctrl.isSelfPublished.value) {
+                    ctrl.publisherController.clear();
                   }
                 },
                 child: Row(
@@ -709,15 +741,11 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                     SizedBox(
                       width: 20, height: 20,
                       child: Checkbox(
-                        value: isArtwork ? ctrl.artIsOriginal.value : ctrl.isSelfPublished.value,
+                        value: ctrl.isSelfPublished.value,
                         onChanged: (v) {
-                          if (isArtwork) {
-                            ctrl.artIsOriginal.value = v ?? true;
-                          } else {
-                            ctrl.isSelfPublished.value = v ?? true;
-                            if (ctrl.isSelfPublished.value) {
-                              ctrl.publisherController.clear();
-                            }
+                          ctrl.isSelfPublished.value = v ?? true;
+                          if (ctrl.isSelfPublished.value) {
+                            ctrl.publisherController.clear();
                           }
                         },
                         activeColor: AppColor.bondiBlue,
@@ -725,12 +753,9 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Flexible(
-                      child: Text(
-                        checkboxLabel,
-                        style: const TextStyle(color: Colors.white, fontSize: 13),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    Text(
+                      ReleaseTranslationConstants.selfPublished.tr,
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
                     ),
                   ],
                 ),
@@ -739,13 +764,13 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
             const SizedBox(width: 12),
             // Year dropdown
             SizedBox(
-              width: 170,
+              width: 160,
               child: DropdownButtonFormField<int>(
                 value: ctrl.publishedYear.value,
                 dropdownColor: AppColor.surfaceElevated,
                 style: const TextStyle(color: Colors.white, fontSize: 13),
                 decoration: InputDecoration(
-                  labelText: yearLabel,
+                  labelText: ReleaseTranslationConstants.publishedYear.tr,
                   labelStyle: TextStyle(color: Colors.grey[500], fontSize: 12),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   border: OutlineInputBorder(
@@ -764,8 +789,8 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
             ),
           ],
         ),
-        // Publisher name field (hidden when self-published or when isArtwork)
-        if (!isArtwork && !ctrl.isSelfPublished.value) ...[
+        // Publisher name field (hidden when self-published)
+        if (!ctrl.isSelfPublished.value) ...[
           const SizedBox(height: 12),
           TextField(
             controller: ctrl.publisherController,
