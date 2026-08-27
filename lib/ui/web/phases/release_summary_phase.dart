@@ -190,7 +190,30 @@ class _ReleaseSummaryPhaseState extends State<ReleaseSummaryPhase>
                       ),
                   ],
 
-                  // Physical edition info badge
+                  // Artwork curatorial specifications
+                  if (ctrl.isArtwork) ...[
+                    const SizedBox(height: 14),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        if (ctrl.artTechniqueController.text.trim().isNotEmpty)
+                          _specChip(Icons.brush, ctrl.artTechniqueController.text.trim()),
+                        if (ctrl.artMediumController.text.trim().isNotEmpty)
+                          _specChip(Icons.layers_outlined, ctrl.artMediumController.text.trim()),
+                        if (ctrl.artDimensionsController.text.trim().isNotEmpty)
+                          _specChip(Icons.aspect_ratio, ctrl.artDimensionsController.text.trim()),
+                        if (ctrl.artIsOriginal.value)
+                          _specChip(Icons.verified_outlined, ReleaseTranslationConstants.artIsOriginal.tr),
+                        if (ctrl.artIsSigned.value)
+                          _specChip(Icons.draw_outlined, ReleaseTranslationConstants.artIsSigned.tr),
+                        if (ctrl.artIsFramed.value)
+                          _specChip(Icons.crop_square, ReleaseTranslationConstants.artIsFramed.tr),
+                      ],
+                    ),
+                  ],
+
+                  // Physical edition / Artwork sale info badge
                   if (ctrl.isPhysical.value && ctrl.physicalPriceController.text.trim().isNotEmpty) ...[
                     const SizedBox(height: 16),
                     Container(
@@ -203,10 +226,14 @@ class _ReleaseSummaryPhaseState extends State<ReleaseSummaryPhase>
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.local_shipping_outlined, color: AppColor.bondiBlue, size: 16),
+                          Icon(
+                            ctrl.isArtwork ? Icons.palette_outlined : Icons.local_shipping_outlined,
+                            color: AppColor.bondiBlue,
+                            size: 16,
+                          ),
                           const SizedBox(width: 8),
                           Text(
-                            '${AppFlavour.getPhysicalSaleTitleKey().tr}: \$${ctrl.physicalPriceController.text.trim()} MXN',
+                            '${ctrl.isArtwork ? ReleaseTranslationConstants.artworkSaleTitle.tr : AppFlavour.getPhysicalSaleTitleKey().tr}: \$${ctrl.physicalPriceController.text.trim()} MXN${ctrl.isArtwork && ctrl.artIncludesShipping.value ? ' (${ReleaseTranslationConstants.includesShipping.tr})' : ''}',
                             style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
                           ),
                         ],
@@ -270,6 +297,25 @@ class _ReleaseSummaryPhaseState extends State<ReleaseSummaryPhase>
           textAlign: TextAlign.center,
         )),
       ],
+    );
+  }
+
+  Widget _specChip(IconData icon, String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withAlpha(8),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.white.withAlpha(20)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: AppColor.bondiBlue, size: 13),
+          const SizedBox(width: 5),
+          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+        ],
+      ),
     );
   }
 

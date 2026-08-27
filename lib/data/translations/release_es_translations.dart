@@ -180,6 +180,14 @@ class ReleaseEsTranslations {
     ReleaseTranslationConstants.demoDesc: 'Grabación o maqueta preliminar.',
     ReleaseTranslationConstants.meditation: 'Meditación',
     ReleaseTranslationConstants.meditationDesc: 'Sesiones guiadas de meditación y consciencia.',
+
+    // Additional Artwork & Shipping
+    ReleaseTranslationConstants.artCreationYear: 'Año de realización',
+    ReleaseTranslationConstants.artworkSaleTitle: 'Venta de Obra de Arte',
+    ReleaseTranslationConstants.artworkSaleDescMsg: 'Activa esta opción si la obra física o pieza original está disponible para su venta. Cuando un comprador adquiera tu obra, recibirás una notificación instantánea con sus datos de entrega.',
+    ReleaseTranslationConstants.artworkSalePrice: 'Precio de venta de la obra',
+    ReleaseTranslationConstants.includesShipping: 'Envío incluido',
+    ReleaseTranslationConstants.includesShippingDesc: 'El precio de venta cubre los gastos de empaque y envío',
   };
 
 }

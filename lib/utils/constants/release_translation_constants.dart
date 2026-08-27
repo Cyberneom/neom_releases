@@ -196,4 +196,12 @@ class ReleaseTranslationConstants {
   static const String meditation = 'meditation';
   static const String meditationDesc = 'meditationDesc';
 
+  // Additional Artwork & Shipping Constants
+  static const String artCreationYear = 'artCreationYear';
+  static const String artworkSaleTitle = 'artworkSaleTitle';
+  static const String artworkSaleDescMsg = 'artworkSaleDescMsg';
+  static const String artworkSalePrice = 'artworkSalePrice';
+  static const String includesShipping = 'includesShipping';
+  static const String includesShippingDesc = 'includesShippingDesc';
+
 }

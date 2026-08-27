@@ -180,6 +180,14 @@ class ReleaseEnTranslations {
     ReleaseTranslationConstants.demoDesc: 'Preliminary recording or demo track.',
     ReleaseTranslationConstants.meditation: 'Meditation',
     ReleaseTranslationConstants.meditationDesc: 'Guided meditation and mindfulness sessions.',
+
+    // Additional Artwork & Shipping
+    ReleaseTranslationConstants.artCreationYear: 'Year of Creation',
+    ReleaseTranslationConstants.artworkSaleTitle: 'Artwork for Sale',
+    ReleaseTranslationConstants.artworkSaleDescMsg: 'Enable this option if the physical artwork or original piece is available for direct sale. When a collector purchases your artwork, you will receive an instant notification with delivery details.',
+    ReleaseTranslationConstants.artworkSalePrice: 'Artwork Sale Price',
+    ReleaseTranslationConstants.includesShipping: 'Shipping included',
+    ReleaseTranslationConstants.includesShippingDesc: 'The sale price already covers packing and shipping costs',
   };
 
 }

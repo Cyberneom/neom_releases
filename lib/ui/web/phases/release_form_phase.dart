@@ -323,6 +323,17 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
   }
 
   Widget _buildPhysicalSaleSection(ReleaseUploadWebController ctrl) {
+    final title = ctrl.isArtwork
+        ? ReleaseTranslationConstants.artworkSaleTitle.tr
+        : AppFlavour.getPhysicalSaleTitleKey().tr;
+    final desc = ctrl.isArtwork
+        ? ReleaseTranslationConstants.artworkSaleDescMsg.tr
+        : AppFlavour.getPhysicalSaleDescKey().tr;
+    final priceLabel = ctrl.isArtwork
+        ? ReleaseTranslationConstants.artworkSalePrice.tr
+        : ReleaseTranslationConstants.physicalReleasePrice.tr;
+    final hint = ctrl.isArtwork ? 'ej. 15000.00' : 'ej. 350.00';
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
@@ -340,16 +351,18 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
           Row(
             children: [
               Icon(
-                AppFlavour.singleAcceptsPdf()
-                    ? Icons.menu_book_outlined
-                    : (ctrl.isArtwork ? Icons.brush_outlined : Icons.album_outlined),
+                ctrl.isArtwork
+                    ? Icons.palette_outlined
+                    : (AppFlavour.singleAcceptsPdf()
+                        ? Icons.menu_book_outlined
+                        : Icons.album_outlined),
                 color: ctrl.isPhysical.value ? AppColor.bondiBlue : Colors.white60,
                 size: 20,
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  AppFlavour.getPhysicalSaleTitleKey().tr,
+                  title,
                   style: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w600,
@@ -360,13 +373,13 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
               Switch(
                 value: ctrl.isPhysical.value,
                 onChanged: (val) => ctrl.isPhysical.value = val,
-                activeColor: AppColor.bondiBlue,
+                activeThumbColor: AppColor.bondiBlue,
               ),
             ],
           ),
           const SizedBox(height: 6),
           Text(
-            AppFlavour.getPhysicalSaleDescKey().tr,
+            desc,
             style: TextStyle(color: Colors.grey[400], fontSize: 12, height: 1.35),
           ),
           if (ctrl.isPhysical.value) ...[
@@ -376,8 +389,8 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
               keyboardType: const TextInputType.numberWithOptions(decimal: true),
               style: const TextStyle(color: Colors.white, fontSize: 13),
               decoration: InputDecoration(
-                labelText: ReleaseTranslationConstants.physicalReleasePrice.tr,
-                hintText: 'ej. 350.00',
+                labelText: priceLabel,
+                hintText: hint,
                 prefixText: '\$ ',
                 suffixText: 'MXN',
                 prefixStyle: const TextStyle(color: Colors.white70, fontSize: 13),
@@ -399,6 +412,47 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                 ),
               ),
             ),
+            if (ctrl.isArtwork) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white.withAlpha(5),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white.withAlpha(15)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.local_shipping_outlined,
+                      color: ctrl.artIncludesShipping.value ? AppColor.bondiBlue : Colors.white60,
+                      size: 18,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            ReleaseTranslationConstants.includesShipping.tr,
+                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
+                          ),
+                          Text(
+                            ReleaseTranslationConstants.includesShippingDesc.tr,
+                            style: TextStyle(color: Colors.grey[500], fontSize: 11),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Switch(
+                      value: ctrl.artIncludesShipping.value,
+                      onChanged: (val) => ctrl.artIncludesShipping.value = val,
+                      activeThumbColor: AppColor.bondiBlue,
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
         ],
       ),
@@ -621,20 +675,32 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
     final currentYear = DateTime.now().year;
     final years = List.generate(currentYear - 1960 + 1, (i) => currentYear - i);
 
+    final isArtwork = ctrl.isArtwork;
+    final checkboxLabel = isArtwork
+        ? ReleaseTranslationConstants.artIsOriginal.tr
+        : ReleaseTranslationConstants.selfPublished.tr;
+    final yearLabel = isArtwork
+        ? ReleaseTranslationConstants.artCreationYear.tr
+        : ReleaseTranslationConstants.publishedYear.tr;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Row: self-published checkbox + year dropdown
+        // Row: checkbox + year dropdown
         Row(
           children: [
-            // Self-published checkbox
+            // Checkbox: Obra Original (Artwork) or Autopublicación (Single/Album)
             Expanded(
               child: InkWell(
                 borderRadius: BorderRadius.circular(8),
                 onTap: () {
-                  ctrl.isSelfPublished.value = !ctrl.isSelfPublished.value;
-                  if (ctrl.isSelfPublished.value) {
-                    ctrl.publisherController.clear();
+                  if (isArtwork) {
+                    ctrl.artIsOriginal.value = !ctrl.artIsOriginal.value;
+                  } else {
+                    ctrl.isSelfPublished.value = !ctrl.isSelfPublished.value;
+                    if (ctrl.isSelfPublished.value) {
+                      ctrl.publisherController.clear();
+                    }
                   }
                 },
                 child: Row(
@@ -643,11 +709,15 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                     SizedBox(
                       width: 20, height: 20,
                       child: Checkbox(
-                        value: ctrl.isSelfPublished.value,
+                        value: isArtwork ? ctrl.artIsOriginal.value : ctrl.isSelfPublished.value,
                         onChanged: (v) {
-                          ctrl.isSelfPublished.value = v ?? true;
-                          if (ctrl.isSelfPublished.value) {
-                            ctrl.publisherController.clear();
+                          if (isArtwork) {
+                            ctrl.artIsOriginal.value = v ?? true;
+                          } else {
+                            ctrl.isSelfPublished.value = v ?? true;
+                            if (ctrl.isSelfPublished.value) {
+                              ctrl.publisherController.clear();
+                            }
                           }
                         },
                         activeColor: AppColor.bondiBlue,
@@ -655,9 +725,12 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      ReleaseTranslationConstants.selfPublished.tr,
-                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                    Flexible(
+                      child: Text(
+                        checkboxLabel,
+                        style: const TextStyle(color: Colors.white, fontSize: 13),
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                   ],
                 ),
@@ -666,13 +739,13 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
             const SizedBox(width: 12),
             // Year dropdown
             SizedBox(
-              width: 160,
+              width: 170,
               child: DropdownButtonFormField<int>(
                 value: ctrl.publishedYear.value,
                 dropdownColor: AppColor.surfaceElevated,
                 style: const TextStyle(color: Colors.white, fontSize: 13),
                 decoration: InputDecoration(
-                  labelText: ReleaseTranslationConstants.publishedYear.tr,
+                  labelText: yearLabel,
                   labelStyle: TextStyle(color: Colors.grey[500], fontSize: 12),
                   contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   border: OutlineInputBorder(
@@ -691,8 +764,8 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
             ),
           ],
         ),
-        // Publisher name field (hidden when self-published)
-        if (!ctrl.isSelfPublished.value) ...[
+        // Publisher name field (hidden when self-published or when isArtwork)
+        if (!isArtwork && !ctrl.isSelfPublished.value) ...[
           const SizedBox(height: 12),
           TextField(
             controller: ctrl.publisherController,

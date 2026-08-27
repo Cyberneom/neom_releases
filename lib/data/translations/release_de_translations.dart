@@ -180,6 +180,14 @@ class ReleaseDeTranslations {
     ReleaseTranslationConstants.demoDesc: 'Vorläufige Aufnahme oder Demo.',
     ReleaseTranslationConstants.meditation: 'Meditation',
     ReleaseTranslationConstants.meditationDesc: 'Geführte Meditations- und Achtsamkeitssitzungen.',
+
+    // Additional Artwork & Shipping
+    ReleaseTranslationConstants.artCreationYear: 'Entstehungsjahr',
+    ReleaseTranslationConstants.artworkSaleTitle: 'Verkauf von Kunstwerken',
+    ReleaseTranslationConstants.artworkSaleDescMsg: 'Aktivieren Sie diese Option, wenn das physische Kunstwerk oder Originalstück zum Direktverkauf steht. Wenn ein Sammler Ihr Kunstwerk kauft, erhalten Sie sofort eine Benachrichtigung mit den Lieferdaten.',
+    ReleaseTranslationConstants.artworkSalePrice: 'Verkaufspreis des Kunstwerks',
+    ReleaseTranslationConstants.includesShipping: 'Inklusive Versand',
+    ReleaseTranslationConstants.includesShippingDesc: 'Der Verkaufspreis deckt bereits Verpackungs- und Versandkosten ab',
   };
 
 }

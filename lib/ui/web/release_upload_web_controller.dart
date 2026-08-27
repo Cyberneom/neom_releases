@@ -51,6 +51,7 @@ class ReleaseUploadWebController extends SintController {
   final RxBool artIsOriginal = true.obs;
   final RxBool artIsSigned = true.obs;
   final RxBool artIsFramed = false.obs;
+  final RxBool artIncludesShipping = false.obs;
 
   // Genres (release_genres.json) — multi-select up to 3
   final RxList<String> selectedInstruments = <String>[].obs;
@@ -330,6 +331,14 @@ class ReleaseUploadWebController extends SintController {
         categories: categories.isNotEmpty ? categories : ['Arte'],
         publishedYear: publishedYear.value,
         physicalPrice: physicalPrice,
+        artCategory: artCategoryController.text.trim(),
+        artTechnique: artTechniqueController.text.trim(),
+        artMedium: artMediumController.text.trim(),
+        artDimensions: artDimensionsController.text.trim(),
+        artIsOriginal: artIsOriginal.value,
+        artIsSigned: artIsSigned.value,
+        artIsFramed: artIsFramed.value,
+        artIncludesShipping: artIncludesShipping.value,
       ));
       return items;
     }
