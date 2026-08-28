@@ -693,7 +693,7 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
           SizedBox(
             width: 155,
             child: DropdownButtonFormField<int>(
-              value: ctrl.publishedYear.value,
+              initialValue: ctrl.publishedYear.value,
               dropdownColor: AppColor.surfaceElevated,
               style: const TextStyle(color: Colors.white, fontSize: 13),
               decoration: InputDecoration(
@@ -766,7 +766,7 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
             SizedBox(
               width: 160,
               child: DropdownButtonFormField<int>(
-                value: ctrl.publishedYear.value,
+                initialValue: ctrl.publishedYear.value,
                 dropdownColor: AppColor.surfaceElevated,
                 style: const TextStyle(color: Colors.white, fontSize: 13),
                 decoration: InputDecoration(
@@ -891,7 +891,7 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
         if (selected.length < 3)
           DropdownButtonFormField<String>(
             key: ValueKey('instrument_${selected.length}'),
-            value: null,
+            initialValue: null,
             dropdownColor: AppColor.surfaceElevated,
             style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: _inputDecoration(
@@ -941,7 +941,7 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
         if (selected.length < 5)
           DropdownButtonFormField<String>(
             key: ValueKey('subgenre_${selected.length}'),
-            value: null,
+            initialValue: null,
             dropdownColor: AppColor.surfaceElevated,
             style: const TextStyle(color: Colors.white, fontSize: 14),
             decoration: _inputDecoration(
