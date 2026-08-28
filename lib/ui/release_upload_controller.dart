@@ -2039,60 +2039,71 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   }
 
   Future<void> submitRelease(BuildContext context) async {
-   AppConfig.logger.i('━━━ SUBMIT RELEASE ━━━');
-   AppConfig.logger.d('  demoEnabled=${AppConfig.instance.appInfo.demoReleaseEnabled}, '
-       'subscription=${userServiceImpl.userSubscription?.status?.name}');
+    AppConfig.logger.i('━━━ SUBMIT RELEASE ━━━');
+    if (isLoading.value || isButtonDisabled.value) {
+      AppConfig.logger.w('Submit release already in progress, ignoring duplicate tap.');
+      return;
+    }
+    isButtonDisabled.value = true;
+    update([AppPageIdConstants.releaseUpload]);
 
-   if(AppConfig.instance.appInfo.demoReleaseEnabled || userServiceImpl.userSubscription?.status == SubscriptionStatus.active) {
-     // Validate required fields before proceeding
-     final missingFields = <String>[];
-     if (appReleaseItem.value.name.isEmpty) missingFields.add(ReleaseTranslationConstants.releaseTitle.tr);
-     if (appReleaseItem.value.description.isEmpty && releaseItemlist.description.isEmpty) missingFields.add(ReleaseTranslationConstants.releaseDesc.tr);
-     if (appReleaseItem.value.previewUrl.isEmpty && releaseFilePaths.isEmpty) missingFields.add(ReleaseTranslationConstants.addReleaseFile.tr);
-     if (!(mediaUploadServiceImpl?.mediaFileExists() ?? false) && releaseCoverImgPath.value.isEmpty
-         && appReleaseItem.value.imgUrl.isEmpty && releaseItemlist.imgUrl.isEmpty) {
-       missingFields.add(ReleaseTranslationConstants.addReleaseCoverImg.tr);
-     }
-     if (appReleaseItem.value.categories.isEmpty) missingFields.add(ReleaseTranslationConstants.releaseUploadGenres.tr);
+    AppConfig.logger.d('  demoEnabled=${AppConfig.instance.appInfo.demoReleaseEnabled}, '
+        'subscription=${userServiceImpl.userSubscription?.status?.name}');
 
-     AppConfig.logger.d('  Validation: name=${appReleaseItem.value.name.isNotEmpty}, '
-         'desc=${appReleaseItem.value.description.isNotEmpty || releaseItemlist.description.isNotEmpty}, '
-         'file=${appReleaseItem.value.previewUrl.isNotEmpty || releaseFilePaths.isNotEmpty}, '
-         'cover=${(mediaUploadServiceImpl?.mediaFileExists() ?? false) || releaseCoverImgPath.value.isNotEmpty || appReleaseItem.value.imgUrl.isNotEmpty || releaseItemlist.imgUrl.isNotEmpty}, '
-         'genres=${appReleaseItem.value.categories.isNotEmpty}');
+    if(AppConfig.instance.appInfo.demoReleaseEnabled || userServiceImpl.userSubscription?.status == SubscriptionStatus.active) {
+      // Validate required fields before proceeding
+      final missingFields = <String>[];
+      if (appReleaseItem.value.name.isEmpty) missingFields.add(ReleaseTranslationConstants.releaseTitle.tr);
+      if (appReleaseItem.value.description.isEmpty && releaseItemlist.description.isEmpty) missingFields.add(ReleaseTranslationConstants.releaseDesc.tr);
+      if (appReleaseItem.value.previewUrl.isEmpty && releaseFilePaths.isEmpty) missingFields.add(ReleaseTranslationConstants.addReleaseFile.tr);
+      if (!(mediaUploadServiceImpl?.mediaFileExists() ?? false) && releaseCoverImgPath.value.isEmpty
+          && appReleaseItem.value.imgUrl.isEmpty && releaseItemlist.imgUrl.isEmpty) {
+        missingFields.add(ReleaseTranslationConstants.addReleaseCoverImg.tr);
+      }
+      if (appReleaseItem.value.categories.isEmpty) missingFields.add(ReleaseTranslationConstants.releaseUploadGenres.tr);
 
-     if (missingFields.isNotEmpty) {
-       AppConfig.logger.w('  ⚠ Missing fields: ${missingFields.join(", ")}');
-       AppUtilities.showSnackBar(
-         title: ReleaseTranslationConstants.releaseUpload,
-         message: '${ReleaseTranslationConstants.missingRequiredFields.tr}: ${missingFields.join(', ')}',
-         duration: const Duration(seconds: 4),
-       );
-       return;
-     }
+      AppConfig.logger.d('  Validation: name=${appReleaseItem.value.name.isNotEmpty}, '
+          'desc=${appReleaseItem.value.description.isNotEmpty || releaseItemlist.description.isNotEmpty}, '
+          'file=${appReleaseItem.value.previewUrl.isNotEmpty || releaseFilePaths.isNotEmpty}, '
+          'cover=${(mediaUploadServiceImpl?.mediaFileExists() ?? false) || releaseCoverImgPath.value.isNotEmpty || appReleaseItem.value.imgUrl.isNotEmpty || releaseItemlist.imgUrl.isNotEmpty}, '
+          'genres=${appReleaseItem.value.categories.isNotEmpty}');
 
-     // When revision is disabled, always ask if user wants to share publicly
-     // When revision is enabled, releases go to review first (don't share publicly)
-     if (!AppConfig.instance.appInfo.releaseRevisionEnabled) {
-       // Show confirmation dialog asking if user wants to share publicly
-       final shouldShare = await DialogFactory.showConfirmDialog(
-         context: context,
-         title: ReleaseTranslationConstants.sharePubliclyTitle.tr,
-         message: ReleaseTranslationConstants.sharePubliclyMessage.tr,
-         confirmText: ReleaseTranslationConstants.sharePubliclyYes.tr,
-         cancelText: ReleaseTranslationConstants.sharePubliclyNo.tr,
-         icon: Icons.share_rounded,
-       );
-       sharePublicly = shouldShare;
-     } else {
-       // Releases need review first, don't share publicly
-       sharePublicly = false;
-     }
+      if (missingFields.isNotEmpty) {
+        AppConfig.logger.w('  ⚠ Missing fields: ${missingFields.join(", ")}');
+        isButtonDisabled.value = false;
+        update([AppPageIdConstants.releaseUpload]);
+        AppUtilities.showSnackBar(
+          title: ReleaseTranslationConstants.releaseUpload,
+          message: '${ReleaseTranslationConstants.missingRequiredFields.tr}: ${missingFields.join(', ')}',
+          duration: const Duration(seconds: 4),
+        );
+        return;
+      }
 
-     uploadReleaseItem();
-   } else {
-     AppAlerts.getSubscriptionAlert(Sint.find<SubscriptionService>(), context, AppRouteConstants.releaseUpload);
-   }
+      // When revision is disabled, always ask if user wants to share publicly
+      // When revision is enabled, releases go to review first (don't share publicly)
+      if (!AppConfig.instance.appInfo.releaseRevisionEnabled) {
+        // Show confirmation dialog asking if user wants to share publicly
+        final shouldShare = await DialogFactory.showConfirmDialog(
+          context: context,
+          title: ReleaseTranslationConstants.sharePubliclyTitle.tr,
+          message: ReleaseTranslationConstants.sharePubliclyMessage.tr,
+          confirmText: ReleaseTranslationConstants.sharePubliclyYes.tr,
+          cancelText: ReleaseTranslationConstants.sharePubliclyNo.tr,
+          icon: Icons.share_rounded,
+        );
+        sharePublicly = shouldShare;
+      } else {
+        // Releases need review first, don't share publicly
+        sharePublicly = false;
+      }
+
+      uploadReleaseItem();
+    } else {
+      isButtonDisabled.value = false;
+      update([AppPageIdConstants.releaseUpload]);
+      AppAlerts.getSubscriptionAlert(Sint.find<SubscriptionService>(), context, AppRouteConstants.releaseUpload);
+    }
   }
 
   Future<void> playPreview(AppReleaseItem item) async {
