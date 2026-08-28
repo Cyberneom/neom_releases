@@ -206,7 +206,6 @@ class ReleaseDeTranslations {
     ReleaseTranslationConstants.correosDeMexicoDesc: 'Wir empfehlen, den nationalen Postdienst als ersten zugänglichen Schritt zu nutzen. Er bietet die größte Abdeckung und günstige Tarife für den sicheren Versand unabhängiger Bücher und Kunstwerke.',
     ReleaseTranslationConstants.estimatedDispatchDays: 'Geschätzte Versandzeit',
     ReleaseTranslationConstants.estimatedDispatchDaysHint: 'z. B. 1 bis 3 Werktage',
-    ReleaseTranslationConstants.publisher: 'Verlag',
   };
 
 }

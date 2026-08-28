@@ -206,7 +206,6 @@ class ReleaseEnTranslations {
     ReleaseTranslationConstants.correosDeMexicoDesc: 'We suggest using national postal service (Mexpost / Correos de México) as an accessible starting point. It offers the widest nationwide coverage and affordable rates, ideal for safely delivering independent books and art.',
     ReleaseTranslationConstants.estimatedDispatchDays: 'Estimated dispatch time',
     ReleaseTranslationConstants.estimatedDispatchDaysHint: 'e.g. 1 to 3 business days',
-    ReleaseTranslationConstants.publisher: 'Publisher',
   };
 
 }

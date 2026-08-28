@@ -206,7 +206,6 @@ class ReleaseEsTranslations {
     ReleaseTranslationConstants.correosDeMexicoDesc: 'Sugerimos utilizar el servicio postal nacional (Mexpost / Correos de México) como paso inicial. Ofrece la cobertura más amplia y económica del país, ideal para despachar libros y piezas independientes de forma segura.',
     ReleaseTranslationConstants.estimatedDispatchDays: 'Tiempo estimado de despacho',
     ReleaseTranslationConstants.estimatedDispatchDaysHint: 'ej. 1 a 3 días hábiles',
-    ReleaseTranslationConstants.publisher: 'Editorial',
   };
 
 }

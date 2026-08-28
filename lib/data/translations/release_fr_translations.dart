@@ -206,7 +206,6 @@ class ReleaseFrTranslations {
     ReleaseTranslationConstants.correosDeMexicoDesc: 'Nous vous suggérons d\'utiliser le service postal national comme première étape accessible. Il offre la couverture la plus large et les tarifs les plus économiques, idéal pour expédier des livres et des œuvres indépendantes.',
     ReleaseTranslationConstants.estimatedDispatchDays: 'Délai d\'expédition estimé',
     ReleaseTranslationConstants.estimatedDispatchDaysHint: 'ex. 1 à 3 jours ouvrés',
-    ReleaseTranslationConstants.publisher: 'Éditeur',
   };
 
 }
