@@ -188,6 +188,25 @@ class ReleaseDeTranslations {
     ReleaseTranslationConstants.artworkSalePrice: 'Verkaufspreis des Kunstwerks',
     ReleaseTranslationConstants.includesShipping: 'Inklusive Versand',
     ReleaseTranslationConstants.includesShippingDesc: 'Der Verkaufspreis deckt bereits Verpackungs- und Versandkosten ab',
+
+    // Dropshipping & Logistics Phase
+    ReleaseTranslationConstants.dropshippingTitle: 'Physischer Verkauf & Versand',
+    ReleaseTranslationConstants.dropshippingSubtitle: 'Konfigurieren Sie die physische Verfügbarkeit Ihres Werks und die direkten Lieferdetails für Ihre Leser und Sammler.',
+    ReleaseTranslationConstants.skipPhysicalSale: 'Ohne physischen Verkauf fortfahren',
+    ReleaseTranslationConstants.enableDropshipping: 'Verkauf von physischen Exemplaren / Kunstwerken aktivieren',
+    ReleaseTranslationConstants.shippingOriginTitle: 'Herkunftsort',
+    ReleaseTranslationConstants.shippingCity: 'Versandstadt',
+    ReleaseTranslationConstants.shippingState: 'Bundesland / Region',
+    ReleaseTranslationConstants.shippingCityHint: 'z. B. Guadalajara, Berlin, München...',
+    ReleaseTranslationConstants.shippingStateHint: 'z. B. Jalisco, Bayern, Berlin...',
+    ReleaseTranslationConstants.shippingIncludedTitle: 'Ist der Versand im Preis inbegriffen?',
+    ReleaseTranslationConstants.shippingIncludedDesc: 'Die Versandkosten sind im Endpreis enthalten',
+    ReleaseTranslationConstants.shippingQuotedSeparately: 'Die Versandkosten werden mit dem Käufer abgestimmt',
+    ReleaseTranslationConstants.correosDeMexicoTitle: 'Versandempfehlung: Correos de México / Post',
+    ReleaseTranslationConstants.correosDeMexicoDesc: 'Wir empfehlen, den nationalen Postdienst als ersten zugänglichen Schritt zu nutzen. Er bietet die größte Abdeckung und günstige Tarife für den sicheren Versand unabhängiger Bücher und Kunstwerke.',
+    ReleaseTranslationConstants.estimatedDispatchDays: 'Geschätzte Versandzeit',
+    ReleaseTranslationConstants.estimatedDispatchDaysHint: 'z. B. 1 bis 3 Werktage',
+    ReleaseTranslationConstants.publisher: 'Verlag',
   };
 
 }

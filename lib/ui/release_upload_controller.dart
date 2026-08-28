@@ -33,6 +33,7 @@ import 'package:neom_core/domain/model/collective.dart';
 import 'package:neom_core/domain/model/genre.dart';
 import 'package:neom_core/domain/model/instrument.dart';
 import 'package:neom_core/domain/model/item_list.dart';
+import 'package:neom_core/domain/model/address.dart';
 import 'package:neom_core/domain/model/place.dart';
 import 'package:neom_core/domain/model/post.dart';
 import 'package:neom_core/domain/model/price.dart';
@@ -138,6 +139,10 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   final RxBool isButtonDisabled = false.obs;
   final RxBool isLoading = true.obs;
   final RxBool isPhysical = false.obs;
+  final RxBool shippingIncluded = false.obs;
+  final shippingCityController = TextEditingController();
+  final shippingStateController = TextEditingController();
+  final shippingDaysController = TextEditingController();
   final RxBool isAutoPublished = false.obs;
   final Rx<int> publishedYear = 0.obs;
 
@@ -2263,6 +2268,17 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       }
     }
 
+    Place? place;
+    if (shippingCityController.text.trim().isNotEmpty || shippingStateController.text.trim().isNotEmpty) {
+      place = Place(
+        address: Address(
+          city: shippingCityController.text.trim(),
+          state: shippingStateController.text.trim(),
+          country: 'México',
+        ),
+      );
+    }
+
     if (isArt && _webFileEntries.isEmpty) {
       final name = titleController.text.trim().isNotEmpty ? titleController.text.trim() : 'Sin título';
       final item = AppReleaseItem(
@@ -2280,6 +2296,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         createdTime: DateTime.now().millisecondsSinceEpoch,
         state: 5,
         physicalPrice: physicalPrice,
+        place: place,
+        artIncludesShipping: isPhysical.value && shippingIncluded.value,
       );
       final artistSlug = profile.slug.isNotEmpty ? profile.slug : AppProfile.generateSlug(profile.name);
       final trackSlug = AppReleaseItem.generateSlug(name);
@@ -2307,6 +2325,8 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
           createdTime: DateTime.now().millisecondsSinceEpoch,
           state: 5,
           physicalPrice: physicalPrice,
+          place: place,
+          artIncludesShipping: isPhysical.value && shippingIncluded.value,
         );
 
         // Set previewUrl to filename so the upload gate passes and extension is extractable

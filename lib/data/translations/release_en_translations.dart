@@ -188,6 +188,25 @@ class ReleaseEnTranslations {
     ReleaseTranslationConstants.artworkSalePrice: 'Artwork Sale Price',
     ReleaseTranslationConstants.includesShipping: 'Shipping included',
     ReleaseTranslationConstants.includesShippingDesc: 'The sale price already covers packing and shipping costs',
+
+    // Dropshipping & Logistics Phase
+    ReleaseTranslationConstants.dropshippingTitle: 'Physical Sale & Shipping',
+    ReleaseTranslationConstants.dropshippingSubtitle: 'Configure the physical availability of your work and direct delivery details for your readers and collectors.',
+    ReleaseTranslationConstants.skipPhysicalSale: 'Continue without physical sale',
+    ReleaseTranslationConstants.enableDropshipping: 'Enable physical copy / artwork sale',
+    ReleaseTranslationConstants.shippingOriginTitle: 'Origin Location',
+    ReleaseTranslationConstants.shippingCity: 'Dispatch City',
+    ReleaseTranslationConstants.shippingState: 'State / Province',
+    ReleaseTranslationConstants.shippingCityHint: 'e.g. Guadalajara, Mexico City, Monterrey...',
+    ReleaseTranslationConstants.shippingStateHint: 'e.g. Jalisco, CDMX, Nuevo León...',
+    ReleaseTranslationConstants.shippingIncludedTitle: 'Does the price include shipping?',
+    ReleaseTranslationConstants.shippingIncludedDesc: 'Shipping cost is included in the final price',
+    ReleaseTranslationConstants.shippingQuotedSeparately: 'Shipping cost will be arranged with the buyer',
+    ReleaseTranslationConstants.correosDeMexicoTitle: 'Shipping Recommendation: Correos de México',
+    ReleaseTranslationConstants.correosDeMexicoDesc: 'We suggest using national postal service (Mexpost / Correos de México) as an accessible starting point. It offers the widest nationwide coverage and affordable rates, ideal for safely delivering independent books and art.',
+    ReleaseTranslationConstants.estimatedDispatchDays: 'Estimated dispatch time',
+    ReleaseTranslationConstants.estimatedDispatchDaysHint: 'e.g. 1 to 3 business days',
+    ReleaseTranslationConstants.publisher: 'Publisher',
   };
 
 }

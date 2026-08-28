@@ -188,6 +188,25 @@ class ReleaseEsTranslations {
     ReleaseTranslationConstants.artworkSalePrice: 'Precio de venta de la obra',
     ReleaseTranslationConstants.includesShipping: 'Envío incluido',
     ReleaseTranslationConstants.includesShippingDesc: 'El precio de venta cubre los gastos de empaque y envío',
+
+    // Dropshipping & Logistics Phase
+    ReleaseTranslationConstants.dropshippingTitle: 'Venta Física y Envíos',
+    ReleaseTranslationConstants.dropshippingSubtitle: 'Configura la disponibilidad física de tu obra y los detalles de entrega directa a tus lectores y coleccionistas.',
+    ReleaseTranslationConstants.skipPhysicalSale: 'Continuar sin venta física',
+    ReleaseTranslationConstants.enableDropshipping: 'Habilitar venta de ejemplar / obra física',
+    ReleaseTranslationConstants.shippingOriginTitle: 'Ubicación de Origen',
+    ReleaseTranslationConstants.shippingCity: 'Ciudad de despacho',
+    ReleaseTranslationConstants.shippingState: 'Estado / Provincia',
+    ReleaseTranslationConstants.shippingCityHint: 'ej. Guadalajara, CDMX, Monterrey...',
+    ReleaseTranslationConstants.shippingStateHint: 'ej. Jalisco, CDMX, Nuevo León...',
+    ReleaseTranslationConstants.shippingIncludedTitle: '¿El precio ya incluye el envío?',
+    ReleaseTranslationConstants.shippingIncludedDesc: 'El costo de envío está incluido en el precio final',
+    ReleaseTranslationConstants.shippingQuotedSeparately: 'El costo de envío se coordinará con el comprador',
+    ReleaseTranslationConstants.correosDeMexicoTitle: 'Recomendación de Envío: Correos de México',
+    ReleaseTranslationConstants.correosDeMexicoDesc: 'Sugerimos utilizar el servicio postal nacional (Mexpost / Correos de México) como paso inicial. Ofrece la cobertura más amplia y económica del país, ideal para despachar libros y piezas independientes de forma segura.',
+    ReleaseTranslationConstants.estimatedDispatchDays: 'Tiempo estimado de despacho',
+    ReleaseTranslationConstants.estimatedDispatchDaysHint: 'ej. 1 a 3 días hábiles',
+    ReleaseTranslationConstants.publisher: 'Editorial',
   };
 
 }

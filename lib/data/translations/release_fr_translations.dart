@@ -188,6 +188,25 @@ class ReleaseFrTranslations {
     ReleaseTranslationConstants.artworkSalePrice: 'Prix de vente de l\'œuvre',
     ReleaseTranslationConstants.includesShipping: 'Frais de port inclus',
     ReleaseTranslationConstants.includesShippingDesc: 'Le prix de vente comprend déjà les frais d\'emballage et d\'expédition',
+
+    // Dropshipping & Logistics Phase
+    ReleaseTranslationConstants.dropshippingTitle: 'Vente Physique & Expédition',
+    ReleaseTranslationConstants.dropshippingSubtitle: 'Configurez la disponibilité physique de votre œuvre et les détails de livraison directe pour vos lecteurs et collectionneurs.',
+    ReleaseTranslationConstants.skipPhysicalSale: 'Continuer sans vente physique',
+    ReleaseTranslationConstants.enableDropshipping: 'Activer la vente physique d\'exemplaire / d\'œuvre',
+    ReleaseTranslationConstants.shippingOriginTitle: 'Lieu d\'Origine',
+    ReleaseTranslationConstants.shippingCity: 'Ville d\'expédition',
+    ReleaseTranslationConstants.shippingState: 'État / Région',
+    ReleaseTranslationConstants.shippingCityHint: 'ex. Guadalajara, Paris, Lyon...',
+    ReleaseTranslationConstants.shippingStateHint: 'ex. Jalisco, Île-de-France...',
+    ReleaseTranslationConstants.shippingIncludedTitle: 'Le prix comprend-il les frais de port ?',
+    ReleaseTranslationConstants.shippingIncludedDesc: 'Les frais de port sont inclus dans le prix final',
+    ReleaseTranslationConstants.shippingQuotedSeparately: 'Les frais de port seront convenus avec l\'acheteur',
+    ReleaseTranslationConstants.correosDeMexicoTitle: 'Recommandation d\'Expédition : Correos de México / La Poste',
+    ReleaseTranslationConstants.correosDeMexicoDesc: 'Nous vous suggérons d\'utiliser le service postal national comme première étape accessible. Il offre la couverture la plus large et les tarifs les plus économiques, idéal pour expédier des livres et des œuvres indépendantes.',
+    ReleaseTranslationConstants.estimatedDispatchDays: 'Délai d\'expédition estimé',
+    ReleaseTranslationConstants.estimatedDispatchDaysHint: 'ex. 1 à 3 jours ouvrés',
+    ReleaseTranslationConstants.publisher: 'Éditeur',
   };
 
 }

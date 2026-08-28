@@ -6,8 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:neom_core/app_config.dart';
+import 'package:neom_core/domain/model/address.dart';
 import 'package:neom_core/domain/model/app_release_item.dart';
 import 'package:neom_core/domain/model/item_list.dart';
+import 'package:neom_core/domain/model/place.dart';
 import 'package:neom_core/domain/model/price.dart';
 import 'package:neom_core/domain/use_cases/user_service.dart';
 import 'package:neom_core/utils/constants/data_assets.dart';
@@ -23,7 +25,7 @@ import 'package:sint/sint.dart';
 class ReleaseUploadWebController extends SintController {
 
   // ── State ──
-  final RxInt phase = 0.obs; // 0=type, 1=form, 2=summary
+  final RxInt phase = 0.obs; // 0=type, 1=form, 2=tracks/dropshipping, 3=dropshipping/summary, 4=summary/success
   final RxBool isUploading = false.obs;
   final RxBool hasSharedPost = false.obs;
   final RxDouble uploadProgress = 0.0.obs;
@@ -73,6 +75,10 @@ class ReleaseUploadWebController extends SintController {
   // Physical Sale / Dropshipping
   final RxBool isPhysical = false.obs;
   final physicalPriceController = TextEditingController();
+  final RxBool shippingIncluded = false.obs;
+  final shippingCityController = TextEditingController();
+  final shippingStateController = TextEditingController();
+  final shippingDaysController = TextEditingController();
 
   // ── Files ──
   final Rx<Uint8List?> coverBytes = Rx(null);
@@ -168,6 +174,9 @@ class ReleaseUploadWebController extends SintController {
     artMediumController.dispose();
     artDimensionsController.dispose();
     physicalPriceController.dispose();
+    shippingCityController.dispose();
+    shippingStateController.dispose();
+    shippingDaysController.dispose();
     super.onClose();
   }
 
@@ -197,6 +206,10 @@ class ReleaseUploadWebController extends SintController {
     artIsFramed.value = false;
     isPhysical.value = false;
     physicalPriceController.clear();
+    shippingIncluded.value = false;
+    shippingCityController.clear();
+    shippingStateController.clear();
+    shippingDaysController.clear();
     coverBytes.value = null;
     releaseFiles.clear();
     selectedInstruments.clear();
@@ -211,9 +224,23 @@ class ReleaseUploadWebController extends SintController {
     if (phase.value == 0) {
       phase.value = 1;
     } else if (phase.value == 1 && canProceedToSummary) {
-      phase.value = isAlbum ? 2 : 2; // Albums go to tracks phase (phase 2), others go to summary (phase 2)
-    } else if (phase.value == 2 && isAlbum) {
-      phase.value = 3; // Albums: tracks → summary
+      // If album -> tracks phase (2). For single/book/artwork -> physical sale phase (2).
+      phase.value = 2;
+    } else if (phase.value == 2) {
+      // If album -> physical sale phase (3). For single/book/artwork -> summary phase (3).
+      phase.value = 3;
+    } else if (phase.value == 3 && isAlbum) {
+      // For album -> summary phase (4).
+      phase.value = 4;
+    }
+  }
+
+  void skipPhysicalSale() {
+    isPhysical.value = false;
+    if (isAlbum) {
+      phase.value = 4; // Album summary
+    } else {
+      phase.value = 3; // Single / book / artwork summary
     }
   }
 
@@ -319,6 +346,17 @@ class ReleaseUploadWebController extends SintController {
     categories.addAll(selectedInstruments);
     categories.addAll(selectedGenres);
 
+    Place? place;
+    if (shippingCityController.text.trim().isNotEmpty || shippingStateController.text.trim().isNotEmpty) {
+      place = Place(
+        address: Address(
+          city: shippingCityController.text.trim(),
+          state: shippingStateController.text.trim(),
+          country: 'México',
+        ),
+      );
+    }
+
     if (isArtwork) {
       final name = titleController.text.trim();
       items.add(AppReleaseItem(
@@ -331,6 +369,7 @@ class ReleaseUploadWebController extends SintController {
         categories: categories.isNotEmpty ? categories : ['Arte'],
         publishedYear: publishedYear.value,
         physicalPrice: physicalPrice,
+        place: place,
         artCategory: artCategoryController.text.trim(),
         artTechnique: artTechniqueController.text.trim(),
         artMedium: artMediumController.text.trim(),
@@ -338,7 +377,7 @@ class ReleaseUploadWebController extends SintController {
         artIsOriginal: artIsOriginal.value,
         artIsSigned: artIsSigned.value,
         artIsFramed: artIsFramed.value,
-        artIncludesShipping: artIncludesShipping.value,
+        artIncludesShipping: isPhysical.value && (shippingIncluded.value || artIncludesShipping.value),
       ));
       return items;
     }
@@ -358,6 +397,8 @@ class ReleaseUploadWebController extends SintController {
         mediaType: singleAcceptsPdf ? MediaItemType.pdf : MediaItemType.song,
         categories: categories,
         physicalPrice: physicalPrice,
+        place: place,
+        artIncludesShipping: isPhysical.value && shippingIncluded.value,
       ));
     }
     return items;

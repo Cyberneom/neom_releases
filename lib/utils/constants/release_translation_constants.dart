@@ -204,4 +204,23 @@ class ReleaseTranslationConstants {
   static const String includesShipping = 'includesShipping';
   static const String includesShippingDesc = 'includesShippingDesc';
 
+  // Dropshipping & Logistics Phase
+  static const String dropshippingTitle = 'dropshippingTitle';
+  static const String dropshippingSubtitle = 'dropshippingSubtitle';
+  static const String skipPhysicalSale = 'skipPhysicalSale';
+  static const String enableDropshipping = 'enableDropshipping';
+  static const String shippingOriginTitle = 'shippingOriginTitle';
+  static const String shippingCity = 'shippingCity';
+  static const String shippingState = 'shippingState';
+  static const String shippingCityHint = 'shippingCityHint';
+  static const String shippingStateHint = 'shippingStateHint';
+  static const String shippingIncludedTitle = 'shippingIncludedTitle';
+  static const String shippingIncludedDesc = 'shippingIncludedDesc';
+  static const String shippingQuotedSeparately = 'shippingQuotedSeparately';
+  static const String correosDeMexicoTitle = 'correosDeMexicoTitle';
+  static const String correosDeMexicoDesc = 'correosDeMexicoDesc';
+  static const String estimatedDispatchDays = 'estimatedDispatchDays';
+  static const String estimatedDispatchDaysHint = 'estimatedDispatchDaysHint';
+  static const String publisher = 'publisher';
+
 }

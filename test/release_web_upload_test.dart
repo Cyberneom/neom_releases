@@ -1,8 +1,10 @@
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:neom_core/domain/model/address.dart';
 import 'package:neom_core/domain/model/app_release_item.dart';
 import 'package:neom_core/domain/model/item_list.dart';
+import 'package:neom_core/domain/model/place.dart';
 import 'package:neom_core/domain/model/price.dart';
 import 'package:neom_core/utils/enums/app_currency.dart';
 import 'package:neom_core/utils/enums/itemlist_type.dart';
@@ -374,6 +376,32 @@ void main() {
       );
 
       expect(items.first.physicalPrice, isNull);
+      expect(items.first.artIncludesShipping, isFalse);
+      expect(items.first.place, isNull);
+    });
+
+    test('Dropshipping enabled should attach physicalPrice, Place origin and shippingIncluded flag', () {
+      final items = _buildItems(
+        title: 'Libro Impreso Dropshipping',
+        author: 'Escritor Tapatío',
+        releaseType: ReleaseType.single,
+        isEmxi: true,
+        files: [_FakeFile('libro.pdf', 1500000)],
+        physicalPrice: Price(amount: 380.0, currency: AppCurrency.mxn),
+        shippingCity: 'Guadalajara',
+        shippingState: 'Jalisco',
+        includesShipping: true,
+      );
+
+      expect(items.length, 1);
+      final item = items.first;
+      expect(item.physicalPrice, isNotNull);
+      expect(item.physicalPrice!.amount, 380.0);
+      expect(item.artIncludesShipping, isTrue);
+      expect(item.place, isNotNull);
+      expect(item.place!.address?.city, 'Guadalajara');
+      expect(item.place!.address?.state, 'Jalisco');
+      expect(item.place!.address?.country, 'México');
     });
   });
 }
@@ -391,6 +419,9 @@ List<AppReleaseItem> _buildItems({
   String email = 'test@test.com',
   String photoUrl = 'https://example.com/photo.jpg',
   Price? physicalPrice,
+  String? shippingCity,
+  String? shippingState,
+  bool includesShipping = false,
 }) {
   final isSingle = releaseType == ReleaseType.single;
   final isArtwork = releaseType == ReleaseType.artwork;
@@ -401,6 +432,17 @@ List<AppReleaseItem> _buildItems({
     mediaType = MediaItemType.pdf;
   } else {
     mediaType = MediaItemType.song;
+  }
+
+  Place? place;
+  if ((shippingCity != null && shippingCity.isNotEmpty) || (shippingState != null && shippingState.isNotEmpty)) {
+    place = Place(
+      address: Address(
+        city: shippingCity ?? '',
+        state: shippingState ?? '',
+        country: 'México',
+      ),
+    );
   }
 
   return files.map((file) {
@@ -419,6 +461,8 @@ List<AppReleaseItem> _buildItems({
       createdTime: DateTime.now().millisecondsSinceEpoch,
       state: 5,
       physicalPrice: physicalPrice,
+      place: place,
+      artIncludesShipping: physicalPrice != null && includesShipping,
     );
   }).toList();
 }

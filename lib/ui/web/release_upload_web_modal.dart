@@ -12,6 +12,7 @@ import '../../utils/constants/release_translation_constants.dart';
 import '../release_upload_controller.dart';
 
 import 'phases/release_form_phase.dart';
+import 'phases/release_physical_sale_phase.dart';
 import 'phases/release_summary_phase.dart';
 import 'phases/release_tracks_phase.dart';
 import 'phases/release_type_phase.dart';
@@ -78,6 +79,11 @@ class ReleaseUploadWebModal extends StatelessWidget {
   Widget _buildHeader(BuildContext context, ReleaseUploadWebController ctrl) {
     return Obx(() {
       final phase = ctrl.phase.value;
+      final showNext = phase == 1 || (phase == 2 && ctrl.isAlbum) || (!ctrl.isAlbum && phase == 2) || (ctrl.isAlbum && phase == 3);
+      final canNext = phase == 1
+          ? ctrl.canProceedToSummary
+          : (phase == 2 && ctrl.isAlbum ? ctrl.releaseFiles.isNotEmpty : true);
+
       return Container(
         height: 52,
         padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -105,17 +111,13 @@ class ReleaseUploadWebModal extends StatelessWidget {
 
             const Spacer(),
 
-            // Next button — visible in form (1) and tracks (2) phases
-            if (phase == 1 || (phase == 2 && ctrl.isAlbum))
+            // Next button — visible in form (1), tracks (2 for album), and physical sale phases
+            if (showNext)
               TextButton(
-                onPressed: (phase == 1 && ctrl.canProceedToSummary) || (phase == 2 && ctrl.isAlbum)
-                    ? ctrl.goNext
-                    : null,
+                onPressed: canNext ? ctrl.goNext : null,
                 child: Text(AppTranslationConstants.next.tr,
                   style: TextStyle(
-                    color: (phase == 1 && ctrl.canProceedToSummary) || (phase == 2 && ctrl.isAlbum)
-                        ? AppColor.white80
-                        : Colors.grey[700],
+                    color: canNext ? AppColor.white80 : Colors.grey[700],
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -129,52 +131,68 @@ class ReleaseUploadWebModal extends StatelessWidget {
   }
 
   Widget _buildPhase(BuildContext context, ReleaseUploadWebController ctrl) {
-    switch (ctrl.phase.value) {
-      case 0:
-        return ReleaseTypePhase(key: const ValueKey(0), controller: ctrl);
-      case 1:
-        return ReleaseFormPhase(key: const ValueKey(1), controller: ctrl);
-      case 2:
-        // For albums: track naming + cover. For singles: skip to summary.
-        if (ctrl.isAlbum) {
+    if (ctrl.isAlbum) {
+      switch (ctrl.phase.value) {
+        case 0:
+          return ReleaseTypePhase(key: const ValueKey(0), controller: ctrl);
+        case 1:
+          return ReleaseFormPhase(key: const ValueKey(1), controller: ctrl);
+        case 2:
           return ReleaseTracksPhase(key: const ValueKey(2), controller: ctrl);
-        }
-        return ReleaseSummaryPhase(
-          key: const ValueKey(2),
-          controller: ctrl,
-          onUpload: () => _handleUpload(context, ctrl),
-        );
-      case 3:
-        // For albums: summary. For singles: success.
-        if (ctrl.isAlbum) {
+        case 3:
+          return ReleasePhysicalSalePhase(key: const ValueKey(3), controller: ctrl);
+        case 4:
+          return ReleaseSummaryPhase(
+            key: const ValueKey(4),
+            controller: ctrl,
+            onUpload: () => _handleUpload(context, ctrl),
+          );
+        case 5:
+          return _buildSuccessPhase(context, ctrl);
+        default:
+          return const SizedBox.shrink();
+      }
+    } else {
+      switch (ctrl.phase.value) {
+        case 0:
+          return ReleaseTypePhase(key: const ValueKey(0), controller: ctrl);
+        case 1:
+          return ReleaseFormPhase(key: const ValueKey(1), controller: ctrl);
+        case 2:
+          return ReleasePhysicalSalePhase(key: const ValueKey(2), controller: ctrl);
+        case 3:
           return ReleaseSummaryPhase(
             key: const ValueKey(3),
             controller: ctrl,
             onUpload: () => _handleUpload(context, ctrl),
           );
-        }
-        return _buildSuccessPhase(context, ctrl);
-      case 4:
-        // Album success
-        return _buildSuccessPhase(context, ctrl);
-      default:
-        return const SizedBox.shrink();
+        case 4:
+          return _buildSuccessPhase(context, ctrl);
+        default:
+          return const SizedBox.shrink();
+      }
     }
   }
 
   String _phaseTitle(int phase) {
     final ctrl = Sint.find<ReleaseUploadWebController>();
-    switch (phase) {
-      case 0: return ReleaseTranslationConstants.newRelease.tr;
-      case 1: return ReleaseTranslationConstants.information.tr;
-      case 2: return ctrl.isAlbum
-          ? ReleaseTranslationConstants.tracks.tr
-          : ReleaseTranslationConstants.confirm.tr;
-      case 3: return ctrl.isAlbum
-          ? ReleaseTranslationConstants.confirm.tr
-          : '';
-      case 4: return '';
-      default: return '';
+    if (ctrl.isAlbum) {
+      switch (phase) {
+        case 0: return ReleaseTranslationConstants.newRelease.tr;
+        case 1: return ReleaseTranslationConstants.information.tr;
+        case 2: return ReleaseTranslationConstants.tracks.tr;
+        case 3: return ReleaseTranslationConstants.dropshippingTitle.tr;
+        case 4: return ReleaseTranslationConstants.confirm.tr;
+        default: return '';
+      }
+    } else {
+      switch (phase) {
+        case 0: return ReleaseTranslationConstants.newRelease.tr;
+        case 1: return ReleaseTranslationConstants.information.tr;
+        case 2: return ReleaseTranslationConstants.dropshippingTitle.tr;
+        case 3: return ReleaseTranslationConstants.confirm.tr;
+        default: return '';
+      }
     }
   }
 
@@ -202,6 +220,10 @@ class ReleaseUploadWebModal extends StatelessWidget {
       // Physical sale / Dropshipping
       uploadCtrl.isPhysical.value = webCtrl.isPhysical.value;
       uploadCtrl.physicalPriceController.text = webCtrl.physicalPriceController.text.trim();
+      uploadCtrl.shippingIncluded.value = webCtrl.shippingIncluded.value;
+      uploadCtrl.shippingCityController.text = webCtrl.shippingCityController.text.trim();
+      uploadCtrl.shippingStateController.text = webCtrl.shippingStateController.text.trim();
+      uploadCtrl.shippingDaysController.text = webCtrl.shippingDaysController.text.trim();
 
       // Set genres (instruments + subgenres)
       final categories = <String>[];
@@ -239,7 +261,7 @@ class ReleaseUploadWebModal extends StatelessWidget {
 
       if (context.mounted) {
         // Show success phase in the same modal
-        webCtrl.phase.value = webCtrl.isAlbum ? 4 : 3; // Success phase
+        webCtrl.phase.value = webCtrl.isAlbum ? 5 : 4; // Success phase
       }
     } catch (e, st) {
       webCtrl.isUploading.value = false;

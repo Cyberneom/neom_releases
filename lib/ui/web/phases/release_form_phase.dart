@@ -141,7 +141,7 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // ── Left: Form fields + file drop zone (for single/book) ──
+        // ── Left: Form fields (Metadata & Description) ──
         Expanded(
           child: SingleChildScrollView(
             padding: const EdgeInsets.all(28),
@@ -224,21 +224,6 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                   style: const TextStyle(color: Colors.white, fontSize: 14),
                   decoration: _inputDecoration(ReleaseTranslationConstants.releaseDesc.tr),
                 ),
-                const SizedBox(height: 16),
-
-                // Physical Sale / Dropshipping
-                Obx(() => _buildPhysicalSaleSection(ctrl)),
-                const SizedBox(height: 16),
-
-                // File drop zone inline (for single/book)
-                if (ctrl.isSingle) ...[
-                  _label(ReleaseTranslationConstants.file.tr),
-                  const SizedBox(height: 8),
-                  SizedBox(
-                    height: 150,
-                    child: _buildFileDropZone(ctrl),
-                  ),
-                ],
               ],
             ),
           ),
@@ -247,9 +232,9 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
         // Divider
         VerticalDivider(width: 1, color: Colors.white.withAlpha(15)),
 
-        // ── Right: Publisher info + Cover (for single/book/artwork) or Tracks drop zone (for album) ──
+        // ── Right: Publisher info + File drop zone + Cover drop zone ──
         Expanded(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(28),
             child: (ctrl.isSingle || ctrl.isArtwork)
                 ? Column(
@@ -257,166 +242,50 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                     children: [
                       // Self-published checkbox + Year dropdown
                       Obx(() => _publisherSection(ctrl)),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 20),
+
+                      // File drop zone (for single/book)
+                      if (ctrl.isSingle) ...[
+                        _label(ReleaseTranslationConstants.file.tr),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 140,
+                          child: _buildFileDropZone(ctrl),
+                        ),
+                        const SizedBox(height: 20),
+                      ],
+
                       // Cover / Artwork Image
                       _label(ctrl.isArtwork
                           ? ReleaseTranslationConstants.uploadArtworkImage.tr
                           : ReleaseTranslationConstants.releaseCover.tr),
                       const SizedBox(height: 8),
-                      Expanded(child: Obx(() => _coverPickerExpanded(ctrl))),
+                      SizedBox(
+                        height: ctrl.isSingle ? 240 : 360,
+                        child: Obx(() => _coverPickerExpanded(ctrl)),
+                      ),
                     ],
                   )
                 : Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Self-published checkbox + Year dropdown for album
+                      Obx(() => _publisherSection(ctrl)),
+                      const SizedBox(height: 20),
                       Text(
                         ReleaseTranslationConstants.tracks.tr,
                         style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
                       ),
                       const SizedBox(height: 12),
-                      Expanded(child: _buildFileDropZone(ctrl)),
+                      SizedBox(
+                        height: 380,
+                        child: _buildFileDropZone(ctrl),
+                      ),
                     ],
                   ),
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildPhysicalSaleSection(ReleaseUploadWebController ctrl) {
-    final title = ctrl.isArtwork
-        ? ReleaseTranslationConstants.artworkSaleTitle.tr
-        : AppFlavour.getPhysicalSaleTitleKey().tr;
-    final desc = ctrl.isArtwork
-        ? ReleaseTranslationConstants.artworkSaleDescMsg.tr
-        : AppFlavour.getPhysicalSaleDescKey().tr;
-    final priceLabel = ctrl.isArtwork
-        ? ReleaseTranslationConstants.artworkSalePrice.tr
-        : ReleaseTranslationConstants.physicalReleasePrice.tr;
-    final hint = ctrl.isArtwork ? 'ej. 15000.00' : 'ej. 350.00';
-
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white.withAlpha(8),
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: ctrl.isPhysical.value
-              ? AppColor.bondiBlue.withAlpha(120)
-              : Colors.white.withAlpha(15),
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(
-                ctrl.isArtwork
-                    ? Icons.palette_outlined
-                    : (AppFlavour.singleAcceptsPdf()
-                        ? Icons.menu_book_outlined
-                        : Icons.album_outlined),
-                color: ctrl.isPhysical.value ? AppColor.bondiBlue : Colors.white60,
-                size: 20,
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-              Switch(
-                value: ctrl.isPhysical.value,
-                onChanged: (val) => ctrl.isPhysical.value = val,
-                activeThumbColor: AppColor.bondiBlue,
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            desc,
-            style: TextStyle(color: Colors.grey[400], fontSize: 12, height: 1.35),
-          ),
-          if (ctrl.isPhysical.value) ...[
-            const SizedBox(height: 12),
-            TextField(
-              controller: ctrl.physicalPriceController,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
-              style: const TextStyle(color: Colors.white, fontSize: 13),
-              decoration: InputDecoration(
-                labelText: priceLabel,
-                hintText: hint,
-                prefixText: '\$ ',
-                suffixText: 'MXN',
-                prefixStyle: const TextStyle(color: Colors.white70, fontSize: 13),
-                suffixStyle: const TextStyle(color: Colors.white70, fontSize: 12),
-                filled: true,
-                fillColor: Colors.white.withAlpha(10),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: AppColor.bondiBlue.withAlpha(80)),
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: Colors.white.withAlpha(20)),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide(color: AppColor.bondiBlue),
-                ),
-              ),
-            ),
-            if (ctrl.isArtwork) ...[
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white.withAlpha(5),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.white.withAlpha(15)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.local_shipping_outlined,
-                      color: ctrl.artIncludesShipping.value ? AppColor.bondiBlue : Colors.white60,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            ReleaseTranslationConstants.includesShipping.tr,
-                            style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500),
-                          ),
-                          Text(
-                            ReleaseTranslationConstants.includesShippingDesc.tr,
-                            style: TextStyle(color: Colors.grey[500], fontSize: 11),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Switch(
-                      value: ctrl.artIncludesShipping.value,
-                      onChanged: (val) => ctrl.artIncludesShipping.value = val,
-                      activeThumbColor: AppColor.bondiBlue,
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ],
-        ],
-      ),
     );
   }
 
@@ -491,6 +360,7 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
       // Empty drop zone — with real HTML5 drag & drop
       return _HtmlDropTarget(
         onSetup: _setupFileDropZone,
+        onClick: ctrl.pickReleaseFiles,
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
           child: GestureDetector(
@@ -578,6 +448,7 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
     // Empty cover zone — with real HTML5 drag & drop
     return _HtmlDropTarget(
       onSetup: _setupCoverDropZone,
+      onClick: ctrl.pickCoverImage,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
         child: GestureDetector(
@@ -970,8 +841,13 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
 class _HtmlDropTarget extends StatefulWidget {
   final Widget child;
   final void Function(html.Element element) onSetup;
+  final VoidCallback? onClick;
 
-  const _HtmlDropTarget({required this.child, required this.onSetup});
+  const _HtmlDropTarget({
+    required this.child,
+    required this.onSetup,
+    this.onClick,
+  });
 
   @override
   State<_HtmlDropTarget> createState() => _HtmlDropTargetState();
@@ -1007,7 +883,14 @@ class _HtmlDropTargetState extends State<_HtmlDropTarget> {
       ..style.width = '${size.width}px'
       ..style.height = '${size.height}px'
       ..style.zIndex = '999'
+      ..style.cursor = 'pointer'
       ..style.opacity = '0';
+
+    if (widget.onClick != null) {
+      _overlay!.onClick.listen((_) {
+        widget.onClick!();
+      });
+    }
 
     html.document.body!.append(_overlay!);
     widget.onSetup(_overlay!);
