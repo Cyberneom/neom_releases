@@ -221,6 +221,5 @@ class ReleaseTranslationConstants {
   static const String correosDeMexicoDesc = 'correosDeMexicoDesc';
   static const String estimatedDispatchDays = 'estimatedDispatchDays';
   static const String estimatedDispatchDaysHint = 'estimatedDispatchDaysHint';
-  static const String publisher = 'publisher';
 
 }
