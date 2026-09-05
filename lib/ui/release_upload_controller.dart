@@ -668,8 +668,13 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         uploadStatusMessage.value = ReleaseTranslationConstants.creatingCatalog.tr;
         update([AppPageIdConstants.releaseUpload]);
 
-        final artistSlug = profile.slug.isNotEmpty ? profile.slug : AppProfile.generateSlug(profile.name);
-        releaseItemlist.slug = '$artistSlug/a/${AppReleaseItem.generateSlug(releaseItemlist.name)}';
+        // Derived from the list's OWN owner — the band when publishing as a
+        // collective, not whoever is uploading — and with the hyphenated
+        // generator the releases use, so an album and its tracks address the
+        // same artist. ItemlistFirestore.insert fills these when left empty.
+        releaseItemlist.ownerSlug =
+            Itemlist.generateOwnerSlug(releaseItemlist.ownerName);
+        releaseItemlist.slug = Itemlist.generateSlug(releaseItemlist.name);
 
         releaseItemlistId = await ItemlistFirestore().insert(releaseItemlist);
 

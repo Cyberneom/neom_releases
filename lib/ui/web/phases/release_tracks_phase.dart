@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:universal_html/html.dart' as html;
 import 'dart:typed_data';
 
@@ -25,6 +26,12 @@ class _ReleaseTracksPhaseState extends State<ReleaseTracksPhase> {
   late List<TextEditingController> _trackNameControllers;
   bool _isCoverDragOver = false;
 
+  /// Listeners live on `document.body`, which outlives this widget: without
+  /// cancelling them a drop on any later page would still overwrite this
+  /// release's cover, and each visit would stack another pair.
+  final List<StreamSubscription<html.Event>> _bodySubscriptions = [];
+  StreamSubscription<html.ProgressEvent>? _coverReaderSubscription;
+
   @override
   void initState() {
     super.initState();
@@ -36,8 +43,8 @@ class _ReleaseTracksPhaseState extends State<ReleaseTracksPhase> {
     // Prevent browser default drop behavior
     final body = html.document.body;
     if (body == null) return;
-    body.onDragOver.listen((e) => e.preventDefault());
-    body.onDrop.listen((e) {
+    _bodySubscriptions.add(body.onDragOver.listen((e) => e.preventDefault()));
+    _bodySubscriptions.add(body.onDrop.listen((e) {
       e.preventDefault();
       e.stopPropagation();
       // Any drop on the page while this phase is active → treat as cover
@@ -50,7 +57,7 @@ class _ReleaseTracksPhaseState extends State<ReleaseTracksPhase> {
         }
       }
       if (mounted) setState(() => _isCoverDragOver = false);
-    });
+    }));
   }
 
   void _initTrackControllers() {
@@ -68,7 +75,8 @@ class _ReleaseTracksPhaseState extends State<ReleaseTracksPhase> {
 
     final reader = html.FileReader();
     reader.readAsArrayBuffer(file);
-    reader.onLoadEnd.listen((_) {
+    _coverReaderSubscription?.cancel();
+    _coverReaderSubscription = reader.onLoadEnd.listen((_) {
       if (reader.result == null || !mounted) return;
       final bytes = Uint8List.fromList(reader.result as List<int>);
       widget.controller.coverBytes.value = bytes;
@@ -78,6 +86,11 @@ class _ReleaseTracksPhaseState extends State<ReleaseTracksPhase> {
 
   @override
   void dispose() {
+    for (final subscription in _bodySubscriptions) {
+      subscription.cancel();
+    }
+    _bodySubscriptions.clear();
+    _coverReaderSubscription?.cancel();
     for (final c in _trackNameControllers) {
       c.dispose();
     }
