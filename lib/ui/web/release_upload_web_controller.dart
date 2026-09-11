@@ -27,7 +27,9 @@ class ReleaseUploadWebController extends SintController {
   // ── State ──
   final RxInt phase = 0.obs; // 0=type, 1=form, 2=tracks/dropshipping, 3=dropshipping/summary, 4=summary/success
   final RxBool isUploading = false.obs;
+  bool isSubmitting = false;
   final RxBool hasSharedPost = false.obs;
+
   final RxDouble uploadProgress = 0.0.obs;
   final RxString uploadStatus = ''.obs;
 

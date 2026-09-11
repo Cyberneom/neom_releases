@@ -231,8 +231,8 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                             text: AppConfig.instance.appInfo.releaseRevisionEnabled
                                 ? ReleaseTranslationConstants.submitRelease.tr
                                 : ReleaseTranslationConstants.publishOnPlatform.tr,
-                            isLoading: false,
-                            isEnabled: !controller.isButtonDisabled.value,
+                            isLoading: controller.isLoading.value || controller.isUploadingRelease,
+                            isEnabled: !controller.isButtonDisabled.value && !controller.isLoading.value && !controller.isUploadingRelease,
                             onPressed: () => AuthGuard.protect(context, () => controller.submitRelease(context)),
                           ),
                     if (!controller.isLoading.value &&
@@ -499,8 +499,8 @@ class ReleaseUploadSummaryRubberPage extends StatelessWidget {
                             text: AppConfig.instance.appInfo.releaseRevisionEnabled
                                 ? ReleaseTranslationConstants.submitRelease.tr
                                 : ReleaseTranslationConstants.publishOnPlatform.tr,
-                            isLoading: false,
-                            isEnabled: !controller.isButtonDisabled.value,
+                            isLoading: controller.isLoading.value || controller.isUploadingRelease,
+                            isEnabled: !controller.isButtonDisabled.value && !controller.isLoading.value && !controller.isUploadingRelease,
                             onPressed: () => AuthGuard.protect(context, () => controller.submitRelease(context)),
                           ),
                     if (!controller.isLoading.value &&

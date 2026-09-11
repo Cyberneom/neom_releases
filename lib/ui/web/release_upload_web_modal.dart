@@ -56,20 +56,39 @@ class ReleaseUploadWebModal extends StatelessWidget {
                 BoxShadow(color: Colors.black45, blurRadius: 40, offset: const Offset(0, 12)),
               ],
             ),
-            child: Column(
-              children: [
-                // Header
-                _buildHeader(context, ctrl),
-                const Divider(height: 1, color: Colors.white10),
-                // Body
-                Expanded(
-                  child: Obx(() => AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: _buildPhase(context, ctrl),
-                  )),
-                ),
-              ],
-            ),
+            child: Obx(() {
+              final isBusy = ctrl.isUploading.value || ctrl.isSubmitting;
+              return Stack(
+                children: [
+                  Column(
+                    children: [
+                      // Header
+                      _buildHeader(context, ctrl),
+                      const Divider(height: 1, color: Colors.white10),
+                      // Body
+                      Expanded(
+                        child: AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: _buildPhase(context, ctrl),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (isBusy)
+                    Positioned.fill(
+                      child: AbsorbPointer(
+                        absorbing: true,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.black45,
+                            borderRadius: BorderRadius.circular(14),
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              );
+            }),
           ),
         ),
       ),
@@ -79,10 +98,11 @@ class ReleaseUploadWebModal extends StatelessWidget {
   Widget _buildHeader(BuildContext context, ReleaseUploadWebController ctrl) {
     return Obx(() {
       final phase = ctrl.phase.value;
+      final isBusy = ctrl.isUploading.value || ctrl.isSubmitting;
       final showNext = phase == 1 || (phase == 2 && ctrl.isAlbum) || (!ctrl.isAlbum && phase == 2) || (ctrl.isAlbum && phase == 3);
-      final canNext = phase == 1
+      final canNext = !isBusy && (phase == 1
           ? ctrl.canProceedToSummary
-          : (phase == 2 && ctrl.isAlbum ? ctrl.releaseFiles.isNotEmpty : true);
+          : (phase == 2 && ctrl.isAlbum ? ctrl.releaseFiles.isNotEmpty : true));
 
       return Container(
         height: 52,
@@ -93,12 +113,12 @@ class ReleaseUploadWebModal extends StatelessWidget {
             if (phase > 0)
               IconButton(
                 icon: const Icon(Icons.arrow_back, color: Colors.white70, size: 20),
-                onPressed: ctrl.goBack,
+                onPressed: isBusy ? null : ctrl.goBack,
               )
             else
               IconButton(
                 icon: const Icon(Icons.close, color: Colors.white70, size: 20),
-                onPressed: () => _close(context, ctrl),
+                onPressed: isBusy ? null : () => _close(context, ctrl),
               ),
 
             const Spacer(),
@@ -129,6 +149,7 @@ class ReleaseUploadWebModal extends StatelessWidget {
       );
     });
   }
+
 
   Widget _buildPhase(BuildContext context, ReleaseUploadWebController ctrl) {
     if (ctrl.isAlbum) {
@@ -200,7 +221,8 @@ class ReleaseUploadWebModal extends StatelessWidget {
   /// cover upload, itemlist creation, file uploads, WooCommerce products,
   /// post creation, push notifications, activity feed, and approval requests.
   Future<void> _handleUpload(BuildContext context, ReleaseUploadWebController webCtrl) async {
-    if (webCtrl.isUploading.value) return;
+    if (webCtrl.isSubmitting || webCtrl.isUploading.value) return;
+    webCtrl.isSubmitting = true;
     webCtrl.isUploading.value = true;
 
     try {
@@ -257,18 +279,19 @@ class ReleaseUploadWebModal extends StatelessWidget {
       await uploadCtrl.uploadReleaseItem();
       webCtrl.uploadStatus.value = ReleaseTranslationConstants.finalizingUpload.tr;
 
-      webCtrl.isUploading.value = false;
-
       if (context.mounted) {
         // Show success phase in the same modal
         webCtrl.phase.value = webCtrl.isAlbum ? 5 : 4; // Success phase
       }
     } catch (e, st) {
-      webCtrl.isUploading.value = false;
       NeomErrorLogger.recordError(e, st, module: 'neom_releases', operation: 'webUpload');
       AppUtilities.showSnackBar(title: AppTranslationConstants.error.tr, message: ReleaseTranslationConstants.uploadFailedRetry.tr);
+    } finally {
+      webCtrl.isSubmitting = false;
+      webCtrl.isUploading.value = false;
     }
   }
+
 
   Widget _buildSuccessPhase(BuildContext context, ReleaseUploadWebController ctrl) {
     final shelfColor = AppColor.getReleaseShelfColor();

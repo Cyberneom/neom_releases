@@ -138,6 +138,9 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   RxList<String> selectedGenres = <String>[].obs;
   final RxBool isButtonDisabled = false.obs;
   final RxBool isLoading = true.obs;
+  bool _isUploadingRelease = false;
+  bool get isUploadingRelease => _isUploadingRelease;
+
   final RxBool isPhysical = false.obs;
   final RxBool shippingIncluded = false.obs;
   final shippingCityController = TextEditingController();
@@ -543,6 +546,12 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
   @override
   Future<void> uploadReleaseItem() async {
+    if (_isUploadingRelease) {
+      AppConfig.logger.w("uploadReleaseItem: upload already in progress, ignoring duplicate call.");
+      return;
+    }
+    _isUploadingRelease = true;
+
     AppConfig.logger.d("Initiating Upload for Itemlist ${releaseItemlist.name} "
         "- Type: ${releaseItemlist.type} with ${appReleaseItems.length} items");
 
@@ -964,6 +973,12 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       uploadStatusMessage.value = '';
 
       // DON'T navigate away - let user see the error and potentially retry
+      update([AppPageIdConstants.releaseUpload]);
+    } finally {
+      _isUploadingRelease = false;
+      isButtonDisabled.value = false;
+      isLoading.value = false;
+      uploadStatusMessage.value = '';
       update([AppPageIdConstants.releaseUpload]);
     }
   }
@@ -2050,7 +2065,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
   Future<void> submitRelease(BuildContext context) async {
     AppConfig.logger.i('━━━ SUBMIT RELEASE ━━━');
-    if (isLoading.value || isButtonDisabled.value) {
+    if (_isUploadingRelease || isLoading.value || isButtonDisabled.value) {
       AppConfig.logger.w('Submit release already in progress, ignoring duplicate tap.');
       return;
     }
@@ -2108,7 +2123,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         sharePublicly = false;
       }
 
-      uploadReleaseItem();
+      await uploadReleaseItem();
     } else {
       isButtonDisabled.value = false;
       update([AppPageIdConstants.releaseUpload]);

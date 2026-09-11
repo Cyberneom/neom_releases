@@ -259,7 +259,7 @@ class _ReleaseSummaryPhaseState extends State<ReleaseSummaryPhase>
                               ReleaseTranslationConstants.publishOnPlatform.tr,
                               style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                             ),
-                            onPressed: widget.onUpload,
+                            onPressed: (ctrl.isUploading.value || ctrl.isSubmitting) ? null : widget.onUpload,
                           ),
                         ),
                   ),
