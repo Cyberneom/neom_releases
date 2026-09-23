@@ -545,6 +545,22 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   }
 
   @override
+  /// Storage name for an uploaded release file, relative to `releaseItems/`.
+  ///
+  /// The file used to be stored under its title alone, in one folder shared
+  /// by every artist: a second track called "Intro" — by anyone — was written
+  /// over the first one's audio. The name is now scoped to the uploader and
+  /// stamped with the item's creation time, so no two uploads share a path.
+  static String storageNameFor({
+    required String ownerId,
+    required String title,
+    required int createdTime,
+  }) {
+    final owner = ownerId.isNotEmpty ? ownerId : 'unowned';
+    final slug = AppReleaseItem.generateSlug(title);
+    return slug.isEmpty ? '$owner/$createdTime' : '$owner/${createdTime}_$slug';
+  }
+
   Future<void> uploadReleaseItem() async {
     if (_isUploadingRelease) {
       AppConfig.logger.w("uploadReleaseItem: upload already in progress, ignoring duplicate call.");
@@ -793,13 +809,18 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
           AppConfig.logger.i('  [$itemIdx]   Uploading file: ext=$fileExtension, isPdf=$isPdf, isImage=$isImage, mediaType=${mediaType.name}');
 
           String uploadedFileUrl = '';
+          final storageName = storageNameFor(
+            ownerId: profile.id,
+            title: releaseItem.name,
+            createdTime: releaseItem.createdTime,
+          );
 
           // Web: upload from bytes. Mobile: upload from file path.
           if (kIsWeb && mediaUploadServiceImpl != null) {
             final bytes = mediaUploadServiceImpl!.getReleaseFileBytes(itemIdx);
             AppConfig.logger.d('  [$itemIdx]   Web upload: bytes=${bytes != null ? "${bytes.length}" : "NULL"}');
             if (bytes != null && bytes.isNotEmpty) {
-              uploadedFileUrl = await AppUploadFirestore().uploadReleaseItemBytes(releaseItem.name, bytes, mediaType);
+              uploadedFileUrl = await AppUploadFirestore().uploadReleaseItemBytes(storageName, bytes, mediaType);
             } else {
               AppConfig.logger.e('  [$itemIdx]   ✗ No bytes available for web upload!');
             }
@@ -813,7 +834,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
               uploadedFileUrl = await wooMediaServiceImpl!.uploadMediaToWordPress(fileToUpload, fileName: releaseItem.name);
             } else {
               AppConfig.logger.d('  [$itemIdx]   Uploading via Firebase Storage');
-              uploadedFileUrl = await AppUploadFirestore().uploadReleaseItem(releaseItem.name, fileToUpload, mediaType);
+              uploadedFileUrl = await AppUploadFirestore().uploadReleaseItem(storageName, fileToUpload, mediaType);
             }
           }
 
