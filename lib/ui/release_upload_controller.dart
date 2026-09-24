@@ -20,6 +20,7 @@ import 'package:neom_core/data/api_services/push_notification/firebase_messaging
 import 'package:neom_core/data/firestore/activity_feed_firestore.dart';
 import 'package:neom_core/data/firestore/app_release_item_firestore.dart';
 import 'package:neom_core/data/firestore/app_upload_firestore.dart';
+import 'package:neom_core/data/implementations/release_ownership_resolver.dart';
 import 'package:neom_core/data/firestore/itemlist_firestore.dart';
 import 'package:neom_core/data/firestore/post_firestore.dart';
 import 'package:neom_core/data/firestore/request_firestore.dart';
@@ -883,6 +884,10 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
         releaseItem.id = releaseItemId;
         AppConfig.logger.i('  [$itemIdx]   ✓ Firestore insert → ID: $releaseItemId');
+        // The uploader is an author from now on: their own listening and
+        // reading must stop counting toward royalties at once, not when the
+        // ownership cache expires.
+        ReleaseOwnershipResolver.invalidate(userServiceImpl.user.email);
 
         if(await ItemlistFirestore().addReleaseItem(releaseItemlist.id, releaseItem)) {
           AppConfig.logger.i('  [$itemIdx]   ✓ Added to itemlist ${releaseItemlist.id}');
