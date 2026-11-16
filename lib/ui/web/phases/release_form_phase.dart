@@ -1,14 +1,10 @@
-import 'dart:async';
-import 'package:universal_html/html.dart' as html;
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:sint/sint.dart';
 
 import '../../../utils/constants/release_translation_constants.dart';
 import '../release_upload_web_controller.dart';
+import 'release_web_dom_bridge.dart';
 
 /// Phase 2: Form fields (left) + drag & drop file zone (right).
 class ReleaseFormPhase extends StatefulWidget {
@@ -23,7 +19,8 @@ class ReleaseFormPhase extends StatefulWidget {
 class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
   bool _isFileDragOver = false;
   bool _isCoverDragOver = false;
-  final List<StreamSubscription> _subs = [];
+  void Function()? _disposeBodyDrop;
+  final List<void Function()> _pendingReadCancels = [];
 
   @override
   void initState() {
@@ -33,103 +30,66 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
 
   @override
   void dispose() {
-    for (final sub in _subs) {
-      sub.cancel();
+    _disposeBodyDrop?.call();
+    _disposeBodyDrop = null;
+    for (final cancel in _pendingReadCancels) {
+      cancel();
     }
+    _pendingReadCancels.clear();
     super.dispose();
   }
 
   // ── HTML5 native drag & drop ──
 
   void _setupHtmlDrop() {
-    final body = html.document.body!;
-    _subs.add(body.onDragOver.listen((e) {
-      e.preventDefault();
-    }));
-    _subs.add(body.onDrop.listen((e) {
-      e.preventDefault();
-      if (!mounted) return;
-      setState(() {
-        _isFileDragOver = false;
-        _isCoverDragOver = false;
-      });
-    }));
+    _disposeBodyDrop = registerReleaseBodyDrop(
+      onDrop: (_) {
+        if (!mounted) return;
+        setState(() {
+          _isFileDragOver = false;
+          _isCoverDragOver = false;
+        });
+      },
+    );
   }
 
-  /// Set up drop events for the file zone (MP3/PDF).
-  void _setupFileDropZone(html.Element element) {
-    element.onDragOver.listen((e) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (mounted) setState(() => _isFileDragOver = true);
-    });
-    element.onDragLeave.listen((e) {
-      e.stopPropagation();
-      if (mounted) setState(() => _isFileDragOver = false);
-    });
-    element.onDrop.listen((e) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (mounted) setState(() => _isFileDragOver = false);
-      final files = e.dataTransfer.files;
-      if (files != null && files.isNotEmpty) {
-        _handleDroppedFiles(files);
-      }
-    });
-  }
-
-  /// Set up drop events for the cover zone (images).
-  void _setupCoverDropZone(html.Element element) {
-    element.onDragOver.listen((e) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (mounted) setState(() => _isCoverDragOver = true);
-    });
-    element.onDragLeave.listen((e) {
-      e.stopPropagation();
-      if (mounted) setState(() => _isCoverDragOver = false);
-    });
-    element.onDrop.listen((e) {
-      e.preventDefault();
-      e.stopPropagation();
-      if (mounted) setState(() => _isCoverDragOver = false);
-      final files = e.dataTransfer.files;
-      if (files != null && files.isNotEmpty) {
-        _handleDroppedCover(files.first);
-      }
-    });
-  }
-
-  void _handleDroppedFiles(List<html.File> htmlFiles) {
+  void _handleDroppedFiles(List<ReleaseDroppedFile> htmlFiles) {
     final ctrl = widget.controller;
     final allowed = ctrl.acceptedExtensions;
+    final maxBytes = ctrl.isArtwork
+        ? kMaxReleaseCoverBytes
+        : kMaxReleaseMediaBytes;
 
     for (final file in htmlFiles) {
       final ext = file.name.split('.').last.toLowerCase();
       if (!allowed.contains(ext)) continue;
 
-      final reader = html.FileReader();
-      reader.readAsArrayBuffer(file);
-      reader.onLoadEnd.listen((_) {
-        if (reader.result == null || !mounted) return;
-        final bytes = Uint8List.fromList(reader.result as List<int>);
-        ctrl.addFileFromRawBytes(file.name, bytes);
-      });
+      final cancel = readReleaseDroppedFile(
+        file,
+        maxBytes: maxBytes,
+        onLoaded: (bytes) {
+          if (!mounted) return;
+          ctrl.addFileFromRawBytes(file.name, bytes);
+        },
+      );
+      _pendingReadCancels.add(cancel);
     }
   }
 
-  void _handleDroppedCover(html.File file) {
+  void _handleDroppedCover(ReleaseDroppedFile file) {
     final ext = file.name.split('.').last.toLowerCase();
     if (!['jpg', 'jpeg', 'png', 'webp'].contains(ext)) return;
 
-    final reader = html.FileReader();
-    reader.readAsArrayBuffer(file);
-    reader.onLoadEnd.listen((_) {
-      if (reader.result == null || !mounted) return;
-      final bytes = Uint8List.fromList(reader.result as List<int>);
-      widget.controller.coverBytes.value = bytes;
-      widget.controller.coverFileName.value = file.name;
-    });
+    final cancel = readReleaseDroppedFile(
+      file,
+      maxBytes: kMaxReleaseCoverBytes,
+      onLoaded: (bytes) {
+        if (!mounted) return;
+        widget.controller.coverBytes.value = bytes;
+        widget.controller.coverFileName.value = file.name;
+      },
+    );
+    _pendingReadCancels.add(cancel);
   }
 
   // ── Build ──
@@ -302,7 +262,7 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
             Expanded(
               child: ListView.separated(
                 itemCount: files.length,
-                separatorBuilder: (_, __) => const SizedBox(height: 8),
+                separatorBuilder: (_, _) => const SizedBox(height: 8),
                 itemBuilder: (_, i) {
                   final f = files[i];
                   return Container(
@@ -359,7 +319,16 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
 
       // Empty drop zone — with real HTML5 drag & drop
       return _HtmlDropTarget(
-        onSetup: _setupFileDropZone,
+        onDragOver: () {
+          if (mounted) setState(() => _isFileDragOver = true);
+        },
+        onDragLeave: () {
+          if (mounted) setState(() => _isFileDragOver = false);
+        },
+        onDrop: (dropped) {
+          if (mounted) setState(() => _isFileDragOver = false);
+          if (dropped.isNotEmpty) _handleDroppedFiles(dropped);
+        },
         onClick: ctrl.pickReleaseFiles,
         child: MouseRegion(
           cursor: SystemMouseCursors.click,
@@ -447,7 +416,16 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
 
     // Empty cover zone — with real HTML5 drag & drop
     return _HtmlDropTarget(
-      onSetup: _setupCoverDropZone,
+      onDragOver: () {
+        if (mounted) setState(() => _isCoverDragOver = true);
+      },
+      onDragLeave: () {
+        if (mounted) setState(() => _isCoverDragOver = false);
+      },
+      onDrop: (dropped) {
+        if (mounted) setState(() => _isCoverDragOver = false);
+        if (dropped.isNotEmpty) _handleDroppedCover(dropped.first);
+      },
       onClick: ctrl.pickCoverImage,
       child: MouseRegion(
         cursor: SystemMouseCursors.click,
@@ -840,13 +818,17 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
 /// a transparent overlay `<div>` on top of the Flutter widget's bounding box.
 class _HtmlDropTarget extends StatefulWidget {
   final Widget child;
-  final void Function(html.Element element) onSetup;
   final VoidCallback? onClick;
+  final VoidCallback? onDragOver;
+  final VoidCallback? onDragLeave;
+  final void Function(List<ReleaseDroppedFile> files)? onDrop;
 
   const _HtmlDropTarget({
     required this.child,
-    required this.onSetup,
     this.onClick,
+    this.onDragOver,
+    this.onDragLeave,
+    this.onDrop,
   });
 
   @override
@@ -854,7 +836,7 @@ class _HtmlDropTarget extends StatefulWidget {
 }
 
 class _HtmlDropTargetState extends State<_HtmlDropTarget> {
-  html.DivElement? _overlay;
+  ReleaseDropOverlayHandle? _overlay;
   final GlobalKey _key = GlobalKey();
 
   @override
@@ -865,35 +847,30 @@ class _HtmlDropTargetState extends State<_HtmlDropTarget> {
 
   @override
   void dispose() {
-    _overlay?.remove();
+    _overlay?.dispose();
+    _overlay = null;
     super.dispose();
   }
 
   void _createOverlay() {
+    if (!mounted) return;
     final renderBox = _key.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
     final offset = renderBox.localToGlobal(Offset.zero);
     final size = renderBox.size;
 
-    _overlay = html.DivElement()
-      ..style.position = 'fixed'
-      ..style.left = '${offset.dx}px'
-      ..style.top = '${offset.dy}px'
-      ..style.width = '${size.width}px'
-      ..style.height = '${size.height}px'
-      ..style.zIndex = '999'
-      ..style.cursor = 'pointer'
-      ..style.opacity = '0';
-
-    if (widget.onClick != null) {
-      _overlay!.onClick.listen((_) {
-        widget.onClick!();
-      });
-    }
-
-    html.document.body!.append(_overlay!);
-    widget.onSetup(_overlay!);
+    _overlay?.dispose();
+    _overlay = mountReleaseDropOverlay(
+      left: offset.dx,
+      top: offset.dy,
+      width: size.width,
+      height: size.height,
+      onClick: widget.onClick,
+      onDragOver: widget.onDragOver,
+      onDragLeave: widget.onDragLeave,
+      onDrop: widget.onDrop,
+    );
   }
 
   @override
@@ -904,18 +881,19 @@ class _HtmlDropTargetState extends State<_HtmlDropTarget> {
   }
 
   void _repositionOverlay() {
-    if (_overlay == null) return;
+    if (!mounted || _overlay == null) return;
     final renderBox = _key.currentContext?.findRenderObject() as RenderBox?;
     if (renderBox == null) return;
 
     final offset = renderBox.localToGlobal(Offset.zero);
     final size = renderBox.size;
 
-    _overlay!
-      ..style.left = '${offset.dx}px'
-      ..style.top = '${offset.dy}px'
-      ..style.width = '${size.width}px'
-      ..style.height = '${size.height}px';
+    _overlay!.reposition(
+      left: offset.dx,
+      top: offset.dy,
+      width: size.width,
+      height: size.height,
+    );
   }
 
   @override

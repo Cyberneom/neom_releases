@@ -5,3 +5,27 @@ dependency_overrides:
     path: ../../main/neom_core
   neom_commons:
     path: ../../main/neom_commons
+  sint_sentinel:
+    path: ../../framework/sint_sentinel
+  neom_books:
+    path: ../../content/neom_books
+  neom_codecs:
+    path: ../../main/neom_codecs
+  neom_google_books:
+    path: ../../content/neom_google_books
+  neom_google_places:
+    path: ../../content/neom_google_places
+  neom_itemlists:
+    path: ../../content/neom_itemlists
+  neom_maps_services:
+    path: ../../content/neom_maps_services
+  neom_media_player:
+    path: ../../media/neom_media_player
+  neom_rooms:
+    path: ../../social/neom_rooms
+  neom_sound:
+    path: ../../hardware/neom_sound
+  neom_tts:
+    path: ../../ai/neom_tts
+  saia_core:
+    path: ../../ai/saia_core

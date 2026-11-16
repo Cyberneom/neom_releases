@@ -4,6 +4,7 @@ import 'package:neom_core/app_config.dart';
 import 'package:neom_core/domain/model/app_release_item.dart';
 import 'package:neom_core/domain/model/item_list.dart';
 import 'package:neom_core/domain/model/place.dart';
+import 'package:neom_core/utils/core_utilities.dart';
 import 'package:neom_core/utils/enums/release_type.dart';
 import 'package:neom_core/utils/neom_error_logger.dart';
 import 'package:sint/sint.dart';
@@ -31,6 +32,121 @@ enum ReleaseUploadStep {
 
 /// Model to store the cached release upload state
 class ReleaseCacheDraft {
+  static int _draftSeq = 0;
+  static final RegExp _unsafeDraftChars = RegExp(
+    r'[\x00-\x1F\x7F-\x9F\u0085\u061C\u200B-\u200F\u2028\u2029\u202A-\u202E\u2060-\u2069\uFEFF]',
+  );
+  static final RegExp _unsafeDraftTextChars = RegExp(
+    r'[\x00-\x1F\x7F-\x9F\u0085\u061C\u200B\u200C\u200E\u200F\u2028\u2029\u202A-\u202E\u2060-\u2069\uFEFF]',
+  );
+  static final RegExp _draftInternalTags = RegExp(
+    r'<\|(?:channel|turn)\s*>\s*thought\b[\s\S]*?(?:<(?:channel|turn)\|>|$)'
+    r'|<\|tool_call\s*>[\s\S]*?(?:<tool_call\|>|$)'
+    r'|<\s*(think|thinking|thought|memory_recall|auto_memory|system_context)\b[^>]*>[\s\S]*?(?:<\s*/\s*\1\s*>|$)'
+    r'|<\s*/?\s*(?:think|thinking|thought|memory_recall|auto_memory|system_context)\b[^>]*>'
+    r'|\[\s*(BIOCHIP|MEMORY_RECALL|AUTO_MEMORY|SYSTEM_CONTEXT)\b[^\]]*\](?:(?!\[\s*\2\b)[\s\S])*?\[\s*/\s*\2\s*\]'
+    r'|\[\s*/?\s*(?:BIOCHIP|MEMORY_RECALL|AUTO_MEMORY|SYSTEM_CONTEXT)\b[^\]]*\]'
+    r'|<(?:channel|turn|tool_call)\|>|<\|/?(?:turn|channel|tool_call|im_start|im_end|eot_id)\|?>',
+    caseSensitive: false,
+  );
+  static final RegExp _encodedDraftPathUnsafeRe = RegExp(
+    r'%(?:00|2e|2f|5c|25|c2%[89][0-9a-f]|d8%9c|e2%80%(?:8[b-f]|a[8-e])|e2%81%a[0-9]|ef%bb%bf)',
+    caseSensitive: false,
+  );
+  static const Set<String> _sensitiveLocalSegments = <String>{
+    '.ssh',
+    '.aws',
+    '.gnupg',
+    '.kube',
+    'kubeconfig',
+    '.docker',
+    '.git',
+    '.env',
+    '.secret.local',
+    '.npmrc',
+    '.netrc',
+    'id_rsa',
+    'id_ed25519',
+    'cookies.sqlite',
+  };
+  static final RegExp _urlBasicAuthPattern = RegExp(
+    r'(https?://)[^\s/@:]+:[^\s/@]+@',
+    caseSensitive: false,
+  );
+  static final RegExp _inlineSecretPattern = RegExp(
+    r'(?:Bearer\s+[A-Za-z0-9._~+/=-]+|(?:sk|rk)_(?:live|test)_[A-Za-z0-9_-]{12,}|sk-[A-Za-z0-9_-]{12,}|hf_[A-Za-z0-9]{16,}|AIza[0-9A-Za-z_-]{20,}|gh[pousr]_[A-Za-z0-9_]{20,}|github_pat_[A-Za-z0-9_]{20,}|glpat-[A-Za-z0-9_-]{20,}|AKIA[0-9A-Z]{16}|([?&](?:api_key|token|access_token|refresh_token|session_token|client_secret|secret|sig|signature)=)[^&\s]+)',
+    caseSensitive: false,
+  );
+
+  static String? sanitizeDraftError(Object? raw) {
+    if (raw == null) return null;
+    final cleaned = raw
+        .toString()
+        .replaceAll(_draftInternalTags, '')
+        .replaceAll(_unsafeDraftTextChars, ' ')
+        .replaceAllMapped(_urlBasicAuthPattern, (m) => '${m.group(1)}[REDACTED]@')
+        .replaceAllMapped(
+          _inlineSecretPattern,
+          (m) => m.group(1) != null ? '${m.group(1)}[REDACTED]' : '[REDACTED]',
+        )
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
+    if (cleaned.isEmpty) return null;
+    if (cleaned.length <= 1024) return cleaned;
+    var end = 1024;
+    final prev = cleaned.codeUnitAt(end - 1);
+    if (prev >= 0xD800 && prev <= 0xDBFF) end -= 1;
+    return end <= 0 ? null : cleaned.substring(0, end);
+  }
+
+  static String? _cleanLocalDraftPath(Object? raw) {
+    if (raw == null) return null;
+    final rawStr = raw.toString();
+    if (_unsafeDraftChars.hasMatch(rawStr) ||
+        _encodedDraftPathUnsafeRe.hasMatch(rawStr)) {
+      return null;
+    }
+    final clean = rawStr.trim();
+    if (clean.isEmpty ||
+        clean.length > 4096 ||
+        clean.startsWith('//') ||
+        clean.startsWith(r'\\')) {
+      return null;
+    }
+    final norm = clean.replaceAll('\\', '/');
+    final lower = norm.toLowerCase();
+    if (lower.startsWith('/etc/') ||
+        lower.startsWith('/private/etc/') ||
+        lower.startsWith('/proc/') ||
+        lower.startsWith('/sys/')) {
+      return null;
+    }
+    for (final seg in norm.split('/')) {
+      if (seg.isEmpty) continue;
+      final segLower = seg.toLowerCase();
+      if (seg == '..' ||
+          _sensitiveLocalSegments.contains(segLower) ||
+          segLower.startsWith('.env.') ||
+          segLower.contains('firebase-adminsdk')) {
+        return null;
+      }
+    }
+    return clean;
+  }
+
+  static String? _cleanRemoteUrl(Object? raw) {
+    if (raw == null) return null;
+    final rawStr = raw.toString();
+    if (_unsafeDraftChars.hasMatch(rawStr)) return null;
+    final candidate = rawStr.trim();
+    if (candidate.isEmpty || candidate.length > 2048 || candidate.contains(r'\')) {
+      return null;
+    }
+    final uri = Uri.tryParse(candidate);
+    if (!CoreUtilities.isSafePublicMediaUri(uri)) return null;
+    return uri.toString();
+  }
+
   String id;
   String ownerId;
   ReleaseUploadStep lastCompletedStep;
@@ -62,10 +178,11 @@ class ReleaseCacheDraft {
     this.isAutoPublished = false,
     this.publishedYear = 0,
     this.currentItemIndex = 0,
-    this.errorMessage,
+    String? errorMessage,
     DateTime? createdAt,
     DateTime? updatedAt,
-  }) : id = id ?? DateTime.now().millisecondsSinceEpoch.toString(),
+  }) : id = id ?? '${DateTime.now().millisecondsSinceEpoch}_${++_draftSeq}',
+       errorMessage = sanitizeDraftError(errorMessage),
        releaseItems = releaseItems ?? [],
        releaseFilePaths = releaseFilePaths ?? [],
        createdAt = createdAt ?? DateTime.now(),
@@ -92,34 +209,103 @@ class ReleaseCacheDraft {
     };
   }
 
+  static int? _parseNullableInt(Object? raw) {
+    if (raw == null) return null;
+    if (raw is num) {
+      if (!raw.isFinite) return null;
+      return raw is int ? raw : raw.toInt();
+    }
+    if (raw is String) {
+      final t = raw.trim();
+      final asInt = int.tryParse(t);
+      if (asInt != null) return asInt;
+      final asDouble = double.tryParse(t);
+      if (asDouble != null && asDouble.isFinite) return asDouble.toInt();
+    }
+    return null;
+  }
+
+  static ReleaseUploadStep _parseStep(Object? raw) {
+    final idx = _parseNullableInt(raw);
+    if (idx != null && idx >= 0 && idx < ReleaseUploadStep.values.length) {
+      return ReleaseUploadStep.values[idx];
+    }
+    if (raw is String) {
+      final clean = raw.trim();
+      for (final step in ReleaseUploadStep.values) {
+        if (step.name == clean) return step;
+      }
+    }
+    return ReleaseUploadStep.initial;
+  }
+
+  static ReleaseType? _parseReleaseType(Object? raw) {
+    if (raw == null) return null;
+    final idx = _parseNullableInt(raw);
+    if (idx != null && idx >= 0 && idx < ReleaseType.values.length) {
+      return ReleaseType.values[idx];
+    }
+    if (raw is String) {
+      final clean = raw.trim();
+      for (final rt in ReleaseType.values) {
+        if (rt.name == clean) return rt;
+      }
+    }
+    return null;
+  }
+
+  static DateTime _parseEpoch(Object? raw) {
+    final ms = _parseNullableInt(raw);
+    if (ms != null && ms > 0 && ms <= 8640000000000000) {
+      return DateTime.fromMillisecondsSinceEpoch(ms);
+    }
+    return DateTime.now();
+  }
+
   factory ReleaseCacheDraft.fromJson(Map<String, dynamic> json) {
+    final rawItemlist = json['itemlist'];
+    final rawPlace = json['publisherPlace'];
+    final rawItems = json['releaseItems'];
+    final rawPaths = json['releaseFilePaths'];
+    final parsedIndex = _parseNullableInt(json['currentItemIndex']) ?? 0;
+
+    final rawId = json['id']?.toString().trim() ?? '';
     return ReleaseCacheDraft(
-      id: json['id'] as String,
-      ownerId: json['ownerId'] as String,
-      lastCompletedStep: ReleaseUploadStep.values[json['lastCompletedStep'] as int],
-      releaseType: json['releaseType'] != null
-          ? ReleaseType.values[json['releaseType'] as int]
+      id: ReleaseHiveController.isSafeDraftId(rawId) ? rawId : null,
+      ownerId: (json['ownerId']?.toString() ?? '')
+          .replaceAll(_unsafeDraftChars, '')
+          .trim(),
+      lastCompletedStep: _parseStep(json['lastCompletedStep']),
+      releaseType: _parseReleaseType(json['releaseType']),
+      itemlist: rawItemlist is Map
+          ? Itemlist.fromJSON(Map<String, dynamic>.from(rawItemlist))
           : null,
-      itemlist: json['itemlist'] != null
-          ? Itemlist.fromJSON(json['itemlist'] as Map<String, dynamic>)
+      releaseItems: rawItems is List
+          ? rawItems
+                .whereType<Map>()
+                .take(ReleaseHiveController.maxFilesPerDraft)
+                .map((e) => AppReleaseItem.fromJSON(Map<String, dynamic>.from(e)))
+                .toList()
+          : <AppReleaseItem>[],
+      releaseFilePaths: rawPaths is List
+          ? rawPaths
+                .take(ReleaseHiveController.maxFilesPerDraft)
+                .map(_cleanLocalDraftPath)
+                .whereType<String>()
+                .toList()
+          : <String>[],
+      coverImageLocalPath: _cleanLocalDraftPath(json['coverImageLocalPath']),
+      coverImageRemoteUrl: _cleanRemoteUrl(json['coverImageRemoteUrl']),
+      publisherPlace: rawPlace is Map
+          ? Place.fromJSON(Map<String, dynamic>.from(rawPlace))
           : null,
-      releaseItems: (json['releaseItems'] as List<dynamic>?)
-          ?.map((e) => AppReleaseItem.fromJSON(e as Map<String, dynamic>))
-          .toList() ?? [],
-      releaseFilePaths: (json['releaseFilePaths'] as List<dynamic>?)
-          ?.map((e) => e as String)
-          .toList() ?? [],
-      coverImageLocalPath: json['coverImageLocalPath'] as String?,
-      coverImageRemoteUrl: json['coverImageRemoteUrl'] as String?,
-      publisherPlace: json['publisherPlace'] != null
-          ? Place.fromJSON(json['publisherPlace'] as Map<String, dynamic>)
-          : null,
-      isAutoPublished: json['isAutoPublished'] as bool? ?? false,
-      publishedYear: json['publishedYear'] as int? ?? 0,
-      currentItemIndex: json['currentItemIndex'] as int? ?? 0,
-      errorMessage: json['errorMessage'] as String?,
-      createdAt: DateTime.fromMillisecondsSinceEpoch(json['createdAt'] as int),
-      updatedAt: DateTime.fromMillisecondsSinceEpoch(json['updatedAt'] as int),
+      isAutoPublished: json['isAutoPublished'] == true ||
+          json['isAutoPublished']?.toString().toLowerCase() == 'true',
+      publishedYear: (_parseNullableInt(json['publishedYear']) ?? 0).clamp(0, 9999),
+      currentItemIndex: parsedIndex < 0 ? 0 : parsedIndex,
+      errorMessage: sanitizeDraftError(json['errorMessage']),
+      createdAt: _parseEpoch(json['createdAt']),
+      updatedAt: _parseEpoch(json['updatedAt']),
     );
   }
 
@@ -182,6 +368,14 @@ class ReleaseCacheController extends SintController {
   void onInit() {
     super.onInit();
     _loadExistingDraft();
+  }
+
+  @override
+  void onClose() {
+    currentDraft.close();
+    hasPendingDraft.close();
+    isLoading.close();
+    super.onClose();
   }
 
   /// Load any existing draft from Hive
@@ -250,7 +444,9 @@ class ReleaseCacheController extends SintController {
     if (isAutoPublished != null) draft.isAutoPublished = isAutoPublished;
     if (publishedYear != null) draft.publishedYear = publishedYear;
     if (currentItemIndex != null) draft.currentItemIndex = currentItemIndex;
-    if (errorMessage != null) draft.errorMessage = errorMessage;
+    if (errorMessage != null) {
+      draft.errorMessage = ReleaseCacheDraft.sanitizeDraftError(errorMessage);
+    }
 
     draft.updatedAt = DateTime.now();
     currentDraft.value = draft;

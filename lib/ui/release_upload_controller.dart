@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:palette_generator/palette_generator.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:neom_commons/ui/theme/app_theme.dart';
@@ -191,8 +190,6 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
 
       // Initialize cache controller
       cacheController = Sint.put(ReleaseCacheController());
-
-      scrollController = ScrollController();
 
       if (!kIsWeb) {
         rubberAnimationController = RubberAnimationController(vsync: this, duration: const Duration(milliseconds: 20));
@@ -406,15 +403,17 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     durationController.dispose();
     paymentAmountController.dispose();
     physicalPriceController.dispose();
+    shippingCityController.dispose();
+    shippingStateController.dispose();
+    shippingDaysController.dispose();
 
-    if(scrollController.hasClients) {
-      scrollController.dispose();
-    }
+    scrollController.dispose();
 
     try { rubberAnimationController?.dispose(); } catch (_) {}
     try { releaseUploadDetailsAnimationController?.dispose(); } catch (_) {}
 
     audioLitePlayerServiceImpl?.clear();
+    super.onClose();
   }
 
   @override
@@ -545,7 +544,6 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     update([AppPageIdConstants.releaseUpload]);
   }
 
-  @override
   /// Storage name for an uploaded release file, relative to `releaseItems/`.
   ///
   /// The file used to be stored under its title alone, in one folder shared
@@ -562,6 +560,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     return slug.isEmpty ? '$owner/$createdTime' : '$owner/${createdTime}_$slug';
   }
 
+  @override
   Future<void> uploadReleaseItem() async {
     if (_isUploadingRelease) {
       AppConfig.logger.w("uploadReleaseItem: upload already in progress, ignoring duplicate call.");
@@ -661,14 +660,31 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       // Extract dominant color from cover image bytes
       if (releaseCoverImgBytes != null) {
         try {
-          final palette = await PaletteGenerator.fromImageProvider(
-            MemoryImage(releaseCoverImgBytes!),
-            size: const Size(60, 60),
-            maximumColorCount: 5,
+          final scheme = await ColorScheme.fromImageProvider(
+            provider: MemoryImage(releaseCoverImgBytes!),
+            brightness: Brightness.dark,
           );
-          final color = palette.vibrantColor?.color ?? palette.dominantColor?.color ?? palette.mutedColor?.color;
+          final candidates = <Color>[
+            scheme.primary,
+            scheme.primaryContainer,
+            scheme.secondary,
+            scheme.surface,
+          ];
+          Color? color;
+          for (final candidate in candidates) {
+            final hsl = HSLColor.fromColor(candidate);
+            if (candidate.a > 0 &&
+                hsl.saturation >= 0.12 &&
+                hsl.lightness >= 0.12 &&
+                hsl.lightness <= 0.88) {
+              color = candidate;
+              break;
+            }
+          }
+          color ??= scheme.primary.a > 0 ? scheme.primary : null;
           if (color != null) {
-            final hex = '#${color.value.toRadixString(16).substring(2, 8).toUpperCase()}';
+            final hex =
+                '#${color.toARGB32().toRadixString(16).padLeft(8, '0').substring(2, 8).toUpperCase()}';
             releaseItemlist.dominantColor = hex;
             for (var item in appReleaseItems) {
               item.dominantColor = hex;
@@ -1118,6 +1134,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     }
 
     try {
+      final position = releaseItemlist.position ?? profile.position;
       Post post = Post(
         type: PostType.releaseItem,
         profileName: profile.name,
@@ -1125,8 +1142,10 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
         ownerId: profile.id,
         mediaUrl: releaseItemlist.imgUrl,
         referenceId: releaseItemlist.appReleaseItems?.first.id ?? '',
-        position: releaseItemlist.position ?? profile.position,
-        location: await GeoLocatorController().getAddressSimple(releaseItemlist.position ?? profile.position!),
+        position: position,
+        location: position != null
+            ? await GeoLocatorController().getAddressSimple(position)
+            : '',
         isCommentEnabled: true,
         createdTime: DateTime.now().millisecondsSinceEpoch,
         caption: postCaption,
@@ -1864,8 +1883,9 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       releaseItemlist.ownerId = selectedCollective.value.id;
       releaseItemlist.ownerName = selectedCollective.value.name;
       releaseItemlist.ownerType = OwnerType.collective;
-      if (selectedCollective.value.position?.latitude != 0.0) {
-        releaseItemlist.position = selectedCollective.value.position!;
+      final collectivePos = selectedCollective.value.position;
+      if (collectivePos != null && collectivePos.latitude != 0.0) {
+        releaseItemlist.position = collectivePos;
       }
 
       // Save progress to cache
@@ -1898,8 +1918,9 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       releaseItemlist.ownerName = authorController.text.trim();
       releaseItemlist.ownerType = OwnerType.profile;
 
-      if (profile.position?.latitude != 0.0) {
-        releaseItemlist.position = profile.position!;
+      final profilePos = profile.position;
+      if (profilePos != null && profilePos.latitude != 0.0) {
+        releaseItemlist.position = profilePos;
       }
 
       // Save progress to cache
@@ -1995,8 +2016,9 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
     releaseItemlist.ownerId = profile.id;
     releaseItemlist.ownerName = authorController.text.trim();
     releaseItemlist.ownerType = OwnerType.profile;
-    if (profile.position?.latitude != 0.0) {
-      releaseItemlist.position = profile.position!;
+    final profilePos = profile.position;
+    if (profilePos != null && profilePos.latitude != 0.0) {
+      releaseItemlist.position = profilePos;
     }
 
     update([AppPageIdConstants.releaseUpload]);
