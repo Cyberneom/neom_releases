@@ -73,7 +73,7 @@ import 'package:neom_core/utils/neom_error_logger.dart';
 import 'package:neom_core/utils/neom_flow_tracker.dart';
 import 'package:neom_core/utils/platform/core_io.dart';
 import 'package:neom_maps_services/domain/models/prediction.dart';
-import 'package:pdfx/pdfx.dart';
+import 'package:pdfrx/pdfrx.dart' as pdfrx;
 import 'package:rubber/rubber.dart';
 import 'package:sint/sint.dart';
 
@@ -1778,9 +1778,9 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
   Future<void> _extractPdfPageCount(String pdfPath) async {
     try {
       AppConfig.logger.d("Extracting PDF page count from: $pdfPath");
-      final document = await PdfDocument.openFile(pdfPath);
-      final pageCount = document.pagesCount;
-      await document.close();
+      final document = await pdfrx.PdfDocument.openFile(pdfPath);
+      final pageCount = document.pages.length;
+      await document.dispose();
 
       appReleaseItem.value.duration = pageCount;
       durationController.text = pageCount.toString();
