@@ -413,7 +413,7 @@ class ReleaseUploadWebModal extends StatelessWidget {
                 label: Text(AppTranslationConstants.continueExploring.tr,
                     style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Sint.pop();
                   // Go home to see new release
                   Sint.offAllNamed(AppRouteConstants.home);
                 },
@@ -427,7 +427,7 @@ class ReleaseUploadWebModal extends StatelessWidget {
 
   void _close(BuildContext context, ReleaseUploadWebController ctrl) {
     if (ctrl.isUploading.value) return; // Don't close during upload
-    Navigator.of(context).pop();
+    Sint.pop();
     Sint.delete<ReleaseUploadWebController>();
   }
 }

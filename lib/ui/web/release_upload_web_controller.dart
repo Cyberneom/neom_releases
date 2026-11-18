@@ -3,8 +3,8 @@ import 'dart:typed_data';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:neom_commons/app_flavour.dart';
 import 'package:flutter/services.dart' show rootBundle;
+import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_core/app_config.dart';
 import 'package:neom_core/domain/model/address.dart';
 import 'package:neom_core/domain/model/app_release_item.dart';
@@ -20,6 +20,75 @@ import 'package:neom_core/utils/enums/media_item_type.dart';
 import 'package:neom_core/utils/enums/release_type.dart';
 import 'package:neom_core/utils/neom_error_logger.dart';
 import 'package:sint/sint.dart';
+
+/// In-memory [PlatformFile] wrapper retaining loaded [bytes] and [size] for
+/// synchronous web release UI phases (`file_picker` 13+ compatibility).
+final class ReleasePickedFile extends PlatformFile {
+  ReleasePickedFile({
+    required this.name,
+    required int size,
+    Uint8List? bytes,
+    this.path,
+    Uri? uri,
+  })  : _size = size,
+        _bytes = bytes,
+        uri = uri ?? _safeUriFromPath(path);
+
+  static Uri _safeUriFromPath(String? path) {
+    if (path == null || path.isEmpty) return Uri();
+    try {
+      return Uri.file(path);
+    } catch (_) {
+      return Uri();
+    }
+  }
+
+  @override
+  final String name;
+  final int _size;
+  final Uint8List? _bytes;
+
+  @override
+  final String? path;
+
+  @override
+  final Uri uri;
+
+  @override
+  Never get xFile => throw UnimplementedError();
+
+  @override
+  int? lengthSync() => _size;
+
+  @override
+  Future<int?> length() async => _size;
+
+  @override
+  Future<Uint8List> readAsBytes() async => _bytes ?? Uint8List(0);
+
+  @override
+  Stream<Uint8List> readAsByteStream() {
+    final data = _bytes;
+    return data == null || data.isEmpty
+        ? const Stream<Uint8List>.empty()
+        : Stream<Uint8List>.value(data);
+  }
+}
+
+/// Preserves synchronous `.size` and `.bytes` access across web release UI phases.
+extension ReleasePlatformFileCompat on PlatformFile {
+  int get size {
+    final self = this;
+    if (self is ReleasePickedFile) return self._size;
+    return lengthSync() ?? 0;
+  }
+
+  Uint8List? get bytes {
+    final self = this;
+    if (self is ReleasePickedFile) return self._bytes;
+    return null;
+  }
+}
 
 /// Lightweight controller for the web release upload modal.
 /// Delegates actual upload to ReleaseUploadController.
@@ -126,11 +195,16 @@ class ReleaseUploadWebController extends SintController {
         releaseFiles.isNotEmpty;
   }
 
+  UserService? get _userService =>
+      Sint.isRegistered<UserService>() ? Sint.find<UserService>() : null;
+
   @override
   void onInit() {
     super.onInit();
-    final user = Sint.find<UserService>();
-    authorController.text = user.profile.name;
+    final user = _userService;
+    if (user != null) {
+      authorController.text = user.profile.name;
+    }
 
     // Keep reactive text fields in sync for Obx-driven button state
     titleController.addListener(() {
@@ -181,6 +255,34 @@ class ReleaseUploadWebController extends SintController {
     shippingCityController.dispose();
     shippingStateController.dispose();
     shippingDaysController.dispose();
+    phase.close();
+    isUploading.close();
+    hasSharedPost.close();
+    uploadProgress.close();
+    uploadStatus.close();
+    releaseType.close();
+    itemlistType.close();
+    artIsOriginal.close();
+    artIsSigned.close();
+    artIsFramed.close();
+    artIncludesShipping.close();
+    selectedInstruments.close();
+    selectedInstrument.close();
+    instrumentNames.close();
+    selectedGenres.close();
+    genreNames.close();
+    selectedGenre.close();
+    isSelfPublished.close();
+    publishedYear.close();
+    isPhysical.close();
+    shippingIncluded.close();
+    coverBytes.close();
+    coverFileName.close();
+    releaseFiles.close();
+    masteredTrackIndices.close();
+    trackNames.close();
+    _titleText.close();
+    _descText.close();
     super.onClose();
   }
 
@@ -272,28 +374,50 @@ class ReleaseUploadWebController extends SintController {
 
   // ── File picking ──
   Future<void> pickCoverImage() async {
-    final result = await FilePicker.pickFiles(
+    final picked = await FilePicker.pickFile(
       type: FileType.image,
-      withData: true,
     );
-    if (result != null && result.files.isNotEmpty) {
-      coverBytes.value = result.files.first.bytes;
-      coverFileName.value = result.files.first.name;
+    if (picked != null) {
+      final bytes = await picked.readAsBytes();
+      if (bytes.isNotEmpty) {
+        coverBytes.value = bytes;
+        coverFileName.value = picked.name;
+      }
     }
   }
 
   Future<void> pickReleaseFiles() async {
-    final result = await FilePicker.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: acceptedExtensions,
-      allowMultiple: isAlbum || isArtwork,
-      withData: true,
-    );
-    if (result != null && result.files.isNotEmpty) {
+    final List<PlatformFile> pickedFiles;
+    if (isAlbum || isArtwork) {
+      pickedFiles = await FilePicker.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: acceptedExtensions,
+      );
+    } else {
+      final single = await FilePicker.pickFile(
+        type: FileType.custom,
+        allowedExtensions: acceptedExtensions,
+      );
+      pickedFiles = single == null ? const [] : <PlatformFile>[single];
+    }
+    if (pickedFiles.isNotEmpty) {
+      final loaded = <PlatformFile>[];
+      for (final f in pickedFiles) {
+        final data = await f.readAsBytes();
+        loaded.add(
+          ReleasePickedFile(
+            name: f.name,
+            size: data.isNotEmpty ? data.length : (f.lengthSync() ?? 0),
+            bytes: data,
+            path: f.path,
+            uri: f.uri,
+          ),
+        );
+      }
       if (isSingle) {
-        releaseFiles.assignAll([result.files.first]);
+        releaseFiles.assignAll([loaded.first]);
       } else {
-        releaseFiles.addAll(result.files);
+        releaseFiles.addAll(loaded);
       }
     }
   }
@@ -308,7 +432,7 @@ class ReleaseUploadWebController extends SintController {
 
   /// Add a file from raw bytes (used by HTML5 drag & drop).
   void addFileFromRawBytes(String name, Uint8List bytes) {
-    final file = PlatformFile(name: name, size: bytes.length, bytes: bytes);
+    final file = ReleasePickedFile(name: name, size: bytes.length, bytes: bytes);
     if (isSingle) {
       releaseFiles.assignAll([file]);
     } else {
@@ -343,10 +467,12 @@ class ReleaseUploadWebController extends SintController {
     );
 
     if (result != null && result.bytes != null && result.bytes!.isNotEmpty) {
-      releaseFiles[index] = PlatformFile(
+      releaseFiles[index] = ReleasePickedFile(
         name: result.fileName,
         size: result.bytes!.length,
         bytes: result.bytes,
+        path: file.path,
+        uri: file.uri,
       );
       masteredTrackIndices.add(index);
     } else if (result != null && result.hasMasterAsset) {
@@ -365,12 +491,12 @@ class ReleaseUploadWebController extends SintController {
 
   List<AppReleaseItem> buildReleaseItems() {
     final items = <AppReleaseItem>[];
-    final user = Sint.find<UserService>();
+    final ownerEmail = _userService?.user.email ?? '';
 
     Price? physicalPrice;
     if (isPhysical.value && physicalPriceController.text.trim().isNotEmpty) {
       final physAmt = double.tryParse(physicalPriceController.text.trim());
-      if (physAmt != null && physAmt > 0) {
+      if (physAmt != null && physAmt.isFinite && physAmt > 0) {
         physicalPrice = Price(amount: physAmt, currency: AppCurrency.mxn);
       }
     }
@@ -399,7 +525,7 @@ class ReleaseUploadWebController extends SintController {
       items.add(AppReleaseItem(
         name: name,
         description: descController.text.trim(),
-        ownerEmail: user.user.email,
+        ownerEmail: ownerEmail,
         ownerName: authorController.text.trim(),
         type: ReleaseType.artwork,
         mediaType: MediaItemType.artwork,
@@ -428,7 +554,7 @@ class ReleaseUploadWebController extends SintController {
       items.add(AppReleaseItem(
         name: name,
         description: descController.text.trim(),
-        ownerEmail: user.user.email,
+        ownerEmail: ownerEmail,
         ownerName: authorController.text.trim(),
         type: isSingle ? ReleaseType.single : ReleaseType.album,
         mediaType: singleAcceptsPdf ? MediaItemType.pdf : MediaItemType.song,

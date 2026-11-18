@@ -1,15 +1,15 @@
-import 'package:universal_html/html.dart' as html;
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:neom_books/ui/pdf_viewer/pdf_web_viewer_stub.dart'
-    if (dart.library.html) 'package:neom_books/ui/pdf_viewer/pdf_web_viewer_impl.dart';
+    if (dart.library.js_interop) 'package:neom_books/ui/pdf_viewer/pdf_web_viewer_impl.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:sint/sint.dart';
 
 import '../../../utils/constants/release_translation_constants.dart';
 import '../release_upload_web_controller.dart';
+import 'release_web_dom_bridge.dart';
 
 /// Phase 3: Summary with preview + upload button.
 class ReleaseSummaryPhase extends StatefulWidget {
@@ -38,11 +38,28 @@ class _ReleaseSummaryPhaseState extends State<ReleaseSummaryPhase>
     _pulseController = AnimationController(
       duration: const Duration(milliseconds: 1800),
       vsync: this,
-    )..repeat(reverse: true);
+    );
 
     _pulseAnimation = Tween<double>(begin: 0.6, end: 1.0).animate(
       CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
+    _syncPulseAnimation();
+  }
+
+  @override
+  void didUpdateWidget(covariant ReleaseSummaryPhase oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncPulseAnimation();
+  }
+
+  void _syncPulseAnimation() {
+    if (widget.controller.singleAcceptsPdf) {
+      if (!_pulseController.isAnimating) {
+        _pulseController.repeat(reverse: true);
+      }
+    } else if (_pulseController.isAnimating) {
+      _pulseController.stop();
+    }
   }
 
   @override
@@ -324,15 +341,15 @@ class _ReleaseSummaryPhaseState extends State<ReleaseSummaryPhase>
     final bytes = file.bytes;
     if (bytes == null) return;
 
-    // Create blob URL from raw bytes
-    final blob = html.Blob([Uint8List.fromList(bytes)], 'application/pdf');
-    final blobUrl = html.Url.createObjectUrlFromBlob(blob);
+    // Create blob URL from raw bytes and revoke it when the preview closes
+    final blobUrl = createReleasePdfBlobUrl(Uint8List.fromList(bytes));
+    if (blobUrl.isEmpty) return;
 
     showDialog(
       context: context,
       barrierColor: Colors.black87,
       builder: (ctx) => _PdfPreviewDialog(url: blobUrl, fileName: file.name),
-    );
+    ).whenComplete(() => revokeReleasePdfBlobUrl(blobUrl));
   }
 }
 
@@ -364,7 +381,7 @@ class _PdfPreviewDialog extends StatelessWidget {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.close, color: Colors.white70, size: 20),
-                      onPressed: () => Navigator.pop(context),
+                      onPressed: () => Sint.pop(),
                     ),
                     const SizedBox(width: 8),
                     Expanded(

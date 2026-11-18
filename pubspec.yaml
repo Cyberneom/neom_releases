@@ -1,6 +1,6 @@
 name: neom_releases
 description: Release Upload for Open Neom.
-version: 1.5.0
+version: 1.5.1
 homepage: https://github.com/Cyberneom/neom_releases
 publish_to: 'none'
 
@@ -12,6 +12,8 @@ dependencies:
   flutter:
     sdk: flutter
 
+  sint: ^2.0.2
+
   neom_core:
     git:
       url: git@github.com:Open-Neom/neom_core.git
@@ -22,16 +24,19 @@ dependencies:
     git:
       url: git@github.com:Cyberneom/neom_books.git
 
-  file_picker: ^11.0.2
+  file_picker: ^13.3.3
+
   percent_indicator: ^4.2.5
-  pdfx: ^2.6.0
-  universal_html: ^2.2.4
-  palette_generator: ^0.3.3+4
+  pdfrx: ^2.12.1
+
+  rubber: ^2.1.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
 
   flutter_lints: ^6.0.0
+
+
 
 flutter:

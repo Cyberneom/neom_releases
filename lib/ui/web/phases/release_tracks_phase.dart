@@ -1,13 +1,10 @@
-import 'dart:async';
-import 'package:universal_html/html.dart' as html;
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
 import 'package:sint/sint.dart';
 
 import '../../../utils/constants/release_translation_constants.dart';
 import '../release_upload_web_controller.dart';
+import 'release_web_dom_bridge.dart';
 
 /// Phase 1.5 (Album only): Name each track + set cover + publisher info.
 ///
@@ -29,8 +26,8 @@ class _ReleaseTracksPhaseState extends State<ReleaseTracksPhase> {
   /// Listeners live on `document.body`, which outlives this widget: without
   /// cancelling them a drop on any later page would still overwrite this
   /// release's cover, and each visit would stack another pair.
-  final List<StreamSubscription<html.Event>> _bodySubscriptions = [];
-  StreamSubscription<html.ProgressEvent>? _coverReaderSubscription;
+  void Function()? _disposeBodyDrop;
+  void Function()? _cancelCoverRead;
 
   @override
   void initState() {
@@ -40,24 +37,19 @@ class _ReleaseTracksPhaseState extends State<ReleaseTracksPhase> {
   }
 
   void _registerGlobalDropListener() {
-    // Prevent browser default drop behavior
-    final body = html.document.body;
-    if (body == null) return;
-    _bodySubscriptions.add(body.onDragOver.listen((e) => e.preventDefault()));
-    _bodySubscriptions.add(body.onDrop.listen((e) {
-      e.preventDefault();
-      e.stopPropagation();
-      // Any drop on the page while this phase is active → treat as cover
-      final files = e.dataTransfer.files;
-      if (files != null && files.isNotEmpty) {
-        final file = files.first;
-        final ext = file.name.split('.').last.toLowerCase();
-        if (['jpg', 'jpeg', 'png', 'webp'].contains(ext)) {
-          _handleDroppedCover(file);
+    _disposeBodyDrop = registerReleaseBodyDrop(
+      stopPropagation: true,
+      onDrop: (files) {
+        if (files.isNotEmpty) {
+          final file = files.first;
+          final ext = file.name.split('.').last.toLowerCase();
+          if (['jpg', 'jpeg', 'png', 'webp'].contains(ext)) {
+            _handleDroppedCover(file);
+          }
         }
-      }
-      if (mounted) setState(() => _isCoverDragOver = false);
-    }));
+        if (mounted) setState(() => _isCoverDragOver = false);
+      },
+    );
   }
 
   void _initTrackControllers() {
@@ -68,29 +60,28 @@ class _ReleaseTracksPhaseState extends State<ReleaseTracksPhase> {
     }
   }
 
-
-  void _handleDroppedCover(html.File file) {
+  void _handleDroppedCover(ReleaseDroppedFile file) {
     final ext = file.name.split('.').last.toLowerCase();
     if (!['jpg', 'jpeg', 'png', 'webp'].contains(ext)) return;
 
-    final reader = html.FileReader();
-    reader.readAsArrayBuffer(file);
-    _coverReaderSubscription?.cancel();
-    _coverReaderSubscription = reader.onLoadEnd.listen((_) {
-      if (reader.result == null || !mounted) return;
-      final bytes = Uint8List.fromList(reader.result as List<int>);
-      widget.controller.coverBytes.value = bytes;
-      widget.controller.coverFileName.value = file.name;
-    });
+    _cancelCoverRead?.call();
+    _cancelCoverRead = readReleaseDroppedFile(
+      file,
+      maxBytes: kMaxReleaseCoverBytes,
+      onLoaded: (bytes) {
+        if (!mounted) return;
+        widget.controller.coverBytes.value = bytes;
+        widget.controller.coverFileName.value = file.name;
+      },
+    );
   }
 
   @override
   void dispose() {
-    for (final subscription in _bodySubscriptions) {
-      subscription.cancel();
-    }
-    _bodySubscriptions.clear();
-    _coverReaderSubscription?.cancel();
+    _disposeBodyDrop?.call();
+    _disposeBodyDrop = null;
+    _cancelCoverRead?.call();
+    _cancelCoverRead = null;
     for (final c in _trackNameControllers) {
       c.dispose();
     }
@@ -390,16 +381,7 @@ class _ReleaseTracksPhaseState extends State<ReleaseTracksPhase> {
     }
 
     return GestureDetector(
-      onTap: () async {
-        try {
-          final input = html.FileUploadInputElement()..accept = 'image/*';
-          input.click();
-          await input.onChange.first;
-          if (input.files != null && input.files!.isNotEmpty) {
-            _handleDroppedCover(input.files!.first);
-          }
-        } catch (_) {}
-      },
+      onTap: ctrl.pickCoverImage,
       child: Container(
         width: double.infinity,
         decoration: BoxDecoration(
