@@ -222,6 +222,40 @@ class _ReleaseTracksPhaseState extends State<ReleaseTracksPhase> {
                                 '$sizeMb MB',
                                 style: TextStyle(color: Colors.grey[600], fontSize: 12),
                               ),
+                              if (ctrl.canMasterTracks) ...[
+                                const SizedBox(width: 8),
+                                ctrl.masteredTrackIndices.contains(i)
+                                    ? const Text(
+                                        '✓ Mastered',
+                                        style: TextStyle(
+                                          color: Colors.greenAccent,
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      )
+                                    : InkWell(
+                                        borderRadius: BorderRadius.circular(8),
+                                        onTap: () => ctrl.masterTrackAtIndex(context, i),
+                                        child: Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.auto_awesome, color: AppColor.bondiBlue, size: 14),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'Gig Master',
+                                                style: TextStyle(
+                                                  color: AppColor.bondiBlue,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                              ],
                               const SizedBox(width: 8),
                               // Remove button
                               InkWell(

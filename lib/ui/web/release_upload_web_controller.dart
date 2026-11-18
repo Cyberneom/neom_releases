@@ -11,6 +11,7 @@ import 'package:neom_core/domain/model/app_release_item.dart';
 import 'package:neom_core/domain/model/item_list.dart';
 import 'package:neom_core/domain/model/place.dart';
 import 'package:neom_core/domain/model/price.dart';
+import 'package:neom_core/domain/use_cases/mastering_service.dart';
 import 'package:neom_core/domain/use_cases/user_service.dart';
 import 'package:neom_core/utils/constants/data_assets.dart';
 import 'package:neom_core/utils/enums/app_currency.dart';
@@ -86,6 +87,7 @@ class ReleaseUploadWebController extends SintController {
   final Rx<Uint8List?> coverBytes = Rx(null);
   final RxString coverFileName = ''.obs;
   final RxList<PlatformFile> releaseFiles = <PlatformFile>[].obs;
+  final RxSet<int> masteredTrackIndices = <int>{}.obs;
 
   /// Track names for album uploads (one per file, editable by user).
   final RxList<String> trackNames = <String>[].obs;
@@ -214,6 +216,7 @@ class ReleaseUploadWebController extends SintController {
     shippingDaysController.clear();
     coverBytes.value = null;
     releaseFiles.clear();
+    masteredTrackIndices.clear();
     selectedInstruments.clear();
     selectedGenres.clear();
   }
@@ -316,6 +319,38 @@ class ReleaseUploadWebController extends SintController {
   void removeFile(int index) {
     if (index >= 0 && index < releaseFiles.length) {
       releaseFiles.removeAt(index);
+      masteredTrackIndices.remove(index);
+    }
+  }
+
+  bool get canMasterTracks =>
+      !isArtwork && !singleAcceptsPdf && Sint.isRegistered<MasteringService>();
+
+  Future<void> masterTrackAtIndex(BuildContext context, int index) async {
+    if (!canMasterTracks || index < 0 || index >= releaseFiles.length) return;
+    final file = releaseFiles[index];
+    final mastering = Sint.find<MasteringService>();
+    final result = await mastering.openMasteringForTrack(
+      context: context,
+      initialBytes: file.bytes,
+      fileName: file.name,
+      trackTitle: isSingle
+          ? titleController.text.trim()
+          : (index < trackNames.length ? trackNames[index] : file.name),
+      genreHint: selectedGenres.isNotEmpty
+          ? selectedGenres.first
+          : (selectedInstruments.isNotEmpty ? selectedInstruments.first : null),
+    );
+
+    if (result != null && result.bytes != null && result.bytes!.isNotEmpty) {
+      releaseFiles[index] = PlatformFile(
+        name: result.fileName,
+        size: result.bytes!.length,
+        bytes: result.bytes,
+      );
+      masteredTrackIndices.add(index);
+    } else if (result != null && result.hasMasterAsset) {
+      masteredTrackIndices.add(index);
     }
   }
 

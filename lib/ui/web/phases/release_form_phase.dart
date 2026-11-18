@@ -331,6 +331,30 @@ class _ReleaseFormPhaseState extends State<ReleaseFormPhase> {
                             ],
                           ),
                         ),
+                        if (ctrl.canMasterTracks)
+                          Padding(
+                            padding: const EdgeInsets.only(right: 4),
+                            child: ctrl.masteredTrackIndices.contains(i)
+                                ? Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      color: Colors.greenAccent.withAlpha(25),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Text(
+                                      '✓ Mastered',
+                                      style: TextStyle(color: Colors.greenAccent, fontSize: 11, fontWeight: FontWeight.w600),
+                                    ),
+                                  )
+                                : TextButton.icon(
+                                    onPressed: () => ctrl.masterTrackAtIndex(context, i),
+                                    icon: Icon(Icons.auto_awesome, color: AppColor.bondiBlue, size: 15),
+                                    label: Text(
+                                      'Gig Master',
+                                      style: TextStyle(color: AppColor.bondiBlue, fontSize: 12, fontWeight: FontWeight.w600),
+                                    ),
+                                  ),
+                          ),
                         IconButton(
                           icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
                           onPressed: () => ctrl.removeFile(i),

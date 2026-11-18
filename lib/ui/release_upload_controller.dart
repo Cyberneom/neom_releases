@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:neom_core/data/api/app_release_items.dart';
 import 'package:palette_generator/palette_generator.dart';
 import 'package:neom_commons/app_flavour.dart';
 import 'package:neom_commons/ui/theme/app_color.dart';
@@ -874,7 +875,15 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
             'galleryUrls=${releaseItem.galleryUrls?.length ?? 0} items');
 
         // Insert method will use existing ID if set, otherwise auto-generate
-        String releaseItemId = await AppReleaseItemFirestore().insert(releaseItem);
+        final repository = AppReleaseItems.repository;
+        final String releaseItemId;
+        if (repository is AppReleaseItemFirestore) {
+          // Preserve the legacy generated-ID result for apps still on Firebase.
+          releaseItemId = await repository.insert(releaseItem);
+        } else {
+          await repository.insert(releaseItem);
+          releaseItemId = releaseItem.id;
+        }
 
         // CRITICAL: Validate item creation in Firestore
         if (releaseItemId.isEmpty) {
