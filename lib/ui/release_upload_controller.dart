@@ -658,13 +658,30 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
       releaseItemlist.totalDuration = totalSecs;
       releaseItemlist.isExplicit = appReleaseItems.any((item) => item.isExplicit);
 
-      // Extract dominant color from cover image bytes
-      if (releaseCoverImgBytes != null) {
+      // Extract dominant color from cover image (web bytes or mobile file path)
+      // downscaled to 64x64 with a strict timeout so publishing never stalls.
+      Uint8List? coverBytesForColor = releaseCoverImgBytes;
+      if (coverBytesForColor == null &&
+          !kIsWeb &&
+          releaseCoverImgPath.value.isNotEmpty) {
+        try {
+          final coverFile = File(releaseCoverImgPath.value);
+          if (coverFile.existsSync() &&
+              coverFile.lengthSync() <= 20 * 1024 * 1024) {
+            coverBytesForColor = await coverFile.readAsBytes();
+          }
+        } catch (_) {}
+      }
+      if (coverBytesForColor != null && coverBytesForColor.isNotEmpty) {
         try {
           final scheme = await ColorScheme.fromImageProvider(
-            provider: MemoryImage(releaseCoverImgBytes!),
+            provider: ResizeImage.resizeIfNeeded(
+              64,
+              64,
+              MemoryImage(coverBytesForColor),
+            ),
             brightness: Brightness.dark,
-          );
+          ).timeout(const Duration(seconds: 5));
           final candidates = <Color>[
             scheme.primary,
             scheme.primaryContainer,
@@ -675,9 +692,9 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
           for (final candidate in candidates) {
             final hsl = HSLColor.fromColor(candidate);
             if (candidate.a > 0 &&
-                hsl.saturation >= 0.12 &&
-                hsl.lightness >= 0.12 &&
-                hsl.lightness <= 0.88) {
+                hsl.saturation >= 0.14 &&
+                hsl.lightness >= 0.24 &&
+                hsl.lightness <= 0.85) {
               color = candidate;
               break;
             }
@@ -692,7 +709,7 @@ class ReleaseUploadController extends SintController with SintTickerProviderStat
             }
           }
         } catch (e) {
-          AppConfig.logger.w("Failed to extract dominant color from cover bytes: $e");
+          AppConfig.logger.w("Failed to extract dominant color from cover: $e");
         }
       }
 

@@ -372,53 +372,106 @@ class ReleaseUploadWebController extends SintController {
     selectedGenre.value = selectedGenres.isNotEmpty ? selectedGenres.first : '';
   }
 
+  static const int _maxCoverBytes = 20 * 1024 * 1024;
+  static const int _maxMediaBytes = 150 * 1024 * 1024;
+  static const int _maxReleaseFiles = 64;
+
+  Future<Uint8List?> _readBoundedFileBytes(
+    PlatformFile file, {
+    required int maxBytes,
+  }) async {
+    final knownSize = file.lengthSync() ?? await file.length();
+    if (knownSize != null && (knownSize <= 0 || knownSize > maxBytes)) {
+      return null;
+    }
+    final builder = BytesBuilder(copy: false);
+    await for (final chunk in file.readAsByteStream()) {
+      if (builder.length + chunk.length > maxBytes) {
+        return null;
+      }
+      builder.add(chunk);
+    }
+    final bytes = builder.takeBytes();
+    return bytes.isEmpty ? null : bytes;
+  }
+
   // ── File picking ──
   Future<void> pickCoverImage() async {
-    final picked = await FilePicker.pickFile(
-      type: FileType.image,
-    );
-    if (picked != null) {
-      final bytes = await picked.readAsBytes();
-      if (bytes.isNotEmpty) {
+    try {
+      final picked = await FilePicker.pickFile(
+        type: FileType.image,
+      );
+      if (picked == null) return;
+      final bytes = await _readBoundedFileBytes(
+        picked,
+        maxBytes: _maxCoverBytes,
+      );
+      if (bytes != null && bytes.isNotEmpty) {
         coverBytes.value = bytes;
-        coverFileName.value = picked.name;
+        coverFileName.value = picked.name.trim();
       }
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_releases',
+        operation: 'pickCoverImage',
+      );
     }
   }
 
   Future<void> pickReleaseFiles() async {
-    final List<PlatformFile> pickedFiles;
-    if (isAlbum || isArtwork) {
-      pickedFiles = await FilePicker.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: acceptedExtensions,
-      );
-    } else {
-      final single = await FilePicker.pickFile(
-        type: FileType.custom,
-        allowedExtensions: acceptedExtensions,
-      );
-      pickedFiles = single == null ? const [] : <PlatformFile>[single];
-    }
-    if (pickedFiles.isNotEmpty) {
+    try {
+      final List<PlatformFile> pickedFiles;
+      if (isAlbum || isArtwork) {
+        pickedFiles = await FilePicker.pickFiles(
+          type: FileType.custom,
+          allowedExtensions: acceptedExtensions,
+        );
+      } else {
+        final single = await FilePicker.pickFile(
+          type: FileType.custom,
+          allowedExtensions: acceptedExtensions,
+        );
+        pickedFiles = single == null ? const [] : <PlatformFile>[single];
+      }
+      if (pickedFiles.isEmpty) return;
+
+      final remainingSlots = isSingle
+          ? 1
+          : (_maxReleaseFiles - releaseFiles.length).clamp(0, _maxReleaseFiles);
+      if (remainingSlots <= 0) return;
+
       final loaded = <PlatformFile>[];
-      for (final f in pickedFiles) {
-        final data = await f.readAsBytes();
+      for (final f in pickedFiles.take(remainingSlots)) {
+        final data = await _readBoundedFileBytes(
+          f,
+          maxBytes: _maxMediaBytes,
+        );
+        if (data == null) continue;
         loaded.add(
           ReleasePickedFile(
-            name: f.name,
-            size: data.isNotEmpty ? data.length : (f.lengthSync() ?? 0),
+            name: f.name.trim(),
+            size: data.length,
             bytes: data,
             path: f.path,
             uri: f.uri,
           ),
         );
       }
+      if (loaded.isEmpty) return;
       if (isSingle) {
         releaseFiles.assignAll([loaded.first]);
       } else {
         releaseFiles.addAll(loaded);
       }
+    } catch (e, st) {
+      NeomErrorLogger.recordError(
+        e,
+        st,
+        module: 'neom_releases',
+        operation: 'pickReleaseFiles',
+      );
     }
   }
 
